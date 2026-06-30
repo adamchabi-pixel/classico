@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { 
   X, Play, Star, Clock, User, Film, Info, 
   Volume2, VolumeX, Pause, RotateCcw, Captions,
-  Maximize2, Check, Plus, AlertCircle, Sparkles
+  Maximize2, Check, Plus, AlertCircle, Sparkles, ArrowLeft
 } from "lucide-react";
 import { Movie } from "../data";
 import VideoPlayer from "./VideoPlayer";
@@ -94,13 +94,13 @@ export default function MovieModal({
           transition={{ type: "spring", damping: 25, stiffness: 200 }}
           className={`relative w-full max-w-4xl bg-stone-950 rounded-2xl overflow-hidden shadow-2xl border border-neutral-800/80 max-h-[92vh] flex flex-col z-10`}
         >
-          {/* Top Close Button */}
+          {/* Top Back Button */}
           <button
             id="close-modal-btn"
             onClick={onClose}
-            className="absolute top-4 right-4 z-40 bg-black/70 hover:bg-black text-white hover:text-amber-400 p-2.5 rounded-full border border-neutral-800 hover:border-amber-400/50 transition-all duration-200 active:scale-90"
+            className="absolute top-4 left-4 sm:top-6 sm:left-6 z-40 bg-black/40 hover:bg-black/70 backdrop-blur-sm text-white hover:text-amber-400 p-2.5 rounded-full border border-neutral-800/50 hover:border-amber-400/50 transition-all duration-200 active:scale-90"
           >
-            <X className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5" />
           </button>
 
           {!isPlaying ? (
@@ -109,7 +109,7 @@ export default function MovieModal({
             /* ========================================================== */
             <div className="overflow-y-auto custom-scrollbar flex-grow">
               {/* Grand Banner Backdrop of the Movie */}
-              <div id={`modal-banner-${movie.id}`} className={`relative h-[250px] sm:h-[380px] w-full bg-gradient-to-r ${movie.gradient} flex items-end p-6 sm:p-10 overflow-hidden`}>
+              <div id={`modal-banner-${movie.id}`} className={`relative h-[280px] sm:h-[400px] w-full bg-gradient-to-r ${movie.gradient} flex items-end p-6 sm:p-10 overflow-hidden`}>
                 
                 {/* Decorative glowing spotlight lines */}
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.05),transparent)] pointer-events-none" />
@@ -121,66 +121,56 @@ export default function MovieModal({
                   {movie.symbol}
                 </div>
 
-                <div className="relative z-20 max-w-2xl space-y-4">
+                <div className="relative z-20 max-w-2xl space-y-3">
                   
-                  {/* Connection badges */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={`inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-widest px-3 py-1 rounded-md border ${movie.accentColor}`}>
-                      <Film className="w-3.5 h-3.5" />
-                      Collection {movie.id.includes("sw-") ? "Star Wars" : movie.year > 2000 && !movie.id.includes("indy") ? "Cinéma Moderne" : "Collection Culte"}
-                    </span>
-
-                    {jellyfinStreamUrl && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-md animate-pulse">
-                        <Sparkles className="w-3 h-3 fill-amber-400" />
-                        Médiathèque Connectée
-                      </span>
-                    )}
-                  </div>
-
                   {/* Mega Metallic Title */}
                   <h1 className="text-3xl sm:text-5xl font-forum font-bold text-white uppercase tracking-wider leading-none drop-shadow-md">
                     {movie.title}
                   </h1>
 
-                  <p className="text-[#f4ecd8] font-signature text-2xl sm:text-3xl leading-relaxed select-none filter drop-shadow-[0_0_4px_rgba(244,236,216,0.2)]">
-                    « {movie.tagline} »
-                  </p>
+                  {/* Ligne de Métadonnées Unique et Propre */}
+                  <div className="flex flex-row items-center gap-3 text-zinc-300 font-sans text-xs sm:text-sm font-medium pt-1">
+                    <div className="flex items-center gap-1 text-amber-400">
+                      <Star className="w-3.5 h-3.5 fill-amber-400" />
+                      <span>{movie.rating}/10</span>
+                    </div>
+                    <span className="opacity-40">•</span>
+                    <span>{movie.year}</span>
+                    <span className="opacity-40">•</span>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>{movie.duration}</span>
+                    </div>
+                  </div>
 
-                  {/* Quick Action Buttons */}
-                  <div className="flex flex-wrap items-center gap-3 pt-2">
+                  {/* Petit Bouton de Lecture Doré et Liste */}
+                  <div className="flex flex-row items-center gap-3 pt-2">
                     <button
                       id="play-movie-trigger"
                       onClick={() => {
                         (window as any).moviePlayClickTime = performance.now();
-                        console.log("%c[CHRONO LECTEUR] Clic sur le film : 0.000s (Début du flux via Modal)", "color: #a855f7; font-weight: bold; font-size: 13px;");
                         setIsPlaying(true);
                       }}
-                      className="flex items-center gap-2 gold-button px-6 py-3 rounded-xl text-sm active:scale-95 transition-all duration-200 cursor-pointer"
+                      className="inline-flex items-center justify-center gap-2 gold-button px-6 py-2.5 rounded-full text-sm font-semibold transition-all"
                     >
                       <Play className="w-4 h-4 fill-current" />
-                      {jellyfinStreamUrl ? "Regarder le Film" : "Regarder le Film"}
+                      Lecture
                     </button>
 
                     <button
                       id="toggle-watchlist-trigger"
                       onClick={onToggleBookmark}
-                      className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold border transition-all duration-200 active:scale-95 ${
+                      className={`inline-flex items-center justify-center p-2.5 rounded-full border transition-all duration-200 active:scale-95 ${
                         isBookmarked
-                          ? "bg-[#f4ecd8]/10 border-[#f4ecd8]/50 text-[#f4ecd8]"
-                          : "bg-neutral-900 border-neutral-700/80 hover:bg-neutral-800 text-zinc-300"
+                          ? "bg-amber-400/10 border-amber-400/50 text-amber-400"
+                          : "bg-black/40 border-white/20 hover:bg-black/60 text-zinc-300 hover:text-white"
                       }`}
+                      title={isBookmarked ? "Dans ma Liste" : "Ajouter à ma Liste"}
                     >
                       {isBookmarked ? (
-                        <>
-                          <Check className="w-4 h-4" />
-                          Dans ma Liste
-                        </>
+                        <Check className="w-4 h-4" />
                       ) : (
-                        <>
-                          <Plus className="w-4 h-4" />
-                          Ajouter à ma Liste
-                        </>
+                        <Plus className="w-4 h-4" />
                       )}
                     </button>
                   </div>
@@ -259,9 +249,9 @@ export default function MovieModal({
                     {/* Genre Tags */}
                     <div className="space-y-2 pt-1">
                       <span className="text-zinc-400 block text-xs">Genres</span>
-                      <div className="flex flex-wrap gap-1.5">
+                      <div className="flex overflow-x-auto no-scrollbar flex-nowrap md:flex-wrap gap-1.5 pb-1 md:pb-0">
                         {movie.genre.map((g, idx) => (
-                          <span key={idx} className="bg-zinc-800/60 text-zinc-300 text-[11px] font-mono px-2.5 py-1 rounded-md border border-zinc-700/30">
+                          <span key={idx} className="whitespace-nowrap bg-zinc-800/60 text-zinc-300 text-[11px] font-mono px-2 py-1 md:px-2.5 md:py-1 rounded-md border border-zinc-700/30">
                             {g}
                           </span>
                         ))}

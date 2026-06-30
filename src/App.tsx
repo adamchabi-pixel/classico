@@ -4,7 +4,7 @@ import {
   Search, Play, Film, Info, Heart, Award, 
   ChevronLeft, ChevronRight, ChevronDown, User, Tv, Clock, 
   Sparkles, History, Compass, FilmIcon, BookmarkCheck,
-  Star, CheckCircle, AlertCircle, RefreshCw, X, Shield
+  Star, CheckCircle, AlertCircle, RefreshCw, X, Shield, Menu
 } from "lucide-react";
 import { COLLECTIONS as RAW_COLLECTIONS, Movie, Collection } from "./data";
 
@@ -34,44 +34,6 @@ const COLLECTION_BANNERS: Record<string, string> = {
   "rocky": "/src/assets/images/rocky_banner_1781396548528.jpg",
   "terminator": "/src/assets/images/terminator_banner_1781396559445.jpg",
   "fast-and-furious": "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=80&w=1200&auto=format&fit=crop"
-};
-
-// -------------------------------------------------------------
-// STABLE INTERSTELLAR LOGO WITH TRIPLE FALLBACK
-// -------------------------------------------------------------
-const InterstellarLogoImage: React.FC = () => {
-  const [errorCount, setErrorCount] = useState(0);
-
-  // Fallback 3: Gorgeously designed text representation mimicking Interstellar's pristine typography
-  if (errorCount >= 2) {
-    return (
-      <div className="flex flex-col items-start gap-1 select-none py-1">
-        <h1 className="text-3xl sm:text-5xl md:text-6xl font-light tracking-[0.22em] sm:tracking-[0.3em] text-white uppercase leading-none font-sans drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
-          INTERSTELLAR
-        </h1>
-        <div className="w-24 sm:w-32 h-0.5 bg-gradient-to-r from-zinc-200/40 via-zinc-200/80 to-transparent" />
-      </div>
-    );
-  }
-
-  // Fallback chain: 1) Wikimedia SVG (Fast, robust, public, transparent), 2) Fanart TV clearlogo PNG
-  const sources = [
-    "https://upload.wikimedia.org/wikipedia/commons/e/e0/Interstellar_film_logo.svg",
-    "https://images.fanart.tv/fanart/movies/157336/hdmovieclearlogo/interstellar-547e1fece74e4.png"
-  ];
-
-  return (
-    <img
-      src={sources[errorCount]}
-      alt="Interstellar Logo"
-      className="h-9 sm:h-12 md:h-14 lg:h-16 object-contain max-w-[85%] sm:max-w-[70%] md:max-w-[60%] select-none pointer-events-none my-2 transition-all duration-300 brightness-0 invert drop-shadow-[0_4px_12px_rgba(0,0,0,0.95)]"
-      onError={() => {
-        console.warn(`Interstellar logo source ${errorCount + 1} failed, trying next fallback...`);
-        setErrorCount(prev => prev + 1);
-      }}
-      referrerPolicy="no-referrer"
-    />
-  );
 };
 
 // -------------------------------------------------------------
@@ -606,8 +568,8 @@ const FRANCHISES = [
     title: "(fast and Furious)",
     pattern: /\b(fast\s*(and|&)?\s*furious|tokyo\s*drift|fast\s*(five|5|6|7|8|9|10)|furious\s*(7|8)|hobbs\s*(&|and)\s*shaw)\b/i,
     description: "Vitesse, grosses cylindrées, famille et cascades spectaculaires. L'intégrale de la saga légendaire d'action propulsée par Justin Lin.",
-    gradient: "from-neutral-900 via-orange-950/40 to-neutral-950",
-    accentColor: "text-orange-400 border-orange-500/30 bg-orange-500/10",
+    gradient: "from-neutral-900 via-amber-950/40 to-neutral-950",
+    accentColor: "text-amber-400 border-amber-500/30 bg-amber-500/10",
     accentHex: "#fb923c",
     symbol: "🚗💨🔥"
   }
@@ -684,6 +646,15 @@ function enrichDynamicMovie(m: Movie, contextID: string): Movie {
 export default function App() {
   const [activeTab, setActiveTab ] = useState<"accueil" | "collections" | "profil" | "collection-detail" | "movie" | "player">("accueil");
   const [routePath, setRoutePath] = useState(window.location.pathname);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Synchronize custom router state with HTML5 pushState
   useEffect(() => {
@@ -729,8 +700,8 @@ export default function App() {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [history, setHistory] = useState<string[]>([]);
+  const [progressData, setProgressData] = useState<Record<string, number>>({});
   const [startAsPlaying, setStartAsPlaying] = useState(false);
-  const [featuredMovie, setFeaturedMovie] = useState<Movie | null>(null);
   const [jellyfinHeroMovies, setJellyfinHeroMovies] = useState<any[]>([]);
   const [currentHeroIndex, setCurrentHeroIndex] = useState<number>(0);
   const [direction, setDirection] = useState<number>(1);
@@ -997,6 +968,8 @@ export default function App() {
   const hoveredCarousels = useRef<Record<string, boolean>>({});
   const scrollPositions = useRef<Record<string, number>>({});
   const rowSpeedMultipliers = useRef<Record<string, number>>({});
+  const heroTouchStartX = useRef<number | null>(null);
+
 
   const handleRecalculateSagas = async () => {
     setIsRecalculating(true);
@@ -1182,6 +1155,16 @@ export default function App() {
         console.error(e);
       }
     }
+    
+    // Progress persistence
+    const savedProgress = localStorage.getItem("classico_progress");
+    if (savedProgress) {
+      try {
+        setProgressData(JSON.parse(savedProgress));
+      } catch (e) {
+        console.error(e);
+      }
+    }
 
     // Check Jellyfin server configuration status
     const checkJellyfinSetup = async () => {
@@ -1261,15 +1244,6 @@ export default function App() {
     };
     checkJellyfinSetup();
 
-    // Set a random spectacular movie in Christopher Nolan or John Wick collection as featured spotlight
-    const nolanCollection = COLLECTIONS.find(c => c.id === "christopher-nolan");
-    if (nolanCollection && nolanCollection.movies.length > 1) {
-      // Pick "Interstellar"
-      const interstellar = nolanCollection.movies.find(m => m.id === "interstellar");
-      setFeaturedMovie(interstellar || nolanCollection.movies[0]);
-    } else {
-      setFeaturedMovie(COLLECTIONS[0].movies[0]);
-    }
   }, []);
 
   const handleToggleWatchlist = (movieID: string) => {
@@ -1385,6 +1359,10 @@ export default function App() {
     return allMovies.find(m => m.id === targetId) || null;
   }, [routePath, allMovies]);
 
+  // Mobile interaction states
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+
   // Intercept and return the standalone full-screen cinema view with zero overlay UI
   if (activeTab === "player") {
     const pId = routePath.startsWith("/player/") ? routePath.slice("/player/".length) : "";
@@ -1409,12 +1387,12 @@ export default function App() {
       {/* ========================================================== */}
       {/* 1. FIXED GLASS HEADER BAR                                 */}
       {/* ========================================================== */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-black/90 backdrop-blur-md border-b border-white/5 transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-2 md:py-3.5 flex flex-col md:flex-row items-center justify-between gap-2.5 md:gap-4 font-sans">
+      <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ease-in-out border-b ${isScrolled ? "bg-black border-white/5" : "bg-black border-transparent"}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-2 md:py-3.5 flex flex-row items-center justify-between gap-2.5 md:gap-4 font-sans w-full">
           
           {/* Logo CLASSICO with Metallic Gold Reflection */}
           <div 
-            className="flex flex-col items-center cursor-pointer group select-none py-0.5 md:py-1"
+            className="flex flex-col items-center cursor-pointer group select-none py-0.5 md:py-1 shrink-0"
             onClick={() => {
               navigateTo("/");
               setSearchQuery("");
@@ -1431,71 +1409,134 @@ export default function App() {
             </span>
           </div>
 
-          {/* Interactive Search Field Bar */}
-          <div className="relative w-full md:max-w-xs lg:max-w-sm group font-sans">
-            <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-amber-400 transition-colors duration-200">
-              <Search className="w-3.5 h-3.5" />
-            </span>
-            <input
-              id="global-search-input"
-              type="text"
-              placeholder="Rechercher un film, réalisateur..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-neutral-900/90 hover:bg-neutral-900 border border-neutral-800 text-stone-100 placeholder-zinc-500 text-[11px] sm:text-xs pl-9 pr-4 py-1.5 md:py-2 rounded-full focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all duration-200 shadow-inner group-hover:border-zinc-700/80 font-sans"
-            />
-            {searchQuery && (
-              <button
-                id="clear-search-btn"
-                onClick={() => setSearchQuery("")}
-                className="absolute inset-y-0 right-3 flex items-center text-zinc-500 hover:text-white text-[10px] font-mono"
-              >
-                EFFACER
-              </button>
-            )}
-          </div>
-
-          {/* Navigation Controls Menu */}
-          <nav className="flex items-center gap-1 sm:gap-2 font-sans">
-            {[
-              { id: "accueil", label: "Accueil", icon: Compass },
-              { id: "collections", label: "Collections", icon: FilmIcon },
-              { id: "profil", label: "Mon Profil", icon: User }
-            ].map((tab) => {
-              const IconComp = tab.icon;
-              const isActive = activeTab === tab.id && searchQuery === "";
-              return (
+          {/* Desktop Search & Nav (hidden on mobile), Mobile Action Buttons */}
+          <div className="flex items-center gap-3 w-full justify-end">
+            
+            {/* Interactive Search Field Bar (Desktop always, Mobile conditionally visible) */}
+            <div className={`relative w-full md:max-w-xs lg:max-w-sm group font-sans transition-all duration-300 ${isMobileSearchOpen ? 'block' : 'hidden md:block'}`}>
+              <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-amber-400 transition-colors duration-200">
+                <Search className="w-3.5 h-3.5" />
+              </span>
+              <input
+                id="global-search-input"
+                type="text"
+                placeholder="Rechercher un film, réalisateur..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-neutral-900/90 hover:bg-neutral-900 border border-neutral-800 text-stone-100 placeholder-zinc-500 text-[11px] sm:text-xs pl-9 pr-4 py-1.5 md:py-2 rounded-full focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all duration-200 shadow-inner group-hover:border-zinc-700/80 font-sans"
+              />
+              {searchQuery && (
                 <button
-                  id={`nav-tab-${tab.id}`}
-                  key={tab.id}
-                  onClick={() => {
-                    navigateTo(tab.id === "accueil" ? "/" : `/${tab.id}`);
-                    setSearchQuery("");
-                  }}
-                  className={`relative flex items-center gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-full text-[10px] sm:text-xs font-semibold tracking-wider transition-all duration-250 font-sans ${
-                    isActive
-                      ? "gold-button scale-102"
-                      : "text-zinc-400 hover:text-white hover:bg-neutral-900/50"
-                  }`}
+                  id="clear-search-btn"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute inset-y-0 right-3 flex items-center text-zinc-500 hover:text-white text-[10px] font-mono"
                 >
-                  <IconComp className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                  {tab.label}
-                  {tab.id === "profil" && watchlist.length > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-[8px] text-white font-mono rounded-full flex items-center justify-center border border-black font-extrabold shadow-sm animate-pulse">
-                      {watchlist.length}
-                    </span>
-                  )}
+                  EFFACER
                 </button>
-              );
-            })}
-          </nav>
+              )}
+            </div>
 
+            {/* Mobile Actions: Search Toggle & Hamburger (hidden on md) */}
+            <div className="flex md:hidden items-center gap-2 shrink-0">
+              {!isMobileSearchOpen && (
+                <button 
+                  onClick={() => setIsMobileSearchOpen(true)}
+                  className="p-2 text-zinc-400 hover:text-amber-400 transition-colors"
+                >
+                  <Search className="w-5 h-5" />
+                </button>
+              )}
+              <button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2 text-zinc-300 hover:text-amber-400 transition-colors z-50 relative"
+              >
+                {isMobileMenuOpen ? <X strokeWidth={1.5} className="w-7 h-7" /> : <Menu strokeWidth={1.5} className="w-7 h-7" />}
+              </button>
+            </div>
+
+            {/* Desktop Navigation Controls Menu */}
+            <nav className="hidden md:flex items-center gap-1 sm:gap-2 font-sans">
+              {[
+                { id: "accueil", label: "Accueil", icon: Compass },
+                { id: "collections", label: "Bibliothèque", icon: FilmIcon },
+                { id: "profil", label: "Profil", icon: User }
+              ].map((tab) => {
+                const IconComp = tab.icon;
+                const isActive = activeTab === tab.id && searchQuery === "";
+                return (
+                  <button
+                    id={`nav-tab-${tab.id}`}
+                    key={tab.id}
+                    onClick={() => {
+                      navigateTo(tab.id === "accueil" ? "/" : `/${tab.id}`);
+                      setSearchQuery("");
+                    }}
+                    className={`relative flex items-center gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-full text-[10px] sm:text-xs font-semibold tracking-wider transition-all duration-250 font-sans ${
+                      isActive
+                        ? "gold-button scale-102"
+                        : "text-zinc-400 hover:text-white hover:bg-neutral-900/50"
+                    }`}
+                  >
+                    <IconComp className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    {tab.label}
+                    {tab.id === "profil" && watchlist.length > 0 && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-[8px] text-white font-mono rounded-full flex items-center justify-center border border-black font-extrabold shadow-sm animate-pulse">
+                        {watchlist.length}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
         </div>
+
+        {/* Mobile Menu Drawer */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="md:hidden absolute top-16 right-4 w-48 bg-black/75 backdrop-blur-md overflow-hidden border border-white/5 rounded-2xl shadow-2xl origin-top-right"
+            >
+              <nav className="flex flex-col py-2 px-2 gap-1">
+                {[
+                  { id: "accueil", label: "Accueil", icon: Compass },
+                  { id: "collections", label: "Bibliothèque", icon: FilmIcon },
+                  { id: "profil", label: "Profil", icon: User }
+                ].map((tab) => {
+                  const IconComp = tab.icon;
+                  const isActive = activeTab === tab.id && searchQuery === "";
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        navigateTo(tab.id === "accueil" ? "/" : `/${tab.id}`);
+                        setSearchQuery("");
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium tracking-wide transition-all duration-300 w-full text-left ${
+                        isActive
+                          ? "bg-amber-500/10 text-amber-400"
+                          : "text-zinc-300 hover:text-white hover:bg-white/5"
+                      }`}
+                    >
+                      <IconComp strokeWidth={2} className={`w-4 h-4 ${isActive ? "text-amber-400" : "text-zinc-400"}`} />
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* Spacing for Fixed Header - Hidden for the home tab's Hero section to allow full screen 100vh display */}
       {(activeTab !== "accueil" || searchQuery.trim() !== "") && (
-        <div className="h-[120px] md:h-[72px]" />
+        <div className="h-[80px] md:h-[72px]" />
       )}
 
       {/* ========================================================== */}
@@ -1524,7 +1565,7 @@ export default function App() {
               </div>
 
               {searchedMovies.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 pt-2 justify-items-center">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6 pt-2 justify-items-center">
                   {searchedMovies.map((movie, idx) => (
                     <LazyVirtualCard key={`${movie.id}-search-${idx}`}>
                       <MovieCard
@@ -1562,7 +1603,30 @@ export default function App() {
               {isHeroLoading ? (
                 <HeroSkeleton />
               ) : jellyfinConfig?.configured && jellyfinHeroMovies.length > 0 && jellyfinHeroMovie ? (
-                <div className="relative w-full h-[70vh] sm:h-[85vh] md:h-screen bg-stone-950 overflow-hidden flex items-end select-none">
+                <div 
+                  className="relative w-full h-[85vh] md:h-screen bg-stone-950 overflow-hidden flex items-end select-none"
+                  onTouchStart={(e) => {
+                    heroTouchStartX.current = e.touches[0].clientX;
+                  }}
+                  onTouchEnd={(e) => {
+                    if (heroTouchStartX.current === null) return;
+                    const touchEndX = e.changedTouches[0].clientX;
+                    const diff = heroTouchStartX.current - touchEndX;
+                    
+                    if (Math.abs(diff) > 50) { // threshold for swipe
+                      if (diff > 0 && jellyfinHeroMovies.length > 1) {
+                        // Swiped left, go to next
+                        setDirection(1);
+                        setCurrentHeroIndex((prev) => (prev + 1) % jellyfinHeroMovies.length);
+                      } else if (diff < 0 && jellyfinHeroMovies.length > 1) {
+                        // Swiped right, go to prev
+                        setDirection(-1);
+                        setCurrentHeroIndex((prev) => (prev - 1 + jellyfinHeroMovies.length) % jellyfinHeroMovies.length);
+                      }
+                    }
+                    heroTouchStartX.current = null;
+                  }}
+                >
                   
                   <AnimatePresence initial={false} custom={direction}>
                     <motion.div
@@ -1587,8 +1651,8 @@ export default function App() {
                       animate="center"
                       exit="exit"
                       transition={{
-                        x: { type: "tween", duration: 0.8, ease: [0.25, 1, 0.5, 1] },
-                        opacity: { duration: 0.6, ease: "easeInOut" }
+                        x: { type: "spring", stiffness: 220, damping: 25, mass: 0.8 },
+                        opacity: { duration: 0.4, ease: "easeInOut" }
                       }}
                       style={{ willChange: "transform" }}
                       className="absolute inset-0 w-full h-full flex items-end"
@@ -1616,10 +1680,7 @@ export default function App() {
 
                       {/* Progressive cinematic bottom-to-top black gradient that separates the hero from the thematic library below */}
                       <div 
-                        className="absolute inset-0 z-10 pointer-events-none" 
-                        style={{
-                          background: "linear-gradient(to top, #0c0a09 0%, rgba(12, 10, 9, 0.95) 15%, rgba(12, 10, 9, 0.75) 40%, rgba(12, 10, 9, 0.2) 75%, transparent 100%)"
-                        }}
+                        className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-t from-black via-black/50 to-transparent md:!bg-[linear-gradient(to_top,#0c0a09_0%,rgba(12,10,9,0.95)_15%,rgba(12,10,9,0.75)_40%,rgba(12,10,9,0.2)_75%,transparent_100%)]" 
                       />
 
                       {/* Spotlight Content and Description Box with high contrast text drop-shadows */}
@@ -1677,20 +1738,22 @@ export default function App() {
                           )}
 
                           {/* Premium Discrete Pills / Badges for movie tags */}
-                           <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 text-[8.5px] sm:text-[9.5px] font-mono uppercase tracking-[0.08em]">
-                            {jellyfinHeroMovie.genre && jellyfinHeroMovie.genre.slice(0, 3).map((g: string) => (
-                              <span key={g} className="px-1.5 py-0.5 bg-white/5 border border-white/10 hover:border-white/20 text-zinc-300 rounded-full font-sans font-bold tracking-wider transition-colors duration-200">
-                                {g}
-                              </span>
-                            ))}
-                            <span className="px-1.5 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold tracking-wider rounded-full">
+                           <div className="flex w-full justify-start items-center gap-1.5 text-[10px] md:text-[9.5px] font-mono uppercase tracking-[0.08em] pb-1 md:pb-0">
+                            <div className="hidden md:flex items-center gap-1.5">
+                              {jellyfinHeroMovie.genre && jellyfinHeroMovie.genre.slice(0, 4).map((g: string) => (
+                                <span key={g} className="whitespace-nowrap px-1.5 py-0.5 bg-white/5 border border-white/10 hover:border-white/20 text-zinc-300 rounded-full font-sans font-bold tracking-wider transition-colors duration-200">
+                                  {g}
+                                </span>
+                              ))}
+                            </div>
+                            <span className="whitespace-nowrap px-1.5 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold tracking-wider rounded-full">
                               {jellyfinHeroMovie.year}
                             </span>
-                            <span className="px-1.5 py-0.5 bg-white/5 border border-white/10 text-zinc-400 tracking-wider rounded-full">
+                            <span className="whitespace-nowrap px-1.5 py-0.5 bg-white/5 border border-white/10 text-zinc-400 tracking-wider rounded-full">
                               {jellyfinHeroMovie.duration}
                             </span>
                             {jellyfinHeroMovie.rating && jellyfinHeroMovie.rating !== "N/A" && (
-                              <span className="px-1.5 py-0.5 bg-white/5 border border-white/10 text-zinc-300 font-bold tracking-wider rounded-full">
+                              <span className="whitespace-nowrap px-1.5 py-0.5 bg-white/5 border border-white/10 text-zinc-300 font-bold tracking-wider rounded-full">
                                 <span className="text-amber-500 font-extrabold mr-0.5">★</span>{jellyfinHeroMovie.rating}
                               </span>
                             )}
@@ -1698,7 +1761,7 @@ export default function App() {
 
                           {/* Movie Description: Stricter clamping for a lighter card feeling (max 2/3 lines limit) */}
                           <p 
-                            className="text-zinc-300 text-[11px] sm:text-xs md:text-sm leading-relaxed font-sans filter drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)] line-clamp-2 md:line-clamp-3 overflow-hidden text-ellipsis whitespace-normal"
+                            className="text-zinc-300 text-[11px] sm:text-xs md:text-sm leading-relaxed font-sans filter drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)] line-clamp-2 md:line-clamp-3 overflow-hidden text-ellipsis whitespace-normal max-w-[70%] md:max-w-full"
                             style={{ textShadow: "0 2px 8px rgba(0,0,0,0.95), 0 1px 3px rgba(0,0,0,0.95)" }}
                           >
                             {jellyfinHeroMovie.description}
@@ -1732,7 +1795,7 @@ export default function App() {
                   </AnimatePresence>
 
                   {/* Carousel Dots Navigation Indicator at the bottom center */}
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30 flex items-center gap-2 bg-stone-950/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/5 shadow-lg">
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30 flex items-center gap-1.5 bg-stone-950/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/5 shadow-lg">
                     {jellyfinHeroMovies.map((_, idx) => (
                       <button
                         key={idx}
@@ -1740,10 +1803,10 @@ export default function App() {
                           setDirection(idx > currentHeroIndex ? 1 : -1);
                           setCurrentHeroIndex(idx);
                         }}
-                        className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                        className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
                           idx === currentHeroIndex 
-                            ? "w-6 bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#B38728] shadow-[0_0_10px_rgba(252,246,186,0.8)]" 
-                            : "w-2 bg-zinc-500/75 hover:bg-zinc-400"
+                            ? "w-4 bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#B38728] shadow-[0_0_10px_rgba(252,246,186,0.8)]" 
+                            : "w-1.5 bg-zinc-500/75 hover:bg-zinc-400"
                         }`}
                         title={`Aller au film ${idx + 1}`}
                         aria-label={`Aller au film ${idx + 1}`}
@@ -1752,117 +1815,76 @@ export default function App() {
                   </div>
 
                 </div>
-              ) : featuredMovie && (
-                <div className="relative w-full h-[70vh] sm:h-[85vh] md:h-screen bg-stone-950 overflow-hidden flex items-end select-none">
-                  
-                  {/* Cinematic background image wrapper covering the full width */}
-                  <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
-                    <motion.img
-                      src={featuredMovie.backdropUrl || CLASSICO_HERO_BACKDROP}
-                      alt={featuredMovie.title}
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover"
-                      style={{ objectPosition: "center top", willChange: "transform" }}
-                      animate={{ 
-                        scale: [1.02, 1.05, 1.02],
-                        x: [0, 4, 0],
-                        y: [0, -2, 0]
-                      }}
-                      transition={{
-                        duration: 40,
-                        repeat: Infinity,
-                        ease: "linear",
-                      }}
-                    />
-                  </div>
-
-                  {/* Progressive cinematic bottom-to-top black gradient that separates the hero from the thematic library below */}
-                  <div 
-                    className="absolute inset-0 z-10 pointer-events-none" 
-                    style={{
-                      background: "linear-gradient(to top, #0c0a09 0%, rgba(12, 10, 9, 0.95) 15%, rgba(12, 10, 9, 0.75) 40%, rgba(12, 10, 9, 0.2) 75%, transparent 100%)"
-                    }}
-                  />
-
-                  {/* Spotlight Content and Description Box with high contrast text drop-shadows */}
-                  <div className="relative z-20 max-w-7xl mx-auto w-full px-4 sm:px-12 pb-8 sm:pb-24 pt-20 sm:pt-36 md:pt-28 flex flex-col items-start text-left">
-                    
-                    {/* Fade-in Text Section Wrapper */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 24 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-                      className="space-y-4 sm:space-y-5 w-full md:max-w-[35%] lg:max-w-[35%] min-w-[280px] sm:min-w-[360px] md:min-w-[0px] z-20"
-                    >
-                      {/* Premium Discrete Pills / Badges for movie tags */}
-                      <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 text-[8.5px] sm:text-[9.5px] font-mono uppercase tracking-[0.08em]">
-                        {featuredMovie.genre && featuredMovie.genre.slice(0, 2).map((g) => (
-                          <span key={g} className="px-1.5 py-0.5 bg-white/5 border border-white/10 hover:border-white/20 text-zinc-300 rounded-full font-sans font-bold tracking-wider transition-colors duration-200">
-                            {g}
-                          </span>
-                        ))}
-                        <span className="px-1.5 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold tracking-wider rounded-full">
-                          {featuredMovie.year}
-                        </span>
-                        <span className="px-1.5 py-0.5 bg-white/5 border border-white/10 text-zinc-400 tracking-wider rounded-full">
-                          {featuredMovie.duration}
-                        </span>
-                        {featuredMovie.rating && (
-                          <span className="px-1.5 py-0.5 bg-white/5 border border-white/10 text-zinc-300 font-bold tracking-wider rounded-full">
-                            <span className="text-amber-500 font-extrabold mr-0.5">★</span>{featuredMovie.rating}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Poster Style Cinematic Title */}
-                      {featuredMovie.title.toLowerCase().includes("interstellar") ? (
-                        <div className="scale-75 sm:scale-100 origin-left">
-                          <InterstellarLogoImage />
-                        </div>
-                      ) : (
-                        <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-sans font-black tracking-tight text-white uppercase italic leading-[1.05] filter drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] transform -skew-x-2">
-                          {featuredMovie.title}
-                        </h1>
-                      )}
-
-                      {/* Movie Description: Stricter clamping for a lighter card feeling (max 2/3 lines limit) */}
-                      <p 
-                        className="text-zinc-300 text-[11px] sm:text-xs md:text-sm leading-relaxed font-sans filter drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)] line-clamp-2 md:line-clamp-3 overflow-hidden text-ellipsis whitespace-normal"
-                        style={{ textShadow: "0 2px 8px rgba(0,0,0,0.95), 0 1px 3px rgba(0,0,0,0.95)" }}
-                      >
-                        {featuredMovie.description}
-                      </p>
-
-                      {/* Netflix & Apple TV Styled Fluid Selection Buttons */}
-                      <div className="flex items-center gap-2.5 pt-1.5">
-                        <button
-                          id="hero-play-btn"
-                          onClick={() => handleOpenMovie(featuredMovie, true)}
-                          className="group flex items-center justify-center gap-1.5 sm:gap-2 bg-white hover:bg-neutral-100 text-stone-950 font-sans font-black px-4.5 py-2.5 sm:px-8 sm:py-3.5 rounded-full text-[10.5px] sm:text-xs md:text-sm tracking-widest uppercase transition-all duration-300 hover:shadow-[0_0_24px_rgba(255,255,255,0.25)] hover:scale-103 active:scale-95 cursor-pointer"
-                        >
-                          <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current text-stone-950 group-hover:scale-110 transition-transform duration-250" />
-                          Regarder
-                        </button>
-
-                        <button
-                          id="hero-info-btn"
-                          onClick={() => handleOpenMovie(featuredMovie, false)}
-                          className="group flex items-center justify-center gap-1.5 sm:gap-2 bg-transparent hover:bg-white/10 border border-white/40 hover:border-white text-white font-sans font-black px-4 py-2.5 sm:px-7 sm:py-3.5 rounded-full text-[10.5px] sm:text-xs md:text-sm tracking-widest uppercase transition-all duration-300 hover:scale-102 active:scale-95 cursor-pointer"
-                        >
-                          <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white group-hover:scale-110 transition-transform duration-250" />
-                          Plus d'infos
-                        </button>
-                      </div>
-                    </motion.div>
-
-                  </div>
-
-                </div>
-              )}
+              ) : null}
+              
                {/* Collections Segment block - Horizontal Carousels grouped by Collection */}
               <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-12 pb-16">
+                
+                {/* Reprendre la lecture Section */}
+                {history.some(id => progressData[id] > 0 && progressData[id] < 0.95) && (
+                  <div className="space-y-4 text-left pt-6 sm:pt-8">
+                    <div className="flex flex-row items-center sm:items-end justify-between gap-2 sm:gap-3 border-b border-zinc-900 pb-2 sm:pb-3">
+                      <div className="space-y-0.5 max-w-[80%]">
+                        <span className="text-[8px] sm:text-[9px] font-mono tracking-[2px] sm:tracking-[3px] text-amber-500 uppercase font-bold">
+                          EN COURS DE LECTURE
+                        </span>
+                        <h3 className="text-base sm:text-2xl font-cinzel font-bold text-white uppercase tracking-widest leading-tight truncate">
+                          Reprendre la lecture
+                        </h3>
+                      </div>
+                    </div>
+                    
+                    <div className="relative group">
+                      {/* Optional Overlay Carousel Arrows */}
+                      <div className="hidden sm:flex absolute inset-y-0 -left-6 items-center justify-center z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                        <button
+                          onClick={() => scrollCarousel('resume-lecture', "left")}
+                          className="bg-black/80 hover:bg-zinc-900 border border-zinc-800 text-stone-200 hover:text-amber-400 p-2 rounded-full shadow-lg transition-all duration-150 pointer-events-auto active:scale-95 cursor-pointer"
+                          title="Précédent"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                      </div>
+                      
+                      <div className="hidden sm:flex absolute inset-y-0 -right-6 items-center justify-center z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                        <button
+                          onClick={() => scrollCarousel('resume-lecture', "right")}
+                          className="bg-black/80 hover:bg-zinc-900 border border-zinc-800 text-stone-200 hover:text-amber-400 p-2 rounded-full shadow-lg transition-all duration-150 pointer-events-auto active:scale-95 cursor-pointer"
+                          title="Suivant"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Horizontal movie items flex row with ultra-fast virtualization */}
+                      <div
+                        id={`carousel-container-resume-lecture`}
+                        ref={(el) => {
+                          carouselRefs.current['resume-lecture'] = el;
+                        }}
+                        className="flex gap-3 sm:gap-6 overflow-x-auto no-scrollbar py-2.5 px-1 pb-4"
+                      >
+                        {history
+                          .filter(id => progressData[id] > 0 && progressData[id] < 0.95)
+                          .map(id => allMovies.find(m => m.id === id))
+                          .filter((m): m is Movie => !!m)
+                          .map((movie, idx) => (
+                            <LazyVirtualCard key={`resume-${movie.id}-${idx}`}>
+                              <MovieCard
+                                movie={movie}
+                                onSelect={(m) => handleOpenMovie(m, false)}
+                                onPlay={(m) => handleOpenMovie(m, true)}
+                                progressPercent={progressData[movie.id]}
+                              />
+                            </LazyVirtualCard>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="text-left py-1 select-none">
-                  <h2 className="font-cinzel font-bold text-xl sm:text-2xl tracking-[0.22em] gold-metallic-text uppercase leading-none">
+                  <h2 className="font-cinzel font-bold text-[17px] sm:text-2xl tracking-[0.1em] sm:tracking-[0.22em] gold-metallic-text uppercase leading-none whitespace-nowrap">
                     BIBLIOTHÈQUE THÉMATIQUE
                   </h2>
                   <span className="block font-signature text-[18px] sm:text-[23px] text-[#f4ecd8] leading-none mt-1 filter drop-shadow-[0_0_4px_rgba(244,236,216,0.2)]">
@@ -1870,16 +1892,16 @@ export default function App() {
                   </span>
                 </div>
 
-                <div className="space-y-12">
-                  {mappedCollections.map((collection) => (
-                    <div key={collection.id} className="space-y-4 text-left">
+                <div className="flex flex-col gap-6 sm:gap-8 divide-y divide-zinc-700/60">
+                  {mappedCollections.map((collection, idx) => (
+                    <div key={collection.id} className={`space-y-4 text-left ${idx > 0 ? "pt-6 sm:pt-8" : ""}`}>
                       {/* Collection Header with name and 'Voir Tout' button */}
-                      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-zinc-900 pb-3">
-                        <div className="space-y-0.5">
-                          <span className="text-[9px] font-mono tracking-[3px] text-zinc-500 uppercase font-bold">
+                      <div className="flex flex-row items-center sm:items-end justify-between gap-2 sm:gap-3 border-b border-zinc-900 pb-2 sm:pb-3">
+                        <div className="space-y-0.5 max-w-[80%]">
+                          <span className="text-[8px] sm:text-[9px] font-mono tracking-[2px] sm:tracking-[3px] text-zinc-500 uppercase font-bold">
                             COLLECTION CINÉMATOGRAPHIQUE • {collection.movies.length} FILMS
                           </span>
-                          <h3 className="text-xl sm:text-2xl font-cinzel font-bold text-white uppercase tracking-widest">
+                          <h3 className="text-base sm:text-2xl font-cinzel font-bold text-white uppercase tracking-widest leading-tight truncate">
                             {collection.title}
                           </h3>
                         </div>
@@ -1889,10 +1911,12 @@ export default function App() {
                             navigateTo("/collection-detail/" + collection.id);
                             window.scrollTo({ top: 0, behavior: "smooth" });
                           }}
-                          className="self-start sm:self-auto inline-flex items-center gap-1.5 text-[10px] font-mono font-bold tracking-[1.5px] text-[#e5c158] hover:text-white transition-all duration-200 bg-[#BF953F]/5 hover:bg-[#BF953F]/15 border border-[#BF953F]/40 hover:border-[#FCF6BA]/60 px-3.5 py-1.5 rounded-full uppercase cursor-pointer"
+                          className="shrink-0 inline-flex items-center justify-center gap-1.5 text-[#e5c158] hover:text-white transition-all duration-200 sm:bg-[#BF953F]/5 sm:hover:bg-[#BF953F]/15 sm:border sm:border-[#BF953F]/40 sm:hover:border-[#FCF6BA]/60 sm:px-3.5 sm:py-1.5 sm:rounded-full cursor-pointer p-1.5 sm:p-0"
                         >
-                          TOUT COMPRENDRE
-                          <ChevronRight className="w-3 h-3" />
+                          <span className="hidden sm:inline text-[10px] font-mono font-bold tracking-[1.5px] uppercase">
+                            TOUT COMPRENDRE
+                          </span>
+                          <ChevronRight className="w-5 h-5 sm:w-3 sm:h-3" />
                         </button>
                       </div>
 
@@ -1933,7 +1957,7 @@ export default function App() {
                           ref={(el) => {
                             carouselRefs.current[collection.id] = el;
                           }}
-                          className="flex gap-4 sm:gap-6 overflow-x-auto no-scrollbar py-2.5 px-1 pb-4"
+                          className="flex gap-3 sm:gap-6 overflow-x-auto no-scrollbar py-2.5 px-1 pb-4"
                         >
                           {collection.movies.map((movie) => (
                             <LazyVirtualCard key={`${collection.id}-${movie.id}`}>
@@ -1960,7 +1984,7 @@ export default function App() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-12"
+              className="max-w-7xl mx-auto px-4 sm:px-8 pt-4 pb-8 sm:py-8 space-y-8 sm:space-y-12"
             >
               <div className="text-left space-y-2 max-w-2xl">
                 <p className="text-xs font-mono uppercase tracking-[3px] text-zinc-500">INDICES THÉMATIQUES</p>
@@ -1973,14 +1997,14 @@ export default function App() {
               </div>
 
               {/* Collections Grid Layout cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 pt-2">
+              <div className="grid grid-cols-2 gap-3 sm:gap-8 pt-2">
                 {mappedCollections.map((c, i) => {
                   const representative = c.movies[0];
                   return (
                     <div 
                       id={`collection-folder-${c.id}`}
                       key={c.id}
-                      className="relative overflow-hidden group bg-neutral-900/60 rounded-2xl border border-zinc-800/80 p-6 sm:p-8 flex flex-col justify-between gap-6 hover:border-amber-400/40 transition-all duration-300 text-left cursor-pointer"
+                      className="relative overflow-hidden group bg-neutral-900/60 rounded-2xl border border-zinc-800/80 p-4 sm:p-8 flex flex-col justify-between gap-4 sm:gap-6 hover:border-amber-400/40 transition-all duration-300 text-left cursor-pointer"
                       onClick={() => {
                         navigateTo("/collection-detail/" + c.id);
                         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1989,36 +2013,36 @@ export default function App() {
                       {/* background gradient matching representative movie */}
                       <div className={`absolute right-0 top-0 w-2/3 h-full bg-gradient-to-l ${representative.gradient} opacity-20 group-hover:opacity-40 blur-lg rounded-r-2xl transition-all duration-500 pointer-events-none`} />
 
-                      <div className="space-y-3 relative z-10">
+                      <div className="space-y-2 sm:space-y-3 relative z-10">
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-mono font-medium tracking-widest text-amber-400 uppercase bg-black/40 border border-amber-500/20 px-2.5 py-1 rounded-md">
+                          <span className="text-[9px] sm:text-[10px] font-mono font-medium tracking-widest text-amber-400 uppercase bg-black/40 border border-amber-500/20 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md">
                             {c.movies.length} FILMS
                           </span>
                         </div>
 
-                        <h3 className="text-xl sm:text-2xl font-cinzel font-bold text-white tracking-widest uppercase transition-all duration-300">
+                        <h3 className="text-sm sm:text-2xl font-cinzel font-bold text-white tracking-widest uppercase transition-all duration-300">
                           {c.title}
                         </h3>
 
-                        <p className="text-zinc-400 text-sm leading-relaxed font-sans line-clamp-3">
+                        <p className="text-zinc-400 text-[10px] sm:text-sm leading-relaxed font-sans line-clamp-2 sm:line-clamp-3">
                           {c.description}
                         </p>
                       </div>
 
                       {/* Display movie list previews inside card folder */}
-                      <div className="relative z-10 pt-4 border-t border-zinc-800/60">
+                      <div className="hidden sm:block relative z-10 pt-4 border-t border-zinc-800/60">
                         <p className="text-[10px] font-mono uppercase tracking-[2px] text-zinc-500 mb-3 font-semibold">Inclus dans la Collection :</p>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex overflow-x-auto no-scrollbar flex-nowrap md:flex-wrap gap-2 pb-1 md:pb-0">
                           {c.movies.slice(0, 4).map((movie, idx) => (
                             <span 
                               key={`${movie.id}-prev-${idx}`}
-                              className="bg-black/40 hover:bg-neutral-800 text-zinc-300 text-[11px] font-mono px-2 py-1 rounded border border-zinc-800/70"
+                              className="whitespace-nowrap bg-black/40 hover:bg-neutral-800 text-zinc-300 text-[11px] font-mono px-2 py-1 rounded border border-zinc-800/70"
                             >
                               {movie.title}
                             </span>
                           ))}
                           {c.movies.length > 4 && (
-                            <span className="bg-amber-500/10 text-amber-400 text-[10px] font-mono font-extrabold px-2 py-1 rounded border border-amber-500/20">
+                            <span className="whitespace-nowrap bg-amber-500/10 text-amber-400 text-[10px] font-mono font-extrabold px-2 py-1 rounded border border-amber-500/20">
                               + {c.movies.length - 4} ENCORE
                             </span>
                           )}
@@ -2045,10 +2069,10 @@ export default function App() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -15 }}
                   transition={{ duration: 0.35, ease: "easeOut" }}
-                  className="space-y-10"
+                  className="space-y-6 sm:space-y-10"
                 >
                   {/* Top breadcrumb / navigation bar */}
-                  <div className="max-w-7xl mx-auto px-4 sm:px-8 pt-4">
+                  <div className="hidden sm:block max-w-7xl mx-auto px-4 sm:px-8 pt-4">
                     <button
                       id="back-to-collections"
                       onClick={() => {
@@ -2062,74 +2086,40 @@ export default function App() {
                     </button>
                   </div>
 
-                  {/* Gigantic widescreen high-concept collection banner header */}
-                  <div className="relative w-full h-[280px] sm:h-[380px] md:h-[460px] bg-black overflow-hidden flex items-end">
-                    
-                    {/* Character background artwork */}
-                    <img
-                      src={bannerBg}
-                      alt={selectedCollection.title}
-                      referrerPolicy="no-referrer"
-                      className="absolute inset-0 w-full h-full object-cover opacity-60 transform scale-101 hover:scale-103 transition-transform duration-[6000ms] pointer-events-none"
-                    />
-
-                    {/* Left & bottom premium dark smoke overlay gradients */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/20 to-transparent z-10" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-stone-950 via-stone-950/70 to-transparent z-10" />
-                    <div className="absolute inset-0 vignette pointer-events-none z-15" />
-
-                    {/* Reflective shine effect */}
-                    <div className="absolute inset-0 gold-glass-sheen z-20 pointer-events-none" />
-
-                    {/* Content and details wrapper */}
-                    <div className="relative z-30 max-w-7xl mx-auto w-full px-4 sm:px-8 pb-8 sm:pb-14 flex flex-col items-start gap-3 sm:gap-4 text-left">
-                      <span className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 px-3 py-1 text-[10px] font-mono tracking-widest font-extrabold uppercase rounded-full shadow-lg">
-                        <Sparkles className="w-3 h-3 fill-current animate-pulse text-amber-400" />
-                        DOSSIER CINÉMATOGRAPHIQUE EXCLUSIF
-                      </span>
-
-                      <h1 className="text-3xl sm:text-5xl md:text-6xl font-cinzel font-bold tracking-wider uppercase leading-none text-white">
-                        {selectedCollection.title}
-                      </h1>
-
-                      <p className="text-zinc-200 text-sm sm:text-base max-w-3xl leading-relaxed font-sans drop-shadow-md">
-                        {selectedCollection.description}
-                      </p>
-
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-mono text-zinc-400 pt-1">
-                        <span className="text-amber-400 font-extrabold flex items-center gap-1 bg-amber-950/40 border border-amber-500/20 px-2 py-0.5 rounded">
-                          <Compass className="w-3.5 h-3.5" />
-                          SÉLECTION ÉPISSÉE
-                        </span>
-                        <span>•</span>
-                        <span className="bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded">
-                          {selectedCollection.movies.length} FILMS DE LÉGENDE
-                        </span>
-                        <span>•</span>
-                        <span>4K HDR</span>
-                      </div>
+                  {/* Content and details wrapper */}
+                  <div className="max-w-7xl mx-auto w-full px-4 sm:px-8 pt-2 sm:pt-6 flex flex-col items-center text-center gap-3 sm:gap-4">
+                    <div className="w-full flex justify-start sm:hidden mb-1">
+                      <button
+                        onClick={() => {
+                          navigateTo("/collections");
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                        className="p-1.5 -ml-1.5 bg-neutral-900/40 rounded-full border border-zinc-800 text-zinc-400 hover:text-amber-400 active:scale-95 transition-all"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
                     </div>
+
+                    <h1 className="text-xl sm:text-3xl md:text-4xl font-cinzel font-bold tracking-wider uppercase leading-snug text-white flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full">
+                      <span className="text-amber-400 text-lg sm:text-2xl md:text-3xl">★</span>
+                      <span className="max-w-full break-words">{selectedCollection.title}</span>
+                      <span className="text-amber-400 text-lg sm:text-2xl md:text-3xl">★</span>
+                    </h1>
+
+                    <p className="text-zinc-200 text-[11px] sm:text-base max-w-3xl leading-relaxed font-sans drop-shadow-md">
+                      {selectedCollection.description}
+                    </p>
                   </div>
 
                   {/* Grid presentation of films nested inside this collection */}
-                  <div className="max-w-7xl mx-auto px-4 sm:px-8 pb-10 space-y-8">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-850 pb-4 text-left">
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-mono tracking-[3px] text-zinc-500 uppercase font-bold text-left block">DISCOGRAPHIE DES FILMS</span>
-                        <h2 className="text-xl sm:text-2xl font-display font-black text-white uppercase tracking-wider text-left">
-                          LES {selectedCollection.movies.length} CHEFS-D'ŒUVRES DE LA COMPILATION
-                        </h2>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-zinc-500 font-mono">LECTURE :</span>
-                        <span className="bg-amber-500 text-black text-[10px] font-mono font-black py-1 px-3 rounded-full uppercase">
-                          ACCÈS INTÉGRAL
-                        </span>
-                      </div>
+                  <div className="max-w-7xl mx-auto px-4 sm:px-8 pb-10 space-y-4 sm:space-y-6 mt-5 sm:mt-8">
+                    <div className="border-t border-zinc-700/60 pt-4 sm:pt-6 text-left">
+                      <h2 className="text-[13px] sm:text-base font-cinzel font-bold text-white uppercase tracking-[0.15em] sm:tracking-[0.2em] truncate">
+                        DISCOGRAPHIE DES FILMS
+                      </h2>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-6 justify-items-center">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-6 justify-items-center">
                       {selectedCollection.movies.map((movie, idx) => (
                         <LazyVirtualCard key={`${movie.id}-detail-${idx}`}>
                           <MovieCard
@@ -2196,62 +2186,10 @@ export default function App() {
             >
               
               {/* Profile Card Deck */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+              <div className="space-y-8 text-left">
                 
-                {/* Left side: Premium Member card details */}
-                <div className="md:col-span-1 space-y-6">
-                  <div className="bg-gradient-to-b from-neutral-900 to-black p-6 sm:p-8 rounded-2xl border border-zinc-850 relative overflow-hidden flex flex-col justify-between gap-8 shadow-xl">
-                    {/* Backdrop abstract banner pattern */}
-                    <img
-                      src={CLASSICO_ABSTRACT_BANNER}
-                      alt="abstract pattern"
-                      className="absolute inset-0 w-full h-full object-cover opacity-10 pointer-events-none"
-                      referrerPolicy="no-referrer"
-                    />
-
-                    <div className="space-y-4 relative z-10">
-                      {/* User profile icon */}
-                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center border-2 border-amber-500 shadow-inner">
-                        <User className="w-9 h-9 text-black stroke-[2.5]" />
-                      </div>
-
-                      <div className="space-y-0.5">
-                        <span className="text-[10px] font-mono uppercase tracking-[3px] text-amber-400 font-extrabold flex items-center gap-1">
-                          <Award className="w-3.5 h-3.5" />
-                          MEMBRE PREMIUM ÉCOLES
-                        </span>
-                        <h2 className="text-2xl font-display font-black text-white uppercase tracking-tight">Cinéphile Classico</h2>
-                        <p className="text-xs text-zinc-500 font-mono">ID: CL-928420</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4 relative z-10 border-t border-zinc-850 pt-6">
-                      <p className="text-[10px] font-mono uppercase tracking-[2px] text-zinc-500 font-semibold">Tableau de bord de visionnage</p>
-                      
-                      <div className="grid grid-cols-2 gap-4 text-xs font-mono">
-                        <div className="bg-black/40 p-3 rounded-lg border border-zinc-900">
-                          <span className="text-zinc-500 text-[10px] block">Minutes lues</span>
-                          <strong className="text-white text-base">4 820 min</strong>
-                        </div>
-                        <div className="bg-black/40 p-3 rounded-lg border border-zinc-900">
-                          <span className="text-zinc-500 text-[10px] block">Ma Liste</span>
-                          <strong className="text-white text-base">{watchlist.length} films</strong>
-                        </div>
-                        <div className="bg-black/40 p-3 rounded-lg border border-zinc-900">
-                          <span className="text-zinc-500 text-[10px] block">Saga Favorite</span>
-                          <strong className="text-white text-xs text-amber-400 truncate block">Christopher Nolan</strong>
-                        </div>
-                        <div className="bg-black/40 p-3 rounded-lg border border-zinc-900">
-                          <span className="text-zinc-500 text-[10px] block">Qualité d'image</span>
-                          <strong className="text-white text-xs block">4K ULTRA HD</strong>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right side: Film Library & Watchlists */}
-                <div className="md:col-span-2 space-y-8">
+                {/* Film Library & Watchlists */}
+                <div className="space-y-8">
                   
                   {/* Watchlist Row displaying bookmarked films */}
                   <div className="space-y-4">
@@ -2261,7 +2199,7 @@ export default function App() {
                     </h3>
 
                     {watchlist.length > 0 ? (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 justify-items-start">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-6 justify-items-center">
                         {allMovies
                           .filter(m => watchlist.includes(m.id))
                           .map((movie, idx) => (
@@ -2299,7 +2237,7 @@ export default function App() {
                     </h3>
 
                     {history.length > 0 ? (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 justify-items-start">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-6 justify-items-center">
                         {allMovies
                           .filter(m => history.includes(m.id))
                           .map((movie, idx) => (
@@ -2347,7 +2285,15 @@ export default function App() {
       {/* ========================================================== */}
       <MovieModal
         movie={selectedMovie}
-        onClose={() => setSelectedMovie(null)}
+        onClose={() => {
+          setSelectedMovie(null);
+          const savedProgress = localStorage.getItem("classico_progress");
+          if (savedProgress) {
+            try {
+              setProgressData(JSON.parse(savedProgress));
+            } catch (e) {}
+          }
+        }}
         isBookmarked={selectedMovie ? watchlist.includes(selectedMovie.id) : false}
         onToggleBookmark={() => selectedMovie && handleToggleWatchlist(selectedMovie.id)}
       />

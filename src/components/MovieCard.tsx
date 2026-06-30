@@ -8,16 +8,17 @@ interface MovieCardProps {
   onSelect: (movie: Movie) => void;
   onPlay: (movie: Movie) => void;
   layoutId?: string;
+  progressPercent?: number; // Optional progress (0-1)
 }
 
-export default function MovieCard({ movie, onSelect, onPlay }: MovieCardProps) {
+export default function MovieCard({ movie, onSelect, onPlay, progressPercent }: MovieCardProps) {
   return (
     <div
       id={`movie-card-${movie.id}`}
       style={{
         "--hover-glow": `${movie.accentHex || "#e5e7eb"}40`
       } as React.CSSProperties}
-      className="relative flex-none w-[170px] sm:w-[210px] aspect-[2/3] rounded-xl overflow-hidden cursor-pointer group bg-neutral-900 border border-neutral-800/80 transition-[transform,box-shadow,opacity] duration-300 ease-out will-change-transform hover:scale-105 hover:-translate-y-2 hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.8),0_0_15px_2px_var(--hover-glow)]"
+      className="relative flex-none w-[140px] min-[400px]:w-[160px] sm:w-[210px] aspect-[2/3] rounded-xl overflow-hidden cursor-pointer group bg-neutral-900 border border-neutral-800/80 transition-all duration-300 ease-out will-change-transform hover:scale-[1.03] hover:shadow-[0_15px_30px_-5px_rgba(0,0,0,0.8),0_0_15px_2px_var(--hover-glow)]"
       onClick={() => onSelect(movie)}
     >
       {/* Cinematic Poster Image or Gradient Placeholder */}
@@ -71,45 +72,20 @@ export default function MovieCard({ movie, onSelect, onPlay }: MovieCardProps) {
       {/* Glossy Reflection Overlay */}
       <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/10 to-transparent opacity-60 pointer-events-none group-hover:opacity-100 transition-opacity duration-300" />
 
-      {/* Elegant Hover Overlay with Extra Info */}
-      <div className="absolute inset-0 bg-black/95 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-between p-4 sm:p-5 z-20">
-        <div>
-          <h4 className="text-sm sm:text-base font-display font-extrabold text-white uppercase tracking-tight leading-snug line-clamp-3 mt-1">
-            {movie.title}
-          </h4>
-          <p className="text-[11px] font-mono mt-1.5 font-bold bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#B38728] bg-clip-text text-transparent">{movie.director}</p>
-          <p className="text-xs text-zinc-300 line-clamp-3 sm:line-clamp-4 mt-3 leading-relaxed text-left font-sans italic">
-            "{movie.tagline || movie.description}"
-          </p>
-        </div>
-
-        <div className="space-y-3">
-          {/* Specs Row */}
-          <div className="flex items-center justify-between text-xs font-mono text-zinc-400 border-t border-zinc-800/80 pt-3">
-            <span className="flex items-center gap-1">
-              <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-              <strong className="text-white font-bold">{movie.rating}</strong>
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-zinc-500" />
-              {movie.duration}
-            </span>
-          </div>
-
-          {/* Quick Play Action */}
-          <button
-            id={`quick-play-${movie.id}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onPlay(movie);
-            }}
-            className="w-full flex items-center justify-center gap-2 gold-button py-2 rounded-lg text-xs transition-all duration-200 active:scale-95 cursor-pointer"
-          >
-            <Play className="w-3.5 h-3.5 fill-current" />
-            Lancer
-          </button>
-        </div>
+      {/* Shine effect (Glass reflection) */}
+      <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden rounded-xl">
+        <div className="absolute top-0 left-[-150%] w-[50%] h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 transition-all duration-[800ms] ease-in-out group-hover:left-[200%]" />
       </div>
+
+      {/* Progress Bar (Reprendre la lecture) */}
+      {typeof progressPercent === 'number' && progressPercent > 0 && (
+        <div className="absolute bottom-0 left-0 w-full h-[4px] bg-zinc-800 z-30">
+          <div 
+            className="h-full bg-amber-500 rounded-r-sm"
+            style={{ width: `${Math.min(Math.max(progressPercent * 100, 0), 100)}%` }}
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import Hls from "hls.js";
 import { 
   Play, Pause, RotateCcw, Volume2, VolumeX, 
-  Captions, Maximize2, Info, Sparkles, AlertCircle
+  Captions, Maximize2, Info, Sparkles, AlertCircle, Rewind, FastForward
 } from "lucide-react";
 
 const logChrono = (step: string) => {
@@ -265,6 +265,39 @@ export default function VideoPlayer({
     timeAfter5s: string;
   } | null>(null);
 
+  const [isControlsVisible, setIsControlsVisible] = useState(true);
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isDraggingRef = useRef(false);
+
+  const resetControlsTimeout = () => {
+    setIsControlsVisible(true);
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+    controlsTimeoutRef.current = setTimeout(() => {
+      // Only hide controls if the video is playing
+      if (videoRef.current && !videoRef.current.paused) {
+        setIsControlsVisible(false);
+      }
+    }, 5000);
+  };
+
+  useEffect(() => {
+    resetControlsTimeout();
+    return () => {
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (videoState.playing) {
+      resetControlsTimeout();
+    } else {
+      setIsControlsVisible(true); // Always show controls when paused
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+    }
+  }, [videoState.playing]);
+
   const [serverStreamDebug, setServerStreamDebug] = useState<{
     requestRange: string;
     targetUrl: string;
@@ -300,6 +333,7 @@ export default function VideoPlayer({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const hlsRef = useRef<Hls | null>(null);
   const playerViewportRef = useRef<HTMLDivElement | null>(null);
+  const playerContainerRef = useRef<HTMLDivElement | null>(null);
   const savedRestoreTime = useRef<number>(0);
   const firstFrameLoggedRef = useRef<boolean>(false);
   const lastLoadedUrlRef = useRef<string | null>(null);
@@ -1298,10 +1332,21 @@ export default function VideoPlayer({
     if (videoState.playing) {
       progressInterval.current = setInterval(() => {
         setVideoState(prev => {
-          if (prev.progress >= prev.duration) {
+          const newProgress = prev.progress + 0.5;
+          if (newProgress >= prev.duration) {
             return { ...prev, progress: 0 };
           }
-          return { ...prev, progress: prev.progress + 0.5 };
+          
+          if (movieId && prev.duration > 0) {
+            try {
+              const savedStr = localStorage.getItem("classico_progress") || "{}";
+              const progressObj = JSON.parse(savedStr);
+              progressObj[movieId] = newProgress / prev.duration;
+              localStorage.setItem("classico_progress", JSON.stringify(progressObj));
+            } catch (e) {}
+          }
+          
+          return { ...prev, progress: newProgress };
         });
       }, 500);
     } else {
@@ -1329,11 +1374,15 @@ export default function VideoPlayer({
     const handleFsChange = () => {
       setVideoState(prev => ({ 
         ...prev, 
-        fullscreen: !!document.fullscreenElement 
+        fullscreen: !!(document.fullscreenElement || (document as any).webkitFullscreenElement)
       }));
     };
     document.addEventListener("fullscreenchange", handleFsChange);
-    return () => document.removeEventListener("fullscreenchange", handleFsChange);
+    document.addEventListener("webkitfullscreenchange", handleFsChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFsChange);
+      document.removeEventListener("webkitfullscreenchange", handleFsChange);
+    };
   }, []);
 
   // Find active subtitle (simulated mode only)
@@ -1345,20 +1394,87 @@ export default function VideoPlayer({
 
   const progressPercent = videoState.duration > 0 ? (absoluteProgress / videoState.duration) * 100 : 0;
 
-  const handleFullscreenToggle = () => {
-    if (playerViewportRef.current) {
-      if (!document.fullscreenElement) {
-        playerViewportRef.current.requestFullscreen().catch(err => {
-          console.error("Fullscreen failed:", err);
-        });
+  const handleFullscreenToggle = async () => {
+    try {
+      const isFullscreen = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
+      if (!isFullscreen) {
+        if (playerContainerRef.current) {
+          if (playerContainerRef.current.requestFullscreen) {
+            await playerContainerRef.current.requestFullscreen();
+          } else if ((playerContainerRef.current as any).webkitRequestFullscreen) {
+            await (playerContainerRef.current as any).webkitRequestFullscreen();
+          } else if (videoRef.current && (videoRef.current as any).webkitEnterFullscreen) {
+            (videoRef.current as any).webkitEnterFullscreen();
+          }
+        }
+        
+        try {
+          if (screen.orientation && screen.orientation.lock) {
+            await screen.orientation.lock('landscape');
+          }
+        } catch (e) {
+          console.log('Orientation lock not supported', e);
+        }
       } else {
-        document.exitFullscreen();
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+          await (document as any).webkitExitFullscreen();
+        }
+        
+        try {
+          if (screen.orientation && screen.orientation.unlock) {
+            screen.orientation.unlock();
+          }
+        } catch (e) {}
+      }
+    } catch (err) {
+      console.warn("Fullscreen toggle failed:", err);
+    }
+  };
+
+  const updateProgressFromEvent = (clientX: number, currentTarget: HTMLElement) => {
+    const rect = currentTarget.getBoundingClientRect();
+    const clickX = clientX - rect.left;
+    const percentage = Math.max(0, Math.min(1, clickX / rect.width));
+    const newTime = videoState.duration * percentage;
+    
+    setRequestedSeekTime(newTime);
+    bypassRestoreRef.current = true;
+    seekTimestampRef.current = Date.now();
+
+    const ticks = Math.round(newTime * 10000000);
+    setLastSeekLog({
+      requestedTime: newTime,
+      ticksSent: ticks.toString(),
+      timeAfterLoaded: "En attente du chargement / bufferisation...",
+      timeAfter2s: "En attente...",
+      timeAfter5s: "En attente..."
+    });
+    
+    if (isJellyfinMovie && playbackInfo) {
+      setSeekOffset(0);
+      if (videoRef.current) {
+        videoRef.current.currentTime = newTime;
+      }
+      setVideoState(prev => ({ ...prev, progress: newTime }));
+    } else {
+      setSeekOffset(0);
+      if (videoRef.current) {
+        videoRef.current.currentTime = newTime;
+        setVideoState(prev => ({ ...prev, progress: newTime }));
       }
     }
   };
 
   return (
-    <div className="flex-grow flex flex-col bg-black min-h-[350px] sm:min-h-[480px]">
+    <div 
+      ref={playerContainerRef}
+      className={`flex-grow flex flex-col bg-black min-h-[350px] sm:min-h-[480px] ${videoState.fullscreen ? 'fixed inset-0 z-[9999] w-screen h-screen' : ''}`}
+      onMouseMove={resetControlsTimeout}
+      onTouchStart={resetControlsTimeout}
+      onClick={resetControlsTimeout}
+    >
       
       {/* Theatre Video Display Screen Area */}
       <div 
@@ -1583,6 +1699,7 @@ export default function VideoPlayer({
             onTimeUpdate={(e) => {
               const el = e.currentTarget;
               const curTime = el.currentTime;
+              const dur = el.duration;
               if (!firstFrameLoggedRef.current && curTime > 0) {
                 firstFrameLoggedRef.current = true;
                 trackEventFired("firstFrame", "Première frame affichée");
@@ -1591,6 +1708,18 @@ export default function VideoPlayer({
                 ...prev,
                 progress: curTime
               }));
+
+              // Save progress percentage to local storage for "Continue Watching" functionality
+              if (curTime > 0 && dur > 0 && movieId) {
+                try {
+                  const savedStr = localStorage.getItem("classico_progress") || "{}";
+                  const progressObj = JSON.parse(savedStr);
+                  progressObj[movieId] = curTime / dur;
+                  localStorage.setItem("classico_progress", JSON.stringify(progressObj));
+                } catch (e) {
+                  // ignore parse errors
+                }
+              }
             }}
             onEnded={() => {
               setVideoState(prev => ({ ...prev, playing: false, progress: 0 }));
@@ -1698,7 +1827,7 @@ export default function VideoPlayer({
       </div>
 
       {/* Player Bottom Control Deck */}
-      <div className="bg-neutral-950 p-4 border-t border-zinc-900 flex flex-col gap-3.5 z-40">
+      <div className={`bg-neutral-950 p-4 border-t border-zinc-900 flex flex-col gap-3.5 z-40 transition-opacity duration-500 ${isControlsVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'} ${videoState.fullscreen ? 'absolute bottom-0 left-0 right-0 bg-neutral-950/80 backdrop-blur-md pb-6 px-6 border-transparent' : ''}`}>
         
         {/* Seekbar scrub timeline */}
         {isMetadataLoaded && (
@@ -1709,41 +1838,22 @@ export default function VideoPlayer({
 
             <div 
               id="mock-timeline-track"
-              className="flex-grow h-1.5 bg-zinc-800 rounded-full cursor-pointer relative group"
-              onClick={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                const percentage = Math.max(0, Math.min(1, clickX / rect.width));
-                const newTime = videoState.duration * percentage;
-                
-                setRequestedSeekTime(newTime);
-                bypassRestoreRef.current = true;
-                seekTimestampRef.current = Date.now();
-
-                const ticks = Math.round(newTime * 10000000);
-                setLastSeekLog({
-                  requestedTime: newTime,
-                  ticksSent: ticks.toString(),
-                  timeAfterLoaded: "En attente du chargement / bufferisation...",
-                  timeAfter2s: "En attente...",
-                  timeAfter5s: "En attente..."
-                });
-                
-                if (isJellyfinMovie && playbackInfo) {
-                  console.log(`[SEEK SYSTEM] Jellyfin Play native seek to ${newTime}s.`);
-                  setSeekOffset(0);
-                  if (videoRef.current) {
-                    videoRef.current.currentTime = newTime;
-                  }
-                  setVideoState(prev => ({ ...prev, progress: newTime }));
-                } else {
-                  console.log(`[SEEK SYSTEM] Simulated Play: native simulated seek to ${newTime}s.`);
-                  setSeekOffset(0);
-                  if (videoRef.current) {
-                    videoRef.current.currentTime = newTime;
-                    setVideoState(prev => ({ ...prev, progress: newTime }));
-                  }
+              className="flex-grow h-1.5 bg-zinc-800 rounded-full cursor-pointer relative group touch-none"
+              onClick={(e) => updateProgressFromEvent(e.clientX, e.currentTarget)}
+              onTouchStart={(e) => {
+                isDraggingRef.current = true;
+                updateProgressFromEvent(e.touches[0].clientX, e.currentTarget);
+              }}
+              onTouchMove={(e) => {
+                if (isDraggingRef.current) {
+                  updateProgressFromEvent(e.touches[0].clientX, e.currentTarget);
                 }
+              }}
+              onTouchEnd={() => {
+                isDraggingRef.current = false;
+              }}
+              onTouchCancel={() => {
+                isDraggingRef.current = false;
               }}
             >
               {/* Fill bar */}
@@ -1766,7 +1876,22 @@ export default function VideoPlayer({
 
         {/* Control Action Buttons Row */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* Rewind 15s */}
+            <button
+              onClick={() => {
+                if (videoRef.current) {
+                  const newTime = Math.max(0, videoRef.current.currentTime - 15);
+                  videoRef.current.currentTime = newTime;
+                  setVideoState(prev => ({ ...prev, progress: newTime }));
+                }
+              }}
+              className="text-zinc-400 hover:text-amber-400 p-1.5 transition-colors duration-150 cursor-pointer"
+              title="Reculer de 15s"
+            >
+              <Rewind className="w-4 h-4" />
+            </button>
+
             {/* Play/Pause Button */}
             <button
               id="player-play-btn"
@@ -1779,6 +1904,21 @@ export default function VideoPlayer({
               ) : (
                 <Play className="w-5 h-5 fill-current" />
               )}
+            </button>
+
+            {/* FastForward 15s */}
+            <button
+              onClick={() => {
+                if (videoRef.current) {
+                  const newTime = Math.min(videoState.duration, videoRef.current.currentTime + 15);
+                  videoRef.current.currentTime = newTime;
+                  setVideoState(prev => ({ ...prev, progress: newTime }));
+                }
+              }}
+              className="text-zinc-400 hover:text-amber-400 p-1.5 transition-colors duration-150 cursor-pointer"
+              title="Avancer de 15s"
+            >
+              <FastForward className="w-4 h-4" />
             </button>
 
             {/* Restart Track */}

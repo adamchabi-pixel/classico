@@ -13,6 +13,18 @@
   --color-gold-400: #eab308;
   --color-gold-500: #ca8a04;
   --color-gold-600: #a16207;
+
+  /* Redefine amber to the exact classico gold #D4AF37 */
+  --color-amber-100: #faecd0;
+  --color-amber-200: #f4d9a1;
+  --color-amber-300: #e5b144;
+  --color-amber-400: #d4af37; 
+  --color-amber-500: #c19b2e; 
+  --color-amber-600: #a17f22;
+  --color-amber-700: #826419;
+  --color-amber-800: #684f13;
+  --color-amber-900: #554010;
+  --color-amber-950: #302306;
 }
 
 /* Custom Utilities for Streaming Web Experience */

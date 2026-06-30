@@ -1610,7 +1610,7 @@ export default function CinemaPlayerView({
 
         {/* CORE AUDIO/PLAY/MUTING ACTION DECK BUTTONS */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-2 sm:gap-5">
             {/* Play/Pause control */}
             <button
               onClick={handlePlayPauseClick}
@@ -1618,9 +1618,9 @@ export default function CinemaPlayerView({
               title={playing ? "Pause" : "Lecture"}
             >
               {playing ? (
-                <Pause className="w-5.5 h-5.5 fill-current" />
+                <Pause className="w-6 h-6 fill-current" />
               ) : (
-                <Play className="w-5.5 h-5.5 fill-current" />
+                <Play className="w-6 h-6 fill-current" />
               )}
             </button>
 
@@ -1653,7 +1653,7 @@ export default function CinemaPlayerView({
             </button>
 
             {/* Volume control deck */}
-            <div className="flex items-center border-l border-white/10 pl-4 group/volume relative">
+            <div className="flex items-center border-l border-white/10 pl-2 sm:pl-4 group/volume relative">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1688,7 +1688,7 @@ export default function CinemaPlayerView({
 
             {/* Subtitles Button next to Volume */}
             {playbackInfo?.subtitles && playbackInfo.subtitles.length > 0 && (
-              <div className="relative border-l border-white/10 pl-4">
+              <div className="relative border-l border-white/10 pl-2 sm:pl-4">
                 <button
                   id="cinema-subtitle-btn"
                   onClick={(e) => {

@@ -36,18 +36,17 @@ export default function MovieDetailView({
     <div className="min-h-screen bg-stone-950 text-stone-100 font-sans antialiased pb-20">
       
       {/* 1. TOP SECURE HEADER & NAVIGATION BREADCRUMB */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 pt-6 relative z-30">
+      <div className="absolute top-6 left-4 sm:left-8 z-40">
         <button
           onClick={onBack}
-          className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-zinc-400 hover:text-amber-400 group py-2.5 px-4 bg-black/60 rounded-full border border-zinc-900 hover:border-amber-500/25 transition-all duration-200 cursor-pointer"
+          className="inline-flex items-center justify-center p-2.5 bg-black/40 backdrop-blur-sm rounded-full border border-white/10 text-white hover:bg-white/20 hover:scale-105 transition-all duration-200 cursor-pointer"
         >
-          <ArrowLeft className="w-4 h-4 text-zinc-500 group-hover:text-amber-400 transition-colors transform group-hover:-translate-x-0.5" />
-          RETOUR AU CATALOGUE
+          <ArrowLeft className="w-5 h-5" />
         </button>
       </div>
 
       {/* 2. SPECTACULAR NETFLIX-STYLE HERO SECTION */}
-      <div className="relative w-full h-[55vh] md:h-[65vh] bg-black overflow-hidden flex items-end -mt-16">
+      <div className="relative w-full h-[55vh] md:h-[75vh] min-h-[500px] bg-black overflow-hidden flex items-end">
         
         {/* Blurry panoramic backdrop with absolute dark mask */}
         <div className="absolute inset-0 z-0">
@@ -55,79 +54,62 @@ export default function MovieDetailView({
             src={backdrop}
             alt={movie.title}
             referrerPolicy="no-referrer"
-            className="w-full h-full object-cover scale-105 pointer-events-none filter blur-sm brightness-[0.4]"
+            className="w-full h-full object-cover pointer-events-none"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/80 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-stone-950 via-stone-950/50 to-transparent" />
+          <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-t from-black via-black/50 to-transparent md:!bg-[linear-gradient(to_top,#0c0a09_0%,rgba(12,10,9,0.95)_15%,rgba(12,10,9,0.75)_40%,rgba(12,10,9,0.2)_75%,transparent_100%)]" />
         </div>
 
         {/* Hero Content Area */}
-        <div className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-8 pb-8 sm:pb-12 flex flex-col md:flex-row items-end gap-6 md:gap-10 text-left">
+        <div className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-8 pb-10 sm:pb-16 flex flex-col items-start gap-4 sm:gap-6 text-left">
           
-          {/* Movie Poster Thumbnail Cover (Left side, only on larger viewports to keep minimalist aesthetics clean) */}
-          {poster && (
-            <div className="hidden md:block w-48 shrink-0 rounded-xl overflow-hidden border border-white/10 shadow-2xl shadow-black/80 transform hover:scale-102 transition-transform duration-300">
-              <img
-                src={poster}
-                alt={movie.title}
-                referrerPolicy="no-referrer"
-                className="w-full h-auto object-cover aspect-[2/3]"
-              />
-            </div>
-          )}
-
           {/* Core Text & CTAs Details Box */}
-          <div className="flex-grow space-y-4 max-w-3xl">
+          <div className="flex flex-col items-start max-w-3xl space-y-3.5">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 px-3 py-1 text-[10px] font-mono tracking-widest font-extrabold uppercase rounded-full">
-                <Award className="w-3.5 h-3.5 fill-current animate-pulse text-amber-500" />
-                CULTISSIME SELECTION
-              </span>
-              <span className="bg-zinc-900 border border-zinc-800 text-zinc-400 px-2 py-0.5 rounded text-[10px] font-mono">
+              <span className="bg-zinc-900/80 border border-zinc-700 text-zinc-300 px-2.5 py-0.5 rounded text-[11px] font-mono tracking-widest uppercase shadow-sm">
                 {movie.year}
               </span>
-              <span className="bg-zinc-900 border border-zinc-800 text-zinc-400 px-2 py-0.5 rounded text-[10px] font-mono">
+              <span className="bg-zinc-900/80 border border-zinc-700 text-zinc-300 px-2.5 py-0.5 rounded text-[11px] font-mono tracking-widest uppercase shadow-sm">
                 {movie.duration}
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl md:text-6xl font-forum font-bold tracking-wider text-white uppercase drop-shadow-md">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-forum font-bold tracking-wider text-white uppercase drop-shadow-xl leading-tight">
               {movie.title}
             </h1>
 
             {movie.tagline && (
-              <p className="text-[#f4ecd8] font-signature text-2xl sm:text-3xl md:text-4xl leading-relaxed select-none filter drop-shadow-[0_0_4px_rgba(244,236,216,0.2)]">
-                « {movie.tagline} »
+              <p className="text-zinc-300 font-sans text-sm md:text-base leading-relaxed max-w-xl italic font-light opacity-90">
+                "{movie.tagline}"
               </p>
             )}
 
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-mono text-zinc-300 pt-1">
-              <span className="text-[#f4ecd8] font-extrabold flex items-center gap-1.5 bg-zinc-900/60 border border-[#f4ecd8]/40 px-2.5 py-1 rounded shadow-md">
-                <Star className="w-3.5 h-3.5 fill-current text-[#f4ecd8]" />
-                {movie.rating} / 10
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-mono tracking-widest text-zinc-300 pt-1 uppercase">
+              <span className="text-amber-400 font-extrabold flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded shadow-sm">
+                <Star className="w-3.5 h-3.5 fill-current text-amber-500" />
+                {movie.rating}
               </span>
               <span>•</span>
-              <span>RÉALISATEUR : {movie.director.toUpperCase()}</span>
+              <span>De {movie.director}</span>
               <span>•</span>
               <span className="text-zinc-400">{movie.genre.join(", ")}</span>
             </div>
 
             {/* Main Interactive CTA Button Area */}
-            <div className="flex items-center gap-3.5 pt-4">
+            <div className="flex items-center gap-3.5 pt-3">
               <button
                 onClick={() => onPlay(movie.id)}
-                className="inline-flex items-center gap-2.5 gold-button px-8 py-4 rounded-xl text-sm tracking-wider uppercase transition-all duration-200 active:scale-95 cursor-pointer"
+                className="inline-flex items-center gap-2.5 gold-button px-6 py-3 sm:px-8 sm:py-3.5 rounded-full text-[13px] tracking-widest uppercase transition-all duration-200 active:scale-95 cursor-pointer font-bold"
               >
-                <Play className="w-5 h-5 fill-current" />
-                Lire le film
+                <Play className="w-4 h-4 fill-current" />
+                Regarder
               </button>
 
               <button
                 onClick={onToggleBookmark}
-                className={`inline-flex items-center justify-center p-4 rounded-xl border transition-all duration-200 active:scale-95 cursor-pointer ${
+                className={`inline-flex items-center justify-center p-3.5 rounded-full border transition-all duration-200 active:scale-95 cursor-pointer shadow-lg backdrop-blur-sm ${
                   isBookmarked
-                    ? "bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500/20"
-                    : "bg-neutral-900/90 border-zinc-800 text-zinc-400 hover:text-white hover:border-white"
+                    ? "bg-rose-500/20 border-rose-500/40 text-rose-400 hover:bg-rose-500/30"
+                    : "bg-white/10 border-white/20 text-white hover:bg-white/20"
                 }`}
                 title={isBookmarked ? "Retirer de Ma Liste" : "Ajouter à Ma Liste"}
               >

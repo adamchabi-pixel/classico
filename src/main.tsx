@@ -19,7 +19,7 @@ if (typeof window !== "undefined") {
     }
 
     const isProduction = !!(import.meta as any).env?.PROD || (typeof process !== "undefined" && process?.env?.NODE_ENV === "production");
-    const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && window.location.hostname.includes("netlify.app");
+    const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
 
     // The user explicitly requested to NOT use the ais-dev link in production.
     // However, on Netlify, there is no backend server. We must intercept the API calls

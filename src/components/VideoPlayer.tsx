@@ -604,7 +604,7 @@ export default function VideoPlayer({
         } else {
           console.error("[PLAYER METADATA FALLBACK] All metadata fetching attempts failed. Emitting safe fallback source.");
           const fallbackPath = `/Videos/${activeTargetId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1`;
-          const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && window.location.hostname.includes("netlify.app");
+          const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
           const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
           const apiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : "";
           const fallbackData = {
@@ -1572,7 +1572,7 @@ export default function VideoPlayer({
               logMissingEvents(`Erreur de lecture vidéo (${msg})`);
               console.error("[PLAYER FALLBACK] All recovery attempts exhausted. Forcing transparent raw stream fallback.");
               const fallbackPath = `/Videos/${resolvedTargetId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1`;
-              const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && window.location.hostname.includes("netlify.app");
+              const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
               const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
               const apiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : "";
               const fallbackUrl = isNetlify ? `${serverUrl}${fallbackPath}&api_key=${apiKey}&DeviceId=CinemaAppClient&MediaSourceId=${resolvedTargetId}` : `/api/jellyfin/proxy/stream?id=${resolvedTargetId}`;

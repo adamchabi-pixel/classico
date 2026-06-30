@@ -1190,7 +1190,7 @@ export default function App() {
       
       const tryFetch = async () => {
         try {
-          const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && window.location.hostname.includes("netlify.app");
+          const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
           const defaultUrl = "https://jellyfin-jacklumber00.siren.mygiga.cloud";
           const defaultApiKey = "a2aac09e434e4bcc897c1b181ca197eb";
 

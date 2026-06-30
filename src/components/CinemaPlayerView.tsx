@@ -595,7 +595,7 @@ export default function CinemaPlayerView({
           console.log("[PLAYBACK FETCH] Fetching metadata synchronously for movie: " + movieId);
           const needsTranscodeParam = forceTranscode || playbackAttempts > 0 || isLowQuality;
           
-          const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && window.location.hostname.includes("netlify.app");
+          const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
           
           if (isNetlify) {
             const serverUrl = localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud";
@@ -648,7 +648,7 @@ export default function CinemaPlayerView({
         if (active) {
           logChrono("Récupération des métadonnées terminée");
           if (data && data.streamUrl) {
-            const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && window.location.hostname.includes("netlify.app");
+            const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
             if (!isNetlify) {
               data = {
                 ...data,
@@ -699,7 +699,7 @@ export default function CinemaPlayerView({
             }, 1500 * nextAttempt);
           } else {
             console.warn("[CINEMA METADATA FALLBACK] All metadata fetching attempts did not succeed. Emitting safe fallback source.");
-            const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && window.location.hostname.includes("netlify.app");
+            const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
             const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
             const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
             
@@ -909,7 +909,7 @@ export default function CinemaPlayerView({
               }
               if (data.fatal) {
                 console.warn("[CINEMA RECOVERY] Severe HLS condition. Falling back to alternative stream.");
-                const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && window.location.hostname.includes("netlify.app");
+                const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
                 const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
                 const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
                 const fallbackUrl = isNetlify ? `${serverUrl}/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}` : formatHlsUrl(`/api/jellyfin/proxy/videos/${movieId}/master.m3u8`, movieId, deviceId, apiKey);
@@ -1200,7 +1200,7 @@ export default function CinemaPlayerView({
               savedRestoreTimeRef.current = progress;
             }
             const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1`;
-            const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && window.location.hostname.includes("netlify.app");
+            const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
             const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
             const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
             const fallbackUrl = isNetlify ? `${serverUrl}${fallbackPath}&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}` : formatHlsUrl(`/api/jellyfin/proxy/videos/${movieId}/master.m3u8`, movieId, deviceId, apiKey);
@@ -1515,7 +1515,7 @@ export default function CinemaPlayerView({
                 savedRestoreTimeRef.current = progress;
               }
               const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1`;
-              const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && window.location.hostname.includes("netlify.app");
+              const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
               const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
               const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
               const fallbackUrl = isNetlify ? `${serverUrl}${fallbackPath}&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}` : formatHlsUrl(`/api/jellyfin/proxy/videos/${movieId}/master.m3u8`, movieId, deviceId, apiKey);

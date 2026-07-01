@@ -154,7 +154,7 @@ export default function MovieModal({
                       className="inline-flex items-center justify-center gap-2 gold-button px-6 py-2.5 rounded-full text-sm font-semibold transition-all"
                     >
                       <Play className="w-4 h-4 fill-current" />
-                      Lecture
+                      Play
                     </button>
 
                     <button
@@ -165,7 +165,7 @@ export default function MovieModal({
                           ? "bg-amber-400/10 border-amber-400/50 text-amber-400"
                           : "bg-black/40 border-white/20 hover:bg-black/60 text-zinc-300 hover:text-white"
                       }`}
-                      title={isBookmarked ? "Dans ma Liste" : "Ajouter à ma Liste"}
+                      title={isBookmarked ? "In My Watchlist" : "Add to Watchlist"}
                     >
                       {isBookmarked ? (
                         <Check className="w-4 h-4" />
@@ -202,7 +202,7 @@ export default function MovieModal({
                         <div key={idx} className="bg-neutral-900/60 border border-zinc-800/40 rounded-lg p-3 text-center hover:bg-neutral-900 transition-colors duration-200">
                           <User className="w-4 h-4 text-zinc-500 mx-auto mb-1.5" />
                           <p className="text-xs text-white font-medium truncate">{actor}</p>
-                          <p className="text-[10px] text-zinc-500 font-mono mt-0.5">Rôle Clé</p>
+                          <p className="text-[10px] text-zinc-500 font-mono mt-0.5">Key Role</p>
                         </div>
                       ))}
                     </div>
@@ -218,7 +218,7 @@ export default function MovieModal({
                   <div className="space-y-4 text-sm">
                     {/* Rating Banner */}
                     <div className="flex items-center justify-between py-1 border-b border-zinc-800/60">
-                      <span className="text-zinc-400 font-medium">Note Classico</span>
+                      <span className="text-zinc-400 font-medium">Classico Rating</span>
                       <span className="flex items-center gap-1.5 font-mono text-white text-base font-bold bg-[#f4ecd8]/10 px-2.5 py-1 rounded-md border border-[#f4ecd8]/30 shadow-md">
                         <Star className="w-4 h-4 text-[#f4ecd8] fill-[#f4ecd8]" />
                         {movie.rating} <span className="text-zinc-500 text-xs">/10</span>
@@ -227,13 +227,13 @@ export default function MovieModal({
 
                     {/* Director */}
                     <div className="space-y-1 py-1 border-b border-zinc-800/60">
-                      <span className="text-zinc-400 block text-xs">Réalisateur</span>
+                      <span className="text-zinc-400 block text-xs">Director</span>
                       <span className="text-white font-semibold font-display text-base">{movie.director}</span>
                     </div>
 
                     {/* Duration */}
                     <div className="flex items-center justify-between py-1 border-b border-zinc-800/60">
-                      <span className="text-zinc-400">Durée</span>
+                      <span className="text-zinc-400">Duration</span>
                       <span className="flex items-center gap-1.5 text-zinc-200 font-mono">
                         <Clock className="w-4 h-4 text-zinc-500" />
                         {movie.duration}
@@ -242,7 +242,7 @@ export default function MovieModal({
 
                     {/* Year */}
                     <div className="flex items-center justify-between py-1 border-b border-zinc-800/60">
-                      <span className="text-zinc-400">Année de Sortie</span>
+                      <span className="text-zinc-400">Release Year</span>
                       <span className="text-zinc-200 font-semibold font-mono">{movie.year}</span>
                     </div>
 

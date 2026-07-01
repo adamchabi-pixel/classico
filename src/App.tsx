@@ -999,10 +999,10 @@ export default function App() {
       if (data.success) {
         setJellyfinMovies(data.movies || []);
       } else {
-        setIsJellyfinError(data.error || "Impossible de récupérer vos films.");
+        setIsJellyfinError(data.error || "Unable to retrieve your movies.");
       }
     } catch (err: any) {
-      setIsJellyfinError("Erreur réseau de communication avec le serveur de médias.");
+      setIsJellyfinError("Network error communicating with the media server.");
     } finally {
       setIsJellyfinLoading(false);
     }
@@ -1107,10 +1107,10 @@ export default function App() {
         }
         setIsJellyfinLoading(false);
       } else {
-        setConnectionError(data.error || "Échec de connexion au serveur de médias.");
+        setConnectionError(data.error || "Failed to connect to the media server.");
       }
     } catch (err) {
-      setConnectionError("Impossible de connecter le serveur distant. Vérifiez l'URL de votre serveur.");
+      setConnectionError("Unable to connect to the remote server. Check your server URL.");
     } finally {
       setIsConnecting(false);
     }
@@ -1211,11 +1211,11 @@ export default function App() {
               if (libData.success) {
                 setJellyfinMovies(libData.movies || []);
               } else {
-                setIsJellyfinError(libData.error || "Impossible de lire les films.");
+                setIsJellyfinError(libData.error || "Unable to read movies.");
               }
             } catch (libErr) {
               console.warn("Failed to load library movies on check:", libErr);
-              setIsJellyfinError("Impossible de se connecter à Jellyfin.");
+              setIsJellyfinError("Unable to connect to Jellyfin.");
             } finally {
               setIsJellyfinLoading(false);
             }
@@ -1387,7 +1387,7 @@ export default function App() {
       {/* ========================================================== */}
       {/* 1. FIXED GLASS HEADER BAR                                 */}
       {/* ========================================================== */}
-      <header className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ease-in-out border-b ${isScrolled ? "bg-black border-white/5" : "bg-black border-transparent"}`}>
+      <header className={`fixed top-0 left-0 right-0 z-[9999] transition-all duration-300 ease-in-out border-b ${isScrolled ? "bg-black border-white/5" : "bg-black border-transparent"}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-8 py-2 md:py-3.5 flex flex-row items-center justify-between gap-2.5 md:gap-4 font-sans w-full">
           
           {/* Logo CLASSICO with Metallic Gold Reflection */}
@@ -1420,7 +1420,7 @@ export default function App() {
               <input
                 id="global-search-input"
                 type="text"
-                placeholder="Rechercher un film, réalisateur..."
+                placeholder="Search for a movie, director..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-neutral-900/90 hover:bg-neutral-900 border border-neutral-800 text-stone-100 placeholder-zinc-500 text-[11px] sm:text-xs pl-9 pr-4 py-1.5 md:py-2 rounded-full focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all duration-200 shadow-inner group-hover:border-zinc-700/80 font-sans"
@@ -1457,9 +1457,9 @@ export default function App() {
             {/* Desktop Navigation Controls Menu */}
             <nav className="hidden md:flex items-center gap-1 sm:gap-2 font-sans">
               {[
-                { id: "accueil", label: "Accueil", icon: Compass },
-                { id: "collections", label: "Bibliothèque", icon: FilmIcon },
-                { id: "profil", label: "Profil", icon: User }
+                { id: "accueil", label: "Home", icon: Compass },
+                { id: "collections", label: "Library", icon: FilmIcon },
+                { id: "profil", label: "My Profile", icon: User }
               ].map((tab) => {
                 const IconComp = tab.icon;
                 const isActive = activeTab === tab.id && searchQuery === "";
@@ -1503,9 +1503,9 @@ export default function App() {
             >
               <nav className="flex flex-col py-2 px-2 gap-1">
                 {[
-                  { id: "accueil", label: "Accueil", icon: Compass },
-                  { id: "collections", label: "Bibliothèque", icon: FilmIcon },
-                  { id: "profil", label: "Profil", icon: User }
+                  { id: "accueil", label: "Home", icon: Compass },
+                  { id: "collections", label: "Library", icon: FilmIcon },
+                  { id: "profil", label: "My Profile", icon: User }
                 ].map((tab) => {
                   const IconComp = tab.icon;
                   const isActive = activeTab === tab.id && searchQuery === "";
@@ -1555,12 +1555,12 @@ export default function App() {
               className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-8"
             >
               <div className="space-y-2 text-left">
-                <p className="text-xs font-mono uppercase tracking-[3px] text-zinc-500">MOTEUR DE RECHERCHE</p>
+                <p className="text-xs font-mono uppercase tracking-[3px] text-zinc-500">SEARCH ENGINE</p>
                 <h2 className="text-2xl sm:text-3xl font-display font-black text-white uppercase tracking-tight">
-                  Résultats pour : <span className="text-amber-400 italic">"{searchQuery}"</span>
+                  Results for: <span className="text-amber-400 italic">"{searchQuery}"</span>
                 </h2>
                 <p className="text-xs sm:text-sm text-zinc-400 font-mono">
-                  {searchedMovies.length} chef-d'œuvre{searchedMovies.length > 1 ? "s" : ""} cinématographique{searchedMovies.length > 1 ? "s" : ""} trouvé{searchedMovies.length > 1 ? "s" : ""}
+                  {searchedMovies.length} cinematic masterpiece{searchedMovies.length > 1 ? "s" : ""} found
                 </p>
               </div>
 
@@ -1581,9 +1581,9 @@ export default function App() {
                   <div className="w-16 h-16 rounded-full bg-neutral-900 border border-neutral-850 flex items-center justify-center mx-auto text-zinc-600">
                     <Search className="w-7 h-7" />
                   </div>
-                  <h3 className="text-lg font-display font-bold text-white">Aucun classique correspondant</h3>
+                  <h3 className="text-lg font-display font-bold text-white">No matches found</h3>
                   <p className="text-xs sm:text-sm text-zinc-500 leading-relaxed font-sans">
-                    Certains de nos films cultes sont regroupés sous leur réalisateur ou des thèmes phares. Essayez par exemple : <span className="text-amber-400 font-mono">Tarantino</span>, <span className="text-amber-400 font-mono">Nolan</span>, <span className="text-amber-400 font-mono">Star Wars</span> ou <span className="text-amber-400 font-mono">Action</span>.
+                    Some of our classic movies are grouped by director or themes. Try for example: <span className="text-amber-400 font-mono">Tarantino</span>, <span className="text-amber-400 font-mono">Nolan</span>, <span className="text-amber-400 font-mono">Star Wars</span> or <span className="text-amber-400 font-mono">Action</span>.
                   </p>
                 </div>
               )}
@@ -1826,10 +1826,10 @@ export default function App() {
                     <div className="flex flex-row items-center sm:items-end justify-between gap-2 sm:gap-3 border-b border-zinc-900 pb-2 sm:pb-3">
                       <div className="space-y-0.5 max-w-[80%]">
                         <span className="text-[8px] sm:text-[9px] font-mono tracking-[2px] sm:tracking-[3px] text-amber-500 uppercase font-bold">
-                          EN COURS DE LECTURE
+                          CONTINUE WATCHING
                         </span>
                         <h3 className="text-base sm:text-2xl font-cinzel font-bold text-white uppercase tracking-widest leading-tight truncate">
-                          Reprendre la lecture
+                          Resume Watching
                         </h3>
                       </div>
                     </div>
@@ -1840,7 +1840,7 @@ export default function App() {
                         <button
                           onClick={() => scrollCarousel('resume-lecture', "left")}
                           className="bg-black/80 hover:bg-zinc-900 border border-zinc-800 text-stone-200 hover:text-amber-400 p-2 rounded-full shadow-lg transition-all duration-150 pointer-events-auto active:scale-95 cursor-pointer"
-                          title="Précédent"
+                          title="Previous"
                         >
                           <ChevronLeft className="w-4 h-4" />
                         </button>
@@ -1850,7 +1850,7 @@ export default function App() {
                         <button
                           onClick={() => scrollCarousel('resume-lecture', "right")}
                           className="bg-black/80 hover:bg-zinc-900 border border-zinc-800 text-stone-200 hover:text-amber-400 p-2 rounded-full shadow-lg transition-all duration-150 pointer-events-auto active:scale-95 cursor-pointer"
-                          title="Suivant"
+                          title="Next"
                         >
                           <ChevronRight className="w-4 h-4" />
                         </button>
@@ -1885,7 +1885,7 @@ export default function App() {
 
                 <div className="text-left py-1 select-none">
                   <h2 className="font-cinzel font-bold text-[17px] sm:text-2xl tracking-[0.1em] sm:tracking-[0.22em] gold-metallic-text uppercase leading-none whitespace-nowrap">
-                    BIBLIOTHÈQUE THÉMATIQUE
+                    THEMATIC LIBRARY
                   </h2>
                   <span className="block font-signature text-[18px] sm:text-[23px] text-[#f4ecd8] leading-none mt-1 filter drop-shadow-[0_0_4px_rgba(244,236,216,0.2)]">
                     Sélections Cinémathèques
@@ -1899,7 +1899,7 @@ export default function App() {
                       <div className="flex flex-row items-center sm:items-end justify-between gap-2 sm:gap-3 border-b border-zinc-900 pb-2 sm:pb-3">
                         <div className="space-y-0.5 max-w-[80%]">
                           <span className="text-[8px] sm:text-[9px] font-mono tracking-[2px] sm:tracking-[3px] text-zinc-500 uppercase font-bold">
-                            COLLECTION CINÉMATOGRAPHIQUE • {collection.movies.length} FILMS
+                            CINEMATIC COLLECTION • {collection.movies.length} MOVIES
                           </span>
                           <h3 className="text-base sm:text-2xl font-cinzel font-bold text-white uppercase tracking-widest leading-tight truncate">
                             {collection.title}
@@ -1935,7 +1935,7 @@ export default function App() {
                           <button
                             onClick={() => scrollCarousel(collection.id, "left")}
                             className="bg-black/80 hover:bg-zinc-900 border border-zinc-800 text-stone-200 hover:text-amber-400 p-2 rounded-full shadow-lg transition-all duration-150 pointer-events-auto active:scale-95 cursor-pointer"
-                            title="Précédent"
+                            title="Previous"
                           >
                             <ChevronLeft className="w-4 h-4" />
                           </button>
@@ -1945,7 +1945,7 @@ export default function App() {
                           <button
                             onClick={() => scrollCarousel(collection.id, "right")}
                             className="bg-black/80 hover:bg-zinc-900 border border-zinc-800 text-stone-200 hover:text-amber-400 p-2 rounded-full shadow-lg transition-all duration-150 pointer-events-auto active:scale-95 cursor-pointer"
-                            title="Suivant"
+                            title="Next"
                           >
                             <ChevronRight className="w-4 h-4" />
                           </button>
@@ -1987,7 +1987,7 @@ export default function App() {
               className="max-w-7xl mx-auto px-4 sm:px-8 pt-4 pb-8 sm:py-8 space-y-8 sm:space-y-12"
             >
               <div className="text-left space-y-2 max-w-2xl">
-                <p className="text-xs font-mono uppercase tracking-[3px] text-zinc-500">INDICES THÉMATIQUES</p>
+                <p className="text-xs font-mono uppercase tracking-[3px] text-zinc-500">THEMATIC INDEXES</p>
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-signature text-[#f4ecd8] leading-none filter drop-shadow-[0_0_4px_rgba(244,236,216,0.2)]">
                   Collections
                 </h1>
@@ -2016,7 +2016,7 @@ export default function App() {
                       <div className="space-y-2 sm:space-y-3 relative z-10">
                         <div className="flex items-center justify-between">
                           <span className="text-[9px] sm:text-[10px] font-mono font-medium tracking-widest text-amber-400 uppercase bg-black/40 border border-amber-500/20 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md">
-                            {c.movies.length} FILMS
+                            {c.movies.length} MOVIES
                           </span>
                         </div>
 
@@ -2031,7 +2031,7 @@ export default function App() {
 
                       {/* Display movie list previews inside card folder */}
                       <div className="hidden sm:block relative z-10 pt-4 border-t border-zinc-800/60">
-                        <p className="text-[10px] font-mono uppercase tracking-[2px] text-zinc-500 mb-3 font-semibold">Inclus dans la Collection :</p>
+                        <p className="text-[10px] font-mono uppercase tracking-[2px] text-zinc-500 mb-3 font-semibold">Included in Collection:</p>
                         <div className="flex overflow-x-auto no-scrollbar flex-nowrap md:flex-wrap gap-2 pb-1 md:pb-0">
                           {c.movies.slice(0, 4).map((movie, idx) => (
                             <span 
@@ -2082,7 +2082,7 @@ export default function App() {
                       className="inline-flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-zinc-400 hover:text-amber-400 group/back py-2 px-3 bg-neutral-900/40 rounded-full border border-zinc-800 hover:border-amber-400/20 transition-all duration-200 cursor-pointer"
                     >
                       <ChevronLeft className="w-4 h-4 text-zinc-500 group-hover/back:text-amber-400 transition-colors transform group-hover/back:-translate-x-0.5" />
-                      RETOUR AUX COLLECTIONS
+                      BACK TO COLLECTIONS
                     </button>
                   </div>
 
@@ -2115,7 +2115,7 @@ export default function App() {
                   <div className="max-w-7xl mx-auto px-4 sm:px-8 pb-10 space-y-4 sm:space-y-6 mt-5 sm:mt-8">
                     <div className="border-t border-zinc-700/60 pt-4 sm:pt-6 text-left">
                       <h2 className="text-[13px] sm:text-base font-cinzel font-bold text-white uppercase tracking-[0.15em] sm:tracking-[0.2em] truncate">
-                        DISCOGRAPHIE DES FILMS
+                        MOVIE CATALOG
                       </h2>
                     </div>
 
@@ -2169,7 +2169,7 @@ export default function App() {
                 />
               ) : (
                 <div className="py-20 text-center max-w-sm mx-auto space-y-4">
-                  <p className="text-zinc-400 font-mono">Chargement des données du film...</p>
+                  <p className="text-zinc-400 font-mono">Loading movie data...</p>
                 </div>
               )}
             </motion.div>
@@ -2195,7 +2195,7 @@ export default function App() {
                   <div className="space-y-4">
                     <h3 className="text-lg font-display font-bold uppercase tracking-wider text-white flex items-center gap-2 border-b border-zinc-800 pb-2">
                       <Heart className="w-4 h-4 text-rose-500 fill-rose-500 animate-pulse" />
-                      Ma Liste à regarder ({watchlist.length})
+                      My Watchlist ({watchlist.length})
                     </h3>
 
                     {watchlist.length > 0 ? (
@@ -2215,15 +2215,15 @@ export default function App() {
                       </div>
                     ) : (
                       <div className="py-12 bg-neutral-900/40 p-6 rounded-xl border border-dashed border-zinc-800 text-center space-y-3">
-                        <p className="text-sm text-zinc-400">Votre liste de visionnage est vide pour le moment.</p>
+                        <p className="text-sm text-zinc-400">Your watchlist is empty right now.</p>
                         <p className="text-xs text-zinc-500 max-w-sm mx-auto">
-                          Cliquez sur le bouton "Ajouter à ma Liste" ou sur l'onglet de détails de n'importe quel film sur l'accueil pour le mettre de côté ici.
+                          Click the "Add to my List" button or use the details view of any movie to save it here.
                         </p>
                         <button
                           onClick={() => setActiveTab("accueil")}
                           className="gold-button px-5 py-2.5 rounded-lg text-xs transition-transform hover:scale-103 active:scale-95 cursor-pointer"
                         >
-                          EXPLORER L'ACCUEIL
+                          EXPLORE HOME
                         </button>
                       </div>
                     )}
@@ -2233,7 +2233,7 @@ export default function App() {
                   <div className="space-y-4">
                     <h3 className="text-lg font-display font-bold uppercase tracking-wider text-white flex items-center gap-2 border-b border-zinc-800/80 pb-2">
                       <History className="w-4 h-4 text-zinc-400" />
-                      Récemment consultés ({history.length})
+                      Recently Viewed ({history.length})
                     </h3>
 
                     {history.length > 0 ? (
@@ -2252,7 +2252,7 @@ export default function App() {
                         }
                       </div>
                     ) : (
-                      <p className="text-xs text-zinc-500 font-mono italic">Aucun historique de visionnage récent disponible.</p>
+                      <p className="text-xs text-zinc-500 font-mono italic">No recent watch history available.</p>
                     )}
                   </div>
 
@@ -2273,10 +2273,10 @@ export default function App() {
           CLASSICO
         </div>
         <p className="max-w-md mx-auto leading-relaxed text-[11px] text-zinc-400/80">
-          CLASSICO est un site de streaming fictif dédié aux films cultes et collections légendaires de l'histoire du cinéma. Toutes les images, métadonnées, et simulateurs de lecture sont purement artistiques et fictifs.
+          CLASSICO is a streaming site dedicated to cult movies and legendary cinema collections. All images, metadata, and playback simulators are purely artistic and fictional.
         </p>
         <p className="text-zinc-600 font-sans tracking-wide text-[10px] pt-2">
-          © {new Date().getFullYear()} CLASSICO Streaming Inc. • Tous droits préservés.
+          © {new Date().getFullYear()} CLASSICO Streaming Inc. • All rights reserved.
         </p>
       </footer>
 

@@ -1368,7 +1368,7 @@ export default function CinemaPlayerView({
               onClose();
             }}
             className="p-2 rounded-full bg-white/5 hover:bg-white/10 active:scale-95 text-white/70 hover:text-white border border-white/5 hover:border-white/15 transition-all cursor-pointer flex items-center justify-center"
-            title="Retour"
+            title="Back"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -1395,7 +1395,7 @@ export default function CinemaPlayerView({
           <div className="max-w-md p-6 bg-stone-950/95 border border-rose-500/20 rounded-2xl text-center space-y-4 z-40 mx-4 shadow-2xl">
             <AlertCircle className="w-10 h-10 text-rose-500 mx-auto animate-bounce" />
             <div className="space-y-1">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-rose-400">Erreur de lecture cinéma</h3>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-rose-400">Cinema Playback Error</h3>
               <p className="text-xs text-zinc-400 font-sans leading-relaxed">{videoError}</p>
             </div>
             <button
@@ -1615,7 +1615,7 @@ export default function CinemaPlayerView({
             <button
               onClick={handlePlayPauseClick}
               className="text-white/80 hover:text-white p-1.5 active:scale-90 transition-all duration-150 cursor-pointer"
-              title={playing ? "Pause" : "Lecture"}
+              title={playing ? "Pause" : "Play"}
             >
               {playing ? (
                 <Pause className="w-6 h-6 fill-current" />
@@ -1698,7 +1698,7 @@ export default function CinemaPlayerView({
                   className={`p-1.5 rounded-full text-white/60 hover:text-white hover:bg-white/5 active:scale-95 transition-all cursor-pointer flex items-center justify-center ${
                     subtitlesOn && activeSubtitleIndex !== null ? "text-amber-400" : ""
                   }`}
-                  title="Sous-titres"
+                  title="Subtitles"
                 >
                   <Captions className="w-5 h-5" />
                 </button>
@@ -1707,7 +1707,7 @@ export default function CinemaPlayerView({
                 {showSubtitleMenu && (
                   <div id="cinema-subtitle-menu" className="absolute bottom-full left-0 mb-3 w-56 bg-zinc-950/95 border border-white/10 rounded-xl shadow-2xl p-2 z-50 overflow-hidden text-[11px] text-zinc-200">
                     <div className="px-2 py-1.5 border-b border-white/5 flex items-center justify-between gap-1">
-                      <span className="font-bold uppercase tracking-wider text-amber-500 text-[9px] truncate">Sous-titres</span>
+                      <span className="font-bold uppercase tracking-wider text-amber-500 text-[9px] truncate">Subtitles</span>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -1734,7 +1734,7 @@ export default function CinemaPlayerView({
                             : "hover:bg-zinc-900 text-zinc-400 hover:text-zinc-200"
                         }`}
                       >
-                        <span>Désactiver les sous-titres</span>
+                        <span>Disable subtitles</span>
                         {(activeSubtitleIndex === null || !subtitlesOn) && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
                       </button>
 
@@ -1771,7 +1771,7 @@ export default function CinemaPlayerView({
 
           {/* RIGHT SIDE: DIAGNOSTICS & FULLSCREEN */}
           <div className="flex items-center gap-3">
-            {/* Informations de lecture Button (Visible uniquement en mode administrateur) */}
+            {/* Playback Info Button (Visible only in admin mode) */}
             {localStorage.getItem("isAdmin") === "true" && (
               <button
                 onClick={(e) => {
@@ -1783,7 +1783,7 @@ export default function CinemaPlayerView({
                     ? "border-amber-500 text-amber-400 bg-amber-500/10" 
                     : "border-white/5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white"
                 }`}
-                title="Informations de lecture en temps réel (Mode Admin)"
+                title="Real-time playback info (Admin Mode)"
               >
                 <AlertCircle className="w-5 h-5" />
               </button>
@@ -1804,13 +1804,13 @@ export default function CinemaPlayerView({
 
       </div>
 
-      {/* Floating diagnostic overlay (Mode Admin) */}
+      {/* Floating diagnostic overlay (Admin Mode) */}
       {showDiagnostics && (
         <div className="absolute top-20 right-6 z-50 w-full max-w-md bg-stone-950/96 border border-amber-500/30 rounded-2xl p-4 font-mono text-[11px] leading-relaxed text-zinc-300 shadow-2xl space-y-3.5 backdrop-blur-md max-h-[72vh] overflow-y-auto pointer-events-auto text-left">
           <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-              <span className="font-sans font-black text-xs text-white tracking-widest uppercase">CONTRÔLEUR DE LECTURE CINÉMA</span>
+              <span className="font-sans font-black text-xs text-white tracking-widest uppercase">CINEMA PLAYBACK CONTROLLER</span>
             </div>
             <button 
               onClick={() => setShowDiagnostics(false)}
@@ -1821,15 +1821,15 @@ export default function CinemaPlayerView({
           </div>
 
           <div className="space-y-1">
-            <div className="text-amber-500 font-bold uppercase tracking-wider text-[10px]">1. INFORMATIONS DE LECTURE :</div>
+            <div className="text-amber-500 font-bold uppercase tracking-wider text-[10px]">1. PLAYBACK INFORMATION :</div>
             <div className="bg-black/55 p-2 rounded-lg border border-zinc-900 space-y-1">
               <p><span className="text-zinc-500">Titre :</span> <span className="text-zinc-100 font-bold">{movieTitle}</span></p>
               <p><span className="text-zinc-500">ID Film :</span> <span className="text-zinc-400 break-all">{movieId}</span></p>
-              <p><span className="text-zinc-500">Méthode de lecture :</span> <span className="text-emerald-400 font-bold">{playbackInfo?.isDirect ? "Direct Play (Fichier brut)" : "Transcoding (Flux HLS)"}</span></p>
+              <p><span className="text-zinc-500">Playback Method :</span> <span className="text-emerald-400 font-bold">{playbackInfo?.isDirect ? "Direct Play (Raw File)" : "Transcoding (HLS Stream)"}</span></p>
               <p><span className="text-zinc-500">Conteneur :</span> <span className="text-zinc-300 font-mono font-bold uppercase">{playbackInfo?.container || "Inconnu"}</span></p>
               <p><span className="text-zinc-500">Codec Vidéo :</span> <span className="text-amber-400 font-mono font-bold">{playbackInfo?.videoCodec || "Inconnu"}</span></p>
               <p><span className="text-zinc-500">Codec Audio :</span> <span className="text-amber-400 font-mono font-bold">{playbackInfo?.audioCodec || "Inconnu"}</span></p>
-              <p><span className="text-zinc-500">État du transcodage :</span> <span className="text-teal-400 font-bold">{playbackInfo?.isDirect ? "Inactif (Lecture Directe)" : "Actif (Jellyfin Transcodeur)"}</span></p>
+              <p><span className="text-zinc-500">Transcoding State :</span> <span className="text-teal-400 font-bold">{playbackInfo?.isDirect ? "Inactive (Direct Play)" : "Active (Jellyfin Transcoder)"}</span></p>
             </div>
           </div>
 
@@ -1840,15 +1840,15 @@ export default function CinemaPlayerView({
               <p><span className="text-zinc-500">Chemin Jellyfin :</span> <span className="text-zinc-400 break-all text-[9.5px] block bg-black/40 p-1.5 rounded mt-0.5 border border-zinc-800/50">{playbackInfo?.chosenPath || "Indéterminé"}</span></p>
               <p><span className="text-zinc-500">currentTime réel :</span> <span className="text-emerald-400 font-bold font-mono">{(videoRef.current?.currentTime || 0).toFixed(2)} s</span></p>
               <p><span className="text-zinc-500">video.readyState :</span> <span className="text-zinc-300 font-mono">{videoRef.current?.readyState ?? "-"}</span></p>
-              <p><span className="text-zinc-500">Dernière erreur :</span> <span className={videoError ? "text-rose-400 font-bold" : "text-zinc-500"}>{videoError || "Aucune (OK)"}</span></p>
+              <p><span className="text-zinc-500">Last Error :</span> <span className={videoError ? "text-rose-400 font-bold" : "text-zinc-500"}>{videoError || "None (OK)"}</span></p>
             </div>
           </div>
 
           <div className="space-y-1">
-            <div className="text-amber-500 font-bold uppercase tracking-wider text-[10px]">3. JOURNAL DES ÉVÉNEMENTS (LOGS VISIBLES) :</div>
+            <div className="text-amber-500 font-bold uppercase tracking-wider text-[10px]">3. EVENT LOGS (VISIBLE) :</div>
             <div className="bg-black/55 p-2 rounded-lg border border-zinc-900 space-y-1 max-h-[150px] overflow-y-auto scrollbar-thin">
               {playerLogs.length === 0 ? (
-                <p className="text-zinc-600 italic">En attente d'événements...</p>
+                <p className="text-zinc-600 italic">Waiting for events...</p>
               ) : (
                 playerLogs.map((log, i) => (
                   <p key={i} className="text-[10px] text-amber-100 font-mono leading-tight">{log}</p>

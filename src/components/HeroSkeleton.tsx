@@ -32,7 +32,7 @@ export default function HeroSkeleton() {
           </div>
         </div>
         <span className="text-[10px] font-mono tracking-[0.2em] text-amber-500/80 uppercase animate-pulse">
-          Chargement Cinématique...
+          Cinematic Loading...
         </span>
       </div>
 

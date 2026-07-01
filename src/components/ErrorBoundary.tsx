@@ -84,7 +84,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
                 }}
                 className="px-5 py-2.5 bg-stone-800 hover:bg-stone-700 text-stone-200 font-medium text-sm rounded transition-all cursor-pointer border border-stone-700"
               >
-                Retourner à l'accueil
+                Return to Home
               </button>
             </div>
           </div>

@@ -1398,53 +1398,21 @@ export default function VideoPlayer({
   const progressPercent = videoState.duration > 0 ? (currentDisplayProgress / videoState.duration) * 100 : 0;
 
   const handleFullscreenToggle = () => {
-    try {
-      const video = videoRef.current as any;
-      const container = playerContainerRef.current as any;
+    const video = videoRef.current as any;
+    const container = playerContainerRef.current as any;
 
-      if (!video) return;
+    if (!video) return;
 
-      const isFullscreen = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
-      if (!isFullscreen) {
-        // 1. Force la méthode native Apple (indispensable pour iPhone/Safari)
-        if (video.webkitEnterFullscreen) {
-          video.webkitEnterFullscreen();
-        } 
-        // 2. Alternative pour les versions d'iOS plus récentes ou iPad
-        else if (video.webkitRequestFullscreen) {
-          video.webkitRequestFullscreen();
-        } 
-        // 3. Méthode standard HTML5 pour Android et PC
-        else if (container && container.requestFullscreen) {
-          container.requestFullscreen().catch((err: any) => console.warn(err));
-        } 
-        // 4. Secours ultime pour anciens navigateurs Android
-        else if (video.requestFullscreen) {
-          video.requestFullscreen().catch((err: any) => console.warn(err));
-        }
-        
-        try {
-          if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock('landscape').catch(() => {});
-          }
-        } catch (e) {
-          console.log('Orientation lock not supported', e);
-        }
-      } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen().catch((err: any) => console.warn(err));
-        } else if ((document as any).webkitExitFullscreen) {
-          (document as any).webkitExitFullscreen();
-        }
-        
-        try {
-          if (screen.orientation && screen.orientation.unlock) {
-            screen.orientation.unlock();
-          }
-        } catch (e) {}
-      }
-    } catch (err) {
-      console.warn("Fullscreen toggle failed:", err);
+    // 1. Force le lecteur natif Apple (Indispensable pour iPhone)
+    if (video.webkitEnterFullscreen) {
+      video.webkitEnterFullscreen();
+    } 
+    // 2. Méthode standard pour Android, PC, Mac et iPad
+    else if (container && container.requestFullscreen) {
+      container.requestFullscreen();
+    } 
+    else if (video.requestFullscreen) {
+      video.requestFullscreen();
     }
   };
 
@@ -1511,12 +1479,12 @@ export default function VideoPlayer({
           <div className="absolute inset-0 bg-neutral-950/98 z-50 flex items-center justify-center p-6 sm:p-8 overflow-y-auto text-left">
             <div className="max-w-2xl w-full space-y-4 my-auto">
               <div className="space-y-1.5 pb-2 border-b border-rose-950/50">
-                <span className="text-[10px] font-mono tracking-[3px] text-rose-500 font-black block">⚠️ DIAGNOSTIC TECHNIQUES DE LECTURE</span>
+                <span className="text-[10px] font-mono tracking-[3px] text-rose-500 font-black block">⚠️ PLAYBACK DIAGNOSTICS</span>
                 <h4 className="text-lg font-forum font-bold text-white uppercase tracking-wider">{movieTitle} — Blocage du flux</h4>
               </div>
               
               <div className="p-4 bg-rose-950/20 border border-rose-500/30 text-rose-200 text-xs rounded-xl leading-relaxed space-y-2.5 font-mono">
-                <p className="font-bold text-rose-300">Message d'erreur du lecteur :</p>
+                <p className="font-bold text-rose-300">Player error message:</p>
                 <p className="bg-black/40 p-2.5 rounded font-mono text-[11px] text-zinc-300 break-words">{videoError}</p>
                 <div className="space-y-1 text-[11px] text-zinc-400">
                   <p><span className="text-zinc-500">URL Demandée :</span> <span className="text-amber-400 break-all">{finalStreamUrl || "Non résolue"}</span></p>
@@ -1530,7 +1498,7 @@ export default function VideoPlayer({
                 <div className="bg-zinc-900/50 p-3.5 rounded-xl border border-zinc-800 space-y-1.5">
                   <span className="font-mono text-[10px] font-bold text-amber-500 uppercase tracking-wider block">🔒 1. CONTOURNER LES CRÉDENTIALS ET CORS</span>
                   <p>
-                    Si une erreur <strong>CORS (401 / Stream Block)</strong> se produit, le mode <strong>PROXIFIÉ</strong> (activé par défaut) fait transiter les appels par notre serveur Express sécurisé pour intégrer le token et masquer l'API key.
+                    If a <strong>CORS (401 / Stream Block)</strong> error occurs, <strong>PROXIED</strong> mode (enabled by default) routes calls through our secure Express server to include the token and hide the API key.
                   </p>
                 </div>
                 <div className="bg-zinc-900/50 p-3.5 rounded-xl border border-zinc-800 space-y-1.5">
@@ -1545,7 +1513,7 @@ export default function VideoPlayer({
               <div className="bg-amber-500/5 border border-amber-500/20 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3">
                 <div className="space-y-0.5 text-xs text-left">
                   <span className="text-[10px] font-mono text-amber-400 font-bold uppercase block">OPTIONS CORRECTRICES DU CLIENT :</span>
-                  <p className="text-[11px] text-zinc-400">Variez les modes de lecture ci-dessous pour trouver la compatibilité optimale.</p>
+                  <p className="text-[11px] text-zinc-400">Try the playback modes below to find optimal compatibility.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <button
@@ -1575,7 +1543,7 @@ export default function VideoPlayer({
                   onClick={() => setVideoError(null)}
                   className="w-full bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-zinc-300 py-2.5 rounded-xl text-[10px] font-mono tracking-wider font-bold uppercase transition-all cursor-pointer active:scale-95"
                 >
-                  Réessayer la lecture
+                  Retry playback
                 </button>
                 <button
                   onClick={() => {
@@ -1744,7 +1712,6 @@ export default function VideoPlayer({
               setVideoState(prev => ({ ...prev, playing: false, progress: 0 }));
             }}
             autoPlay
-            playsInline
             crossOrigin="anonymous"
           >
             {playbackInfo?.subtitles?.filter(track => isTextSubtitle(track.codec)).map((track) => (
@@ -1779,7 +1746,7 @@ export default function VideoPlayer({
               <div className="space-y-4 max-w-md px-6">
                 <p className="text-[10px] font-mono tracking-widest uppercase text-rose-500 flex items-center justify-center gap-1.5 font-bold">
                   <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-                  LECTURE EN COURS — PREVIEW SÉCURISÉE
+                  PLAYING — SECURE PREVIEW
                 </p>
 
                 <div className={`p-6 rounded-2xl bg-gradient-to-br ${movieGradient} border border-white/5 shadow-2xl relative overflow-hidden group`}>
@@ -1839,7 +1806,7 @@ export default function VideoPlayer({
               <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center mx-auto border border-white/20">
                 <Pause className="w-6 h-6 text-white" />
               </div>
-              <p className="text-xs font-mono uppercase tracking-widest text-zinc-400 font-bold">LECTURE EN PAUSE</p>
+              <p className="text-xs font-mono uppercase tracking-widest text-zinc-400 font-bold">PAUSED</p>
             </div>
           </div>
         )}
@@ -1858,31 +1825,48 @@ export default function VideoPlayer({
             <div 
               id="mock-timeline-track"
               className="flex-grow h-1.5 bg-zinc-800 rounded-full cursor-pointer relative group touch-none"
-              onPointerDown={(e) => {
-                e.currentTarget.setPointerCapture(e.pointerId);
+              onTouchStart={(e) => {
+                isDraggingRef.current = true;
+                const newTime = calculateTimeFromEvent(e.touches[0].clientX, e.currentTarget);
+                setDragProgress(newTime);
+              }}
+              onTouchMove={(e) => {
+                if (isDraggingRef.current) {
+                  const newTime = calculateTimeFromEvent(e.touches[0].clientX, e.currentTarget);
+                  setDragProgress(newTime);
+                }
+              }}
+              onTouchEnd={() => {
+                if (isDraggingRef.current) {
+                  isDraggingRef.current = false;
+                  if (dragProgress !== null) {
+                    applySeekTime(dragProgress);
+                  }
+                  setDragProgress(null);
+                }
+              }}
+              onMouseDown={(e) => {
                 isDraggingRef.current = true;
                 const newTime = calculateTimeFromEvent(e.clientX, e.currentTarget);
                 setDragProgress(newTime);
               }}
-              onPointerMove={(e) => {
+              onMouseMove={(e) => {
                 if (isDraggingRef.current) {
                   const newTime = calculateTimeFromEvent(e.clientX, e.currentTarget);
                   setDragProgress(newTime);
                 }
               }}
-              onPointerUp={(e) => {
+              onMouseUp={(e) => {
                 if (isDraggingRef.current) {
                   isDraggingRef.current = false;
-                  e.currentTarget.releasePointerCapture(e.pointerId);
                   const newTime = calculateTimeFromEvent(e.clientX, e.currentTarget);
                   setDragProgress(null);
                   applySeekTime(newTime);
                 }
               }}
-              onPointerCancel={(e) => {
+              onMouseLeave={() => {
                 if (isDraggingRef.current) {
                   isDraggingRef.current = false;
-                  e.currentTarget.releasePointerCapture(e.pointerId);
                   if (dragProgress !== null) {
                     applySeekTime(dragProgress);
                   }
@@ -1931,7 +1915,7 @@ export default function VideoPlayer({
               id="player-play-btn"
               onClick={() => setVideoState(prev => ({ ...prev, playing: !prev.playing }))}
               className="text-[#e2e8f0] hover:text-amber-400 p-1.5 active:scale-90 transition-all duration-150 cursor-pointer"
-              title={videoState.playing ? "Pause" : "Lecture"}
+              title={videoState.playing ? "Pause" : "Play"}
             >
               {videoState.playing ? (
                 <Pause className="w-5 h-5 fill-current" />
@@ -2007,14 +1991,14 @@ export default function VideoPlayer({
                       ? "bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border-amber-500/35"
                       : "bg-zinc-900 border-zinc-800/80 hover:bg-zinc-850 text-zinc-350"
                   }`}
-                  title="Sous-titres de Jellyfin"
+                  title="Jellyfin Subtitles"
                 >
                   <Captions className={`w-4 h-4 ${videoState.subtitlesOn && activeSubtitleIndex !== null ? "text-amber-400 animate-pulse" : "text-zinc-400"}`} />
-                  <span className="text-zinc-400">Sous-titres :</span>
+                  <span className="text-zinc-400">Subtitles:</span>
                   <span className="font-sans font-bold text-zinc-100 truncate max-w-[120px]">
                     {videoState.subtitlesOn && activeSubtitleIndex !== null
                       ? (playbackInfo?.subtitles?.find(s => s.index === activeSubtitleIndex)?.label || "Oui")
-                      : "Aucun"}
+                      : "None"}
                   </span>
                 </button>
               </div>
@@ -2045,14 +2029,14 @@ export default function VideoPlayer({
 
                 {/* Initial buffering time */}
                 {initialBufferingTime !== null && (
-                  <span className="text-zinc-400 bg-zinc-950 border border-zinc-800 px-2 py-1 rounded" title="Temps d'attente initial avant le début de lecture">
+                  <span className="text-zinc-400 bg-zinc-950 border border-zinc-800 px-2 py-1 rounded" title="Initial wait time before playback starts">
                     ⏱️ {initialBufferingTime.toFixed(1)}s
                   </span>
                 )}
 
                 {/* Auto downgrade status */}
                 {isAutoDowngraded && (
-                  <span className="text-rose-400 bg-rose-950/45 border border-rose-500/30 px-2 py-1 rounded animate-pulse" title="Le flux a été allégé automatiquement pour éliminer les interruptions de chargement">
+                  <span className="text-rose-400 bg-rose-950/45 border border-rose-500/30 px-2 py-1 rounded animate-pulse" title="Stream automatically optimized to prevent buffering">
                     ⚠️ FLUX ALLÉGÉ AUTO (DÉBIT LIMITÉ)
                   </span>
                 )}
@@ -2078,7 +2062,7 @@ export default function VideoPlayer({
                   className="bg-zinc-950 border border-zinc-800 hover:bg-zinc-900 hover:text-white px-2 py-1 rounded text-zinc-500 hover:text-amber-400 font-bold transition-all cursor-pointer"
                   title="Changer entre le flux d'origine brut (Direct) ou l'encodage de compatibilité à la volée (Transcodé)"
                 >
-                  MODE : {isTranscoded ? "⚙️ TRANSCODAGE" : "🔋 FLUX ORIGINAL BRUT"}
+                  MODE : {isTranscoded ? "⚙️ TRANSCODING" : "🔋 ORIGINAL RAW STREAM"}
                 </button>
               </>
             ) : (
@@ -2098,7 +2082,7 @@ export default function VideoPlayer({
                 className={`p-1.5 rounded transition-colors duration-150 cursor-pointer flex items-center justify-center ${
                   videoState.subtitlesOn && activeSubtitleIndex !== null ? "text-amber-400 bg-amber-500/10 animate-pulse" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
                 }`}
-                title="Sous-titres de Jellyfin"
+                title="Jellyfin Subtitles"
               >
                 <Captions className="w-4.5 h-4.5" />
               </button>
@@ -2108,7 +2092,7 @@ export default function VideoPlayer({
                   className="absolute bottom-10 right-0 z-50 w-64 bg-zinc-950/98 border border-zinc-800 rounded-xl p-2 shadow-2xl font-sans text-xs text-left backdrop-blur-md max-h-64 overflow-y-auto"
                 >
                   <div className="px-2 py-1.5 border-b border-zinc-900 flex justify-between items-center text-zinc-400 font-bold tracking-wide text-[10px] uppercase">
-                    <span>Sélection des Sous-titres</span>
+                    <span>Subtitle Selection</span>
                     {videoState.subtitlesOn && activeSubtitleIndex !== null && (
                       <span className="text-amber-400 lowercase font-normal">[actif]</span>
                     )}
@@ -2129,7 +2113,7 @@ export default function VideoPlayer({
                           : "text-zinc-400 hover:text-white hover:bg-white/5"
                       }`}
                     >
-                      <span>🚫 Désactiver les sous-titres</span>
+                      <span>🚫 Disable Subtitles</span>
                       {(activeSubtitleIndex === null || !videoState.subtitlesOn) && (
                         <span className="text-[9px] font-mono font-black text-amber-500">✔</span>
                       )}
@@ -2178,7 +2162,7 @@ export default function VideoPlayer({
                       })
                     ) : (
                       <div className="px-2.5 py-2 text-zinc-500 italic text-[10px] text-center">
-                        Aucun sous-titre français ou externe disponible sur Jellyfin pour ce film.
+                        No French or external subtitles available on Jellyfin for this movie.
                       </div>
                     )}
                   </div>
@@ -2252,7 +2236,7 @@ export default function VideoPlayer({
                         })
                       ) : (
                         <div className="px-2.5 py-2 text-zinc-500 italic text-[10px] text-center">
-                          Aucune piste audio alternative détectée.
+                          No alternative audio track detected.
                         </div>
                       )}
                     </div>
@@ -2264,14 +2248,18 @@ export default function VideoPlayer({
             {/* Fullscreen Button */}
             <button
               id="player-fullscreen-btn"
-              onClick={handleFullscreenToggle}
-              onTouchEnd={(e) => {
-                // Prevent onClick double-firing on some touch devices,
-                // while registering the gesture explicitly.
-                e.preventDefault(); 
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
                 handleFullscreenToggle();
               }}
-              className="text-zinc-400 hover:text-amber-400 p-1.5 transition-colors duration-150 cursor-pointer touch-manipulation"
+              onTouchEnd={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                handleFullscreenToggle();
+              }}
+              className="text-zinc-400 hover:text-amber-400 p-1.5 transition-colors duration-150 cursor-pointer touch-manipulation z-50 relative"
               title="Plein écran"
             >
               <Maximize2 className="w-4.5 h-4.5" />
@@ -2282,10 +2270,10 @@ export default function VideoPlayer({
               <button
                 onClick={() => setShowDiagnostics(prev => !prev)}
                 className={`bg-zinc-900 border ${showDiagnostics ? "border-amber-500/80 text-amber-400 font-black shadow-[0_0_10px_rgba(245,158,11,0.1)]" : "border-zinc-800 hover:bg-neutral-800 text-zinc-300 font-bold"} font-mono text-xs px-3 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 cursor-pointer`}
-                title="Informations de lecture en temps réel (Mode Admin)"
+                title="Real-time playback info (Admin Mode)"
               >
                 <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
-                Informations de lecture
+                Playback Info
               </button>
             )}
 
@@ -2295,7 +2283,7 @@ export default function VideoPlayer({
               className="bg-zinc-900 border border-zinc-800 hover:bg-neutral-800 text-zinc-300 font-mono text-xs px-3 py-1.5 rounded-lg font-bold transition-all duration-150 flex items-center gap-1.5 cursor-pointer"
             >
               <Info className="w-3.5 h-3.5 text-zinc-500" />
-              Détails
+              Details
             </button>
           </div>
         </div>
@@ -2306,10 +2294,10 @@ export default function VideoPlayer({
             <div className="space-y-0.5">
               <span className="text-[10px] font-mono font-black tracking-widest text-amber-500 flex items-center gap-1 uppercase">
                 <VolumeX className="w-3.5 h-3.5" />
-                Problème de lecture ou de son ? (Codec AC3 / DTS / HEVC)
+                Playback or sound issues? (Codec AC3 / DTS / HEVC)
               </span>
               <p className="text-[10px] text-zinc-400 font-sans leading-snug">
-                Certains navigateurs ne gèrent pas le décodage audio multicanal ou certains types de fichiers d'origine. Basculez en mode <strong>TRANSCODAGE</strong> dans la barre d'outils, ou copiez l'URL pour la lire dans un lecteur externe performant comme <strong>VLC</strong> ou <strong>IINA</strong> !
+                Some browsers do not support multi-channel audio decoding or certain original file types. Switch to <strong>TRANSCODING</strong> mode in the toolbar, or copy the URL to play it in a powerful external player like <strong>VLC</strong> or <strong>IINA</strong>!
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0 w-full md:w-auto justify-end">
@@ -2350,7 +2338,7 @@ export default function VideoPlayer({
             <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-                <span className="font-sans font-black text-xs text-white tracking-widest uppercase">CONTRÔLEUR DE LECTURE RÉEL</span>
+                <span className="font-sans font-black text-xs text-white tracking-widest uppercase">REAL PLAYBACK CONTROLLER</span>
               </div>
               <button 
                 onClick={() => setShowDiagnostics(false)}
@@ -2367,7 +2355,7 @@ export default function VideoPlayer({
                 <p><span className="text-zinc-500">Titre :</span> <span className="text-zinc-100 font-bold">{clickLog?.title || movieTitle}</span></p>
                 <p><span className="text-zinc-500">ID Envoyé au Player :</span> <span className="text-zinc-400 break-all">{clickLog?.idSent || movieId}</span></p>
                 <p><span className="text-zinc-500 font-semibold">Substitution Rocky III :</span> <span className={clickLog?.isOverridden ? "text-emerald-400 font-bold" : "text-zinc-500"}>{clickLog?.isOverridden ? "ACTIF (Forcé sur 8db5a60d8317cdd9ca66b81e52cad247)" : "NON REQUIS"}</span></p>
-                <p><span className="text-zinc-500">MediaSourceId Actif :</span> <span className="text-amber-400 whitespace-nowrap overflow-hidden select-all">{playbackInfo?.id || "Chargement..."}</span></p>
+                <p><span className="text-zinc-500">Active MediaSourceId:</span> <span className="text-amber-400 whitespace-nowrap overflow-hidden select-all">{playbackInfo?.id || "Loading..."}</span></p>
                 <p><span className="text-zinc-500">Fichier Serveur (Path) :</span> <span className="text-zinc-400 break-all select-all">{clickLog?.path || "Calculé dynamiquement..."}</span></p>
               </div>
             </div>
@@ -2377,9 +2365,9 @@ export default function VideoPlayer({
               <div className="text-amber-500 font-bold uppercase tracking-wider text-[10px]">1b. ANALYSE DU SEEKING (CHRONOLOGIE DÉTAILLÉE) :</div>
               <div className="bg-black/55 p-2 rounded-lg border border-zinc-900 space-y-1.5">
                 <p><span className="text-zinc-500">currentTime réel :</span> <span className="text-emerald-400 font-bold font-mono">{(videoRef.current?.currentTime || 0).toFixed(2)} s</span></p>
-                <p><span className="text-zinc-500">currentTime demandé :</span> <span className="text-teal-400 font-bold font-mono">{requestedSeekTime !== null ? `${requestedSeekTime.toFixed(2)} s` : "Aucun (Play initial)"}</span></p>
+                <p><span className="text-zinc-500">Requested currentTime:</span> <span className="text-teal-400 font-bold font-mono">{requestedSeekTime !== null ? `${requestedSeekTime.toFixed(2)} s` : "None (Initial Play)"}</span></p>
                 <p><span className="text-zinc-500">temps retourné serveur :</span> <span className="text-sky-400 font-bold font-mono">{(seekOffset + (videoRef.current?.currentTime || 0)).toFixed(2)} s</span></p>
-                <p><span className="text-zinc-500">Méthode de lecture :</span> <span className="text-white font-bold">{isJellyfinMovie ? (playbackInfo?.isDirect ? "Direct Play (Fichier brut)" : "Transcodage à la volée (Progressive MP4)") : "Mode Simulé"}</span></p>
+                <p><span className="text-zinc-500">Playback Method:</span> <span className="text-white font-bold">{isJellyfinMovie ? (playbackInfo?.isDirect ? "Direct Play (Raw File)" : "On-the-fly Transcoding (Progressive MP4)") : "Simulated Mode"}</span></p>
                 
                 {lastSeekLog && (
                   <div className="mt-2 pt-2 border-t border-zinc-800 space-y-1 text-[10px] text-zinc-400">
@@ -2393,7 +2381,7 @@ export default function VideoPlayer({
                 )}
                 
                 <p><span className="text-zinc-500">URL Vidéo Active :</span> <span className="text-zinc-400 break-all select-all text-[9.5px] block bg-black/40 p-1.5 rounded mt-0.5 border border-zinc-800/50">{finalStreamUrl || "Non résolue"}</span></p>
-                <p><span className="text-zinc-500">Dernière erreur :</span> <span className={videoError ? "text-rose-400 font-bold" : "text-zinc-500"}>{videoError || "Aucune (OK)"}</span></p>
+                <p><span className="text-zinc-500">Last error:</span> <span className={videoError ? "text-rose-400 font-bold" : "text-zinc-500"}>{videoError || "None (OK)"}</span></p>
               </div>
             </div>
 
@@ -2507,7 +2495,7 @@ export default function VideoPlayer({
                     <p><span className="text-zinc-500">Auto Downgrade :</span> <span className={isAutoDowngraded ? "text-rose-400 font-bold" : "text-zinc-400"}>{isAutoDowngraded ? "OUI (Flux allégé activé)" : "NON (Qualité standard)"}</span></p>
                   </div>
 
-                  <p><span className="text-zinc-500 font-mono">Range requis :</span> <span className="text-zinc-200 font-semibold font-mono">{serverStreamDebug?.requestRange || "Aucune range (Lecture continue)"}</span></p>
+                  <p><span className="text-zinc-500 font-mono">Requested Range:</span> <span className="text-zinc-200 font-semibold font-mono">{serverStreamDebug?.requestRange || "No range (Continuous Playback)"}</span></p>
                   <p className="flex items-center gap-1.5">
                     <span className="text-zinc-500">Status HTTPS :</span> 
                     <span className={`px-1 rounded text-[9px] font-mono leading-none ${

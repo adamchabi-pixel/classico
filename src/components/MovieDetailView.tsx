@@ -33,7 +33,7 @@ export default function MovieDetailView({
   const poster = movie.posterUrl || "";
 
   return (
-    <div className="min-h-screen bg-stone-950 text-stone-100 font-sans antialiased pb-20">
+    <div className="relative min-h-screen bg-stone-950 text-stone-100 font-sans antialiased pb-20">
       
       {/* 1. TOP SECURE HEADER & NAVIGATION BREADCRUMB */}
       <div className="absolute top-6 left-4 sm:left-8 z-40">
@@ -46,7 +46,7 @@ export default function MovieDetailView({
       </div>
 
       {/* 2. SPECTACULAR NETFLIX-STYLE HERO SECTION */}
-      <div className="relative w-full h-[55vh] md:h-[75vh] min-h-[500px] [@media(max-height:500px)_and_(orientation:landscape)]:min-h-0 [@media(max-height:500px)_and_(orientation:landscape)]:h-[100vh] bg-black overflow-hidden flex items-end [@media(max-height:500px)_and_(orientation:landscape)]:items-center [@media(max-height:500px)_and_(orientation:landscape)]:pt-10">
+      <div className="relative w-full h-[55vh] md:h-[75vh] min-h-[500px] bg-black overflow-hidden flex items-end">
         
         {/* Blurry panoramic backdrop with absolute dark mask */}
         <div className="absolute inset-0 z-0">
@@ -56,16 +56,14 @@ export default function MovieDetailView({
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover pointer-events-none"
           />
-          <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-t from-black via-black/50 to-transparent md:!bg-[linear-gradient(to_top,#0c0a09_0%,rgba(12,10,9,0.95)_15%,rgba(12,10,9,0.75)_40%,rgba(12,10,9,0.2)_75%,transparent_100%)] [@media(max-height:500px)_and_(orientation:landscape)]:bg-black/80" />
+          <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-t from-black via-black/50 to-transparent md:!bg-[linear-gradient(to_top,#0c0a09_0%,rgba(12,10,9,0.95)_15%,rgba(12,10,9,0.75)_40%,rgba(12,10,9,0.2)_75%,transparent_100%)]" />
         </div>
 
         {/* Hero Content Area */}
-        <div className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-8 pb-10 sm:pb-16 [@media(max-height:500px)_and_(orientation:landscape)]:pb-2 flex flex-col [@media(max-height:500px)_and_(orientation:landscape)]:flex-row items-start [@media(max-height:500px)_and_(orientation:landscape)]:items-center gap-4 sm:gap-6 [@media(max-height:500px)_and_(orientation:landscape)]:gap-6 text-left [@media(max-height:500px)_and_(orientation:landscape)]:h-auto">
+        <div className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-8 pb-10 sm:pb-16 flex flex-col items-start gap-4 sm:gap-6 text-left">
           
-          <img src={poster} alt={movie.title} className="hidden [@media(max-height:500px)_and_(orientation:landscape)]:block h-[80vh] max-h-[280px] w-auto object-contain rounded-lg shadow-2xl shrink-0" />
-
           {/* Core Text & CTAs Details Box */}
-          <div className="flex flex-col items-start max-w-3xl space-y-3.5 [@media(max-height:500px)_and_(orientation:landscape)]:space-y-2 [@media(max-height:500px)_and_(orientation:landscape)]:h-[80vh] [@media(max-height:500px)_and_(orientation:landscape)]:max-h-[280px] [@media(max-height:500px)_and_(orientation:landscape)]:overflow-y-auto [@media(max-height:500px)_and_(orientation:landscape)]:pr-2 no-scrollbar">
+          <div className="flex flex-col items-start max-w-3xl space-y-3.5">
             <div className="flex flex-wrap items-center gap-2">
               <span className="bg-zinc-900/80 border border-zinc-700 text-zinc-300 px-2.5 py-0.5 rounded text-[11px] font-mono tracking-widest uppercase shadow-sm">
                 {movie.year}
@@ -75,7 +73,7 @@ export default function MovieDetailView({
               </span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl [@media(max-height:500px)_and_(orientation:landscape)]:text-3xl font-forum font-bold tracking-wider text-white uppercase drop-shadow-xl leading-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-forum font-bold tracking-wider text-white uppercase drop-shadow-xl leading-tight">
               {movie.title}
             </h1>
 
@@ -97,10 +95,10 @@ export default function MovieDetailView({
             </div>
 
             {/* Main Interactive CTA Button Area */}
-            <div className="flex items-center gap-3.5 pt-3 [@media(max-height:500px)_and_(orientation:landscape)]:pt-1">
+            <div className="flex items-center gap-3.5 pt-3">
               <button
                 onClick={() => onPlay(movie.id)}
-                className="inline-flex items-center gap-2.5 gold-button px-6 py-3 sm:px-8 sm:py-3.5 [@media(max-height:500px)_and_(orientation:landscape)]:px-4 [@media(max-height:500px)_and_(orientation:landscape)]:py-2 rounded-full text-[13px] [@media(max-height:500px)_and_(orientation:landscape)]:text-[11px] tracking-widest uppercase transition-all duration-200 active:scale-95 cursor-pointer font-bold"
+                className="inline-flex items-center gap-2.5 gold-button px-6 py-3 sm:px-8 sm:py-3.5 rounded-full text-[13px] tracking-widest uppercase transition-all duration-200 active:scale-95 cursor-pointer font-bold"
               >
                 <Play className="w-4 h-4 fill-current" />
                 Regarder
@@ -108,21 +106,16 @@ export default function MovieDetailView({
 
               <button
                 onClick={onToggleBookmark}
-                className={`inline-flex items-center justify-center p-3.5 [@media(max-height:500px)_and_(orientation:landscape)]:p-2 rounded-full border transition-all duration-200 active:scale-95 cursor-pointer shadow-lg backdrop-blur-sm ${
+                className={`inline-flex items-center justify-center p-3.5 rounded-full border transition-all duration-200 active:scale-95 cursor-pointer shadow-lg backdrop-blur-sm ${
                   isBookmarked
                     ? "bg-rose-500/20 border-rose-500/40 text-rose-400 hover:bg-rose-500/30"
                     : "bg-white/10 border-white/20 text-white hover:bg-white/20"
                 }`}
                 title={isBookmarked ? "Retirer de Ma Liste" : "Ajouter à Ma Liste"}
               >
-                <Heart className={`w-5 h-5 [@media(max-height:500px)_and_(orientation:landscape)]:w-4 [@media(max-height:500px)_and_(orientation:landscape)]:h-4 ${isBookmarked ? "fill-current text-rose-500" : ""}`} />
+                <Heart className={`w-5 h-5 ${isBookmarked ? "fill-current text-rose-500" : ""}`} />
               </button>
             </div>
-
-            {/* Synopsis for landscape mode */}
-            <p className="hidden [@media(max-height:500px)_and_(orientation:landscape)]:block text-zinc-300 text-[11px] leading-relaxed font-sans font-light pt-2">
-              {movie.description}
-            </p>
           </div>
 
         </div>

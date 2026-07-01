@@ -1397,35 +1397,44 @@ export default function VideoPlayer({
 
   const progressPercent = videoState.duration > 0 ? (currentDisplayProgress / videoState.duration) * 100 : 0;
 
-  const handleFullscreenToggle = async () => {
+  const handleFullscreenToggle = () => {
     try {
-      const video = videoRef.current;
-      const container = playerContainerRef.current;
+      const video = videoRef.current as any;
+      const container = playerContainerRef.current as any;
+
+      if (!video) return;
 
       const isFullscreen = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
       if (!isFullscreen) {
-        if (video && (video as any).webkitEnterFullscreen) {
-          (video as any).webkitEnterFullscreen();
-        } else if (container) {
-          if (container.requestFullscreen) {
-            await container.requestFullscreen();
-          } else if ((container as any).webkitRequestFullscreen) {
-            await (container as any).webkitRequestFullscreen();
-          }
+        // 1. Force la méthode native Apple (indispensable pour iPhone/Safari)
+        if (video.webkitEnterFullscreen) {
+          video.webkitEnterFullscreen();
+        } 
+        // 2. Alternative pour les versions d'iOS plus récentes ou iPad
+        else if (video.webkitRequestFullscreen) {
+          video.webkitRequestFullscreen();
+        } 
+        // 3. Méthode standard HTML5 pour Android et PC
+        else if (container && container.requestFullscreen) {
+          container.requestFullscreen().catch((err: any) => console.warn(err));
+        } 
+        // 4. Secours ultime pour anciens navigateurs Android
+        else if (video.requestFullscreen) {
+          video.requestFullscreen().catch((err: any) => console.warn(err));
         }
         
         try {
           if (screen.orientation && screen.orientation.lock) {
-            await screen.orientation.lock('landscape');
+            screen.orientation.lock('landscape').catch(() => {});
           }
         } catch (e) {
           console.log('Orientation lock not supported', e);
         }
       } else {
         if (document.exitFullscreen) {
-          await document.exitFullscreen();
+          document.exitFullscreen().catch((err: any) => console.warn(err));
         } else if ((document as any).webkitExitFullscreen) {
-          await (document as any).webkitExitFullscreen();
+          (document as any).webkitExitFullscreen();
         }
         
         try {
@@ -1588,6 +1597,8 @@ export default function VideoPlayer({
             ref={videoRef}
             src={activeSrc || undefined}
             preload="auto"
+            playsInline
+            webkit-playsinline="true"
             className="absolute inset-0 w-full h-full object-contain bg-black"
             style={{ display: activeSrc ? "block" : "none" }}
             onPlay={() => {
@@ -2254,7 +2265,13 @@ export default function VideoPlayer({
             <button
               id="player-fullscreen-btn"
               onClick={handleFullscreenToggle}
-              className="text-zinc-400 hover:text-amber-400 p-1.5 transition-colors duration-150 cursor-pointer"
+              onTouchEnd={(e) => {
+                // Prevent onClick double-firing on some touch devices,
+                // while registering the gesture explicitly.
+                e.preventDefault(); 
+                handleFullscreenToggle();
+              }}
+              className="text-zinc-400 hover:text-amber-400 p-1.5 transition-colors duration-150 cursor-pointer touch-manipulation"
               title="Plein écran"
             >
               <Maximize2 className="w-4.5 h-4.5" />

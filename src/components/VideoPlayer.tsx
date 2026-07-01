@@ -256,6 +256,7 @@ export default function VideoPlayer({
   const [introCompleted, setIntroCompleted] = useState(false);
   const [seekOffset, setSeekOffset] = useState<number>(0);
   const [requestedSeekTime, setRequestedSeekTime] = useState<number | null>(null);
+  const [dragProgress, setDragProgress] = useState<number | null>(null);
 
   const [lastSeekLog, setLastSeekLog] = useState<{
     requestedTime: number;
@@ -1387,24 +1388,29 @@ export default function VideoPlayer({
 
   // Find active subtitle (simulated mode only)
   const absoluteProgress = seekOffset + videoState.progress;
+  
+  const currentDisplayProgress = dragProgress !== null ? dragProgress : absoluteProgress;
 
   const activeSubtitle = (!streamUrl && videoState.subtitlesOn)
     ? SIMULATED_SUBTITLES.find(s => absoluteProgress >= s.time && absoluteProgress < s.time + 4.5)
     : null;
 
-  const progressPercent = videoState.duration > 0 ? (absoluteProgress / videoState.duration) * 100 : 0;
+  const progressPercent = videoState.duration > 0 ? (currentDisplayProgress / videoState.duration) * 100 : 0;
 
   const handleFullscreenToggle = async () => {
     try {
+      const video = videoRef.current;
+      const container = playerContainerRef.current;
+
       const isFullscreen = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
       if (!isFullscreen) {
-        if (playerContainerRef.current) {
-          if (playerContainerRef.current.requestFullscreen) {
-            await playerContainerRef.current.requestFullscreen();
-          } else if ((playerContainerRef.current as any).webkitRequestFullscreen) {
-            await (playerContainerRef.current as any).webkitRequestFullscreen();
-          } else if (videoRef.current && (videoRef.current as any).webkitEnterFullscreen) {
-            (videoRef.current as any).webkitEnterFullscreen();
+        if (video && (video as any).webkitEnterFullscreen) {
+          (video as any).webkitEnterFullscreen();
+        } else if (container) {
+          if (container.requestFullscreen) {
+            await container.requestFullscreen();
+          } else if ((container as any).webkitRequestFullscreen) {
+            await (container as any).webkitRequestFullscreen();
           }
         }
         
@@ -1433,12 +1439,14 @@ export default function VideoPlayer({
     }
   };
 
-  const updateProgressFromEvent = (clientX: number, currentTarget: HTMLElement) => {
+  const calculateTimeFromEvent = (clientX: number, currentTarget: HTMLElement) => {
     const rect = currentTarget.getBoundingClientRect();
     const clickX = clientX - rect.left;
     const percentage = Math.max(0, Math.min(1, clickX / rect.width));
-    const newTime = videoState.duration * percentage;
-    
+    return videoState.duration * percentage;
+  };
+
+  const applySeekTime = (newTime: number) => {
     setRequestedSeekTime(newTime);
     bypassRestoreRef.current = true;
     seekTimestampRef.current = Date.now();
@@ -1833,27 +1841,42 @@ export default function VideoPlayer({
         {isMetadataLoaded && (
           <div className="flex items-center gap-3">
             <span className="text-[10px] font-mono text-zinc-500 select-none w-10 text-left">
-              {`${Math.floor(absoluteProgress / 60)}:${(Math.floor(absoluteProgress % 60)).toString().padStart(2, "0")}`}
+              {`${Math.floor(currentDisplayProgress / 60)}:${(Math.floor(currentDisplayProgress % 60)).toString().padStart(2, "0")}`}
             </span>
 
             <div 
               id="mock-timeline-track"
               className="flex-grow h-1.5 bg-zinc-800 rounded-full cursor-pointer relative group touch-none"
-              onClick={(e) => updateProgressFromEvent(e.clientX, e.currentTarget)}
-              onTouchStart={(e) => {
+              onPointerDown={(e) => {
+                e.currentTarget.setPointerCapture(e.pointerId);
                 isDraggingRef.current = true;
-                updateProgressFromEvent(e.touches[0].clientX, e.currentTarget);
+                const newTime = calculateTimeFromEvent(e.clientX, e.currentTarget);
+                setDragProgress(newTime);
               }}
-              onTouchMove={(e) => {
+              onPointerMove={(e) => {
                 if (isDraggingRef.current) {
-                  updateProgressFromEvent(e.touches[0].clientX, e.currentTarget);
+                  const newTime = calculateTimeFromEvent(e.clientX, e.currentTarget);
+                  setDragProgress(newTime);
                 }
               }}
-              onTouchEnd={() => {
-                isDraggingRef.current = false;
+              onPointerUp={(e) => {
+                if (isDraggingRef.current) {
+                  isDraggingRef.current = false;
+                  e.currentTarget.releasePointerCapture(e.pointerId);
+                  const newTime = calculateTimeFromEvent(e.clientX, e.currentTarget);
+                  setDragProgress(null);
+                  applySeekTime(newTime);
+                }
               }}
-              onTouchCancel={() => {
-                isDraggingRef.current = false;
+              onPointerCancel={(e) => {
+                if (isDraggingRef.current) {
+                  isDraggingRef.current = false;
+                  e.currentTarget.releasePointerCapture(e.pointerId);
+                  if (dragProgress !== null) {
+                    applySeekTime(dragProgress);
+                  }
+                  setDragProgress(null);
+                }
               }}
             >
               {/* Fill bar */}
@@ -1863,7 +1886,7 @@ export default function VideoPlayer({
               />
               {/* Floating scrubber head */}
               <div 
-                className="absolute w-3.5 h-3.5 bg-white border border-amber-600 rounded-full -top-1 shadow group-hover:scale-125 transition-all duration-150"
+                className={`absolute w-3.5 h-3.5 bg-white border border-amber-600 rounded-full -top-1 shadow transition-all duration-150 ${dragProgress !== null ? 'scale-150' : 'group-hover:scale-125'}`}
                 style={{ left: `calc(${progressPercent}% - 7px)` }}
               />
             </div>

@@ -1604,7 +1604,7 @@ export default function App() {
                 <HeroSkeleton />
               ) : jellyfinConfig?.configured && jellyfinHeroMovies.length > 0 && jellyfinHeroMovie ? (
                 <div 
-                  className="relative w-full h-[85vh] md:h-screen bg-stone-950 overflow-hidden flex items-end select-none"
+                  className="relative w-full h-[85vh] [@media(max-height:500px)_and_(orientation:landscape)]:h-[100vh] md:h-screen bg-stone-950 overflow-hidden flex items-end select-none"
                   onTouchStart={(e) => {
                     heroTouchStartX.current = e.touches[0].clientX;
                   }}
@@ -1663,7 +1663,7 @@ export default function App() {
                           src={jellyfinHeroMovie.backdropUrl || CLASSICO_HERO_BACKDROP}
                           alt={jellyfinHeroMovie.title}
                           referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover [@media(max-height:500px)_and_(orientation:landscape)]:object-center"
                           style={{ objectPosition: "center top", willChange: "transform" }}
                           animate={{ 
                             scale: [1.02, 1.05, 1.02],
@@ -1684,14 +1684,14 @@ export default function App() {
                       />
 
                       {/* Spotlight Content and Description Box with high contrast text drop-shadows */}
-                      <div className="relative z-20 max-w-7xl mx-auto w-full px-4 sm:px-12 pb-14 sm:pb-28 pt-20 sm:pt-36 md:pt-28 flex flex-col items-start text-left">
+                      <div className="relative z-20 max-w-7xl mx-auto w-full px-4 sm:px-12 pb-14 sm:pb-28 pt-20 sm:pt-36 md:pt-28 flex flex-col items-start text-left [@media(max-height:500px)_and_(orientation:landscape)]:pb-4 [@media(max-height:500px)_and_(orientation:landscape)]:pt-16">
                         
                         {/* Fade-in Text Section Wrapper */}
                         <motion.div
                           initial={{ opacity: 0, y: 16 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                          className="space-y-4 sm:space-y-5 w-full md:max-w-[35%] lg:max-w-[35%] min-w-[280px] sm:min-w-[360px] md:min-w-[0px] z-20"
+                          className="space-y-4 sm:space-y-5 w-full md:max-w-[35%] lg:max-w-[35%] min-w-[280px] sm:min-w-[360px] md:min-w-[0px] z-20 [@media(max-height:500px)_and_(orientation:landscape)]:space-y-2"
                         >
                           {/* Poster Style Cinematic Title or Logo with dynamic fallback to text based styling */}
                           {jellyfinHeroMovie.hasLogo && jellyfinHeroMovie.logoUrl && !useTextTitleForJellyfinHero ? (

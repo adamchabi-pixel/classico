@@ -755,9 +755,9 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   const deviceProfile = {
     DeviceProfile: {
       Name: "Modern Browser",
-      MaxStreamingBitrate: 4000000,
-      MaxStaticBitrate: 4000000,
-      MusicStreamingBitrate: 192000,
+      MaxStreamingBitrate: 140000000,
+      MaxStaticBitrate: 140000000,
+      MusicStreamingBitrate: 320000,
       DirectPlayProfiles: [
         {
           Container: "mp4,m4v,mov,mkv,avi,webm,ts",
@@ -1046,11 +1046,11 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   const cleanedSourceId = source.Id ? source.Id.replace("-web-optimized", "") : activeId;
 
   // Calcul du bitrate en fonction de la qualité demandée
-  const videoBitrate = lowQuality ? 600000 : 4000000;
-  const maxVideoBitrate = lowQuality ? 600000 : 4000000;
-  const maxWidth = lowQuality ? 854 : 1920;
-  const maxHeight = lowQuality ? 480 : 1080;
-  const audioBitrate = lowQuality ? 96000 : 128000;
+  const videoBitrate = lowQuality ? 600000 : 140000000;
+  const maxVideoBitrate = lowQuality ? 600000 : 140000000;
+  const maxWidth = lowQuality ? 854 : 3840;
+  const maxHeight = lowQuality ? 480 : 2160;
+  const audioBitrate = lowQuality ? 96000 : 320000;
 
   // Configuration des paramètres optimisés pour le flux HLS dynamique
   const hlsParams = new URLSearchParams({

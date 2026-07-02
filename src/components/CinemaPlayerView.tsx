@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Hls from "hls.js";
 import { 
   Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, 
@@ -194,6 +194,13 @@ export default function CinemaPlayerView({
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const hideControlsTimeout = useRef<NodeJS.Timeout | null>(null);
   const firstFrameLoggedRef = useRef<boolean>(false);
+  
+  const isIOS = useMemo(() => {
+    return /iPad|iPhone|iPod/i.test(navigator.userAgent) || 
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+           /CriOS/i.test(navigator.userAgent) || 
+           /FxiOS/i.test(navigator.userAgent);
+  }, []);
   const lastFetchedMovieIdRef = useRef<string | null>(null);
   const savedRestoreTimeRef = useRef<number>(0);
   const lastFetchedParamsRef = useRef<{
@@ -1337,11 +1344,37 @@ export default function CinemaPlayerView({
 
   // Toggle Fullscreen explicitly
   const toggleFullscreen = () => {
-    if (!viewportRef.current) return;
-    if (!document.fullscreenElement) {
-      viewportRef.current.requestFullscreen().then(() => setFullscreen(true)).catch((e) => console.warn(e));
+    if (!viewportRef.current || !videoRef.current) return;
+    
+    const vid = videoRef.current as any;
+    const isIPhone = /iPhone|iPod/i.test(navigator.userAgent);
+    
+    // 1. Force Apple's native player on iPhone/iPod ONLY
+    if (isIPhone && vid.webkitEnterFullscreen) {
+      try {
+        vid.webkitEnterFullscreen();
+      } catch (e) {
+        console.warn("Erreur webkitEnterFullscreen:", e);
+      }
+      return;
+    }
+    
+    // 2. For all other devices (iPad, Mac, PC, Android), use standard fullscreen on the wrapper
+    const doc = document as any;
+    const viewport = viewportRef.current as any;
+
+    if (!doc.fullscreenElement && !doc.webkitFullscreenElement) {
+      if (viewport.requestFullscreen) {
+        viewport.requestFullscreen().then(() => setFullscreen(true)).catch((e: any) => console.warn(e));
+      } else if (viewport.webkitRequestFullscreen) {
+        viewport.webkitRequestFullscreen().then(() => setFullscreen(true)).catch((e: any) => console.warn(e));
+      }
     } else {
-      document.exitFullscreen().then(() => setFullscreen(false)).catch((e) => console.warn(e));
+      if (doc.exitFullscreen) {
+        doc.exitFullscreen().then(() => setFullscreen(false)).catch((e: any) => console.warn(e));
+      } else if (doc.webkitExitFullscreen) {
+        doc.webkitExitFullscreen().then(() => setFullscreen(false)).catch((e: any) => console.warn(e));
+      }
     }
   };
 

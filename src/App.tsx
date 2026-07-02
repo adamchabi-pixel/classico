@@ -647,6 +647,7 @@ export default function App() {
   const [activeTab, setActiveTab ] = useState<"accueil" | "collections" | "profil" | "collection-detail" | "movie" | "player">("accueil");
   const [routePath, setRoutePath] = useState(window.location.pathname);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showBanner, setShowBanner] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -1529,6 +1530,31 @@ export default function App() {
                   );
                 })}
               </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ALERT BANNER */}
+        <AnimatePresence>
+          {showBanner && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="bg-neutral-950/95 overflow-hidden border-t border-amber-500/20"
+            >
+              <div className="max-w-7xl mx-auto px-4 sm:px-8 py-2 md:py-2.5 flex items-center justify-between gap-4">
+                <p className="text-amber-500/90 text-[11px] sm:text-xs font-light leading-relaxed">
+                  <AlertCircle className="inline-block w-3.5 h-3.5 mr-1.5 -mt-0.5" />
+                  Notice: The site is currently under construction and modification. It is normal if some features are temporarily unavailable or if certain movies are missing from the catalog.
+                </p>
+                <button 
+                  onClick={() => setShowBanner(false)}
+                  className="shrink-0 p-1 text-amber-500/60 hover:text-amber-400 hover:bg-amber-500/10 rounded-full transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

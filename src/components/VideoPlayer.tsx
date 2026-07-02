@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Hls from "hls.js";
 import { 
   Play, Pause, RotateCcw, Volume2, VolumeX, 
@@ -248,6 +248,13 @@ export default function VideoPlayer({
   const [activeSrc, setActiveSrc] = useState<string | null>(null);
   const [isLowQuality, setIsLowQuality] = useState(false);
   const [estimatedBitrate, setEstimatedBitrate] = useState<number | null>(null);
+
+  const isIOS = useMemo(() => {
+    return /iPad|iPhone|iPod/i.test(navigator.userAgent) || 
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+           /CriOS/i.test(navigator.userAgent) || 
+           /FxiOS/i.test(navigator.userAgent);
+  }, []);
   const [initialBufferingTime, setInitialBufferingTime] = useState<number | null>(null);
   const [isAutoDowngraded, setIsAutoDowngraded] = useState(false);
   const streamLoadStartRef = useRef<number | null>(null);
@@ -1400,19 +1407,38 @@ export default function VideoPlayer({
   const handleFullscreenToggle = () => {
     const video = videoRef.current as any;
     const container = playerContainerRef.current as any;
+    const doc = document as any;
 
     if (!video) return;
 
-    // 1. Force le lecteur natif Apple (Indispensable pour iPhone)
-    if (video.webkitEnterFullscreen) {
-      video.webkitEnterFullscreen();
-    } 
-    // 2. Méthode standard pour Android, PC, Mac et iPad
-    else if (container && container.requestFullscreen) {
-      container.requestFullscreen();
-    } 
-    else if (video.requestFullscreen) {
-      video.requestFullscreen();
+    const isIPhone = /iPhone|iPod/i.test(navigator.userAgent);
+
+    if (isIPhone && video.webkitEnterFullscreen) {
+      try {
+        video.webkitEnterFullscreen();
+      } catch (e) {
+        console.warn("Erreur webkitEnterFullscreen iOS:", e);
+      }
+      return;
+    }
+
+    if (!doc.fullscreenElement && !doc.webkitFullscreenElement) {
+      if (container && container.requestFullscreen) {
+        container.requestFullscreen().catch(console.warn);
+      } else if (container && container.webkitRequestFullscreen) {
+        container.webkitRequestFullscreen().catch(console.warn);
+      } else if (video.requestFullscreen) {
+        video.requestFullscreen().catch(console.warn);
+      } else if (video.webkitEnterFullscreen) {
+        // Fallback for Safari Desktop strictly on the video element if container request fails
+        video.webkitEnterFullscreen();
+      }
+    } else {
+      if (doc.exitFullscreen) {
+        doc.exitFullscreen().catch(console.warn);
+      } else if (doc.webkitExitFullscreen) {
+        doc.webkitExitFullscreen().catch(console.warn);
+      }
     }
   };
 
@@ -1567,6 +1593,7 @@ export default function VideoPlayer({
             preload="auto"
             playsInline
             webkit-playsinline="true"
+            controls={false}
             className="absolute inset-0 w-full h-full object-contain bg-black"
             style={{ display: activeSrc ? "block" : "none" }}
             onPlay={() => {
@@ -2249,16 +2276,7 @@ export default function VideoPlayer({
             <button
               id="player-fullscreen-btn"
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                handleFullscreenToggle();
-              }}
-              onTouchEnd={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                handleFullscreenToggle();
-              }}
+              onClick={handleFullscreenToggle}
               className="text-zinc-400 hover:text-amber-400 p-1.5 transition-colors duration-150 cursor-pointer touch-manipulation z-50 relative"
               title="Plein écran"
             >

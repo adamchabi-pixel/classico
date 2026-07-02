@@ -1341,6 +1341,15 @@ export default function App() {
     return Array.from(map.values());
   }, [mappedCollections, jellyfinMovies]);
 
+  const unmatchedMovies = React.useMemo(() => {
+    if (!jellyfinMovies || jellyfinMovies.length === 0) return [];
+    
+    const inCollections = new Set<string>();
+    mappedCollections.forEach(c => c.movies.forEach(m => inCollections.add(m.id)));
+
+    return jellyfinMovies.filter(m => !inCollections.has(m.id));
+  }, [jellyfinMovies, mappedCollections]);
+
   const searchedMovies = searchQuery.trim() === ""
     ? []
     : allMovies.filter(m => 
@@ -1999,6 +2008,69 @@ export default function App() {
                     </div>
                   ))}
                 </div>
+
+                {/* OTHER BANGERS Section */}
+                {unmatchedMovies.length > 0 && (
+                  <div className="space-y-4 text-left pt-6 sm:pt-8 border-t border-zinc-700/60 mt-8">
+                    <div className="flex flex-row items-center sm:items-end justify-between gap-2 sm:gap-3 border-b border-zinc-900 pb-2 sm:pb-3">
+                      <div className="space-y-0.5 max-w-[80%]">
+                        <span className="text-[8px] sm:text-[9px] font-mono tracking-[2px] sm:tracking-[3px] text-zinc-500 uppercase font-bold">
+                          UNCATEGORIZED • {unmatchedMovies.length} MOVIES
+                        </span>
+                        <h3 className="text-base sm:text-2xl font-cinzel font-bold text-white uppercase tracking-widest leading-tight truncate">
+                          OTHER BANGERS
+                        </h3>
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className="relative group/carousel"
+                      onMouseEnter={() => { hoveredCarousels.current["other-bangers"] = true; }}
+                      onMouseLeave={() => { hoveredCarousels.current["other-bangers"] = false; }}
+                    >
+                      <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-stone-950 to-transparent z-10 pointer-events-none" />
+                      <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-stone-950 to-transparent z-10 pointer-events-none" />
+                      
+                      <div className="absolute inset-y-0 left-2 flex items-center z-20 opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 pointer-events-none">
+                        <button
+                          onClick={() => scrollCarousel("other-bangers", "left")}
+                          className="bg-black/80 hover:bg-zinc-900 border border-zinc-800 text-stone-200 hover:text-amber-400 p-2 rounded-full shadow-lg transition-all duration-150 pointer-events-auto active:scale-95 cursor-pointer"
+                          title="Previous"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                      </div>
+                      
+                      <div className="absolute inset-y-0 right-2 flex items-center z-20 opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 pointer-events-none">
+                        <button
+                          onClick={() => scrollCarousel("other-bangers", "right")}
+                          className="bg-black/80 hover:bg-zinc-900 border border-zinc-800 text-stone-200 hover:text-amber-400 p-2 rounded-full shadow-lg transition-all duration-150 pointer-events-auto active:scale-95 cursor-pointer"
+                          title="Next"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div
+                        id={`carousel-container-other-bangers`}
+                        ref={(el) => {
+                          carouselRefs.current["other-bangers"] = el;
+                        }}
+                        className="flex gap-3 sm:gap-6 overflow-x-auto no-scrollbar py-2.5 px-1 pb-4"
+                      >
+                        {unmatchedMovies.map((movie) => (
+                          <LazyVirtualCard key={`other-bangers-${movie.id}`}>
+                            <MovieCard
+                              movie={movie}
+                              onSelect={(m) => handleOpenMovie(m, false)}
+                              onPlay={(m) => handleOpenMovie(m, true)}
+                            />
+                          </LazyVirtualCard>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           ) : activeTab === "collections" ? (

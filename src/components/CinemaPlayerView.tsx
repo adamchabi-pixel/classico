@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import Hls from "hls.js";
+import { motion, AnimatePresence } from "motion/react";
 import { 
   Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, 
-  Maximize2, ArrowLeft, Loader2, Sparkles, AlertCircle, Captions
+  Maximize2, ArrowLeft, Loader2, Sparkles, AlertCircle, Captions, Lock
 } from "lucide-react";
 
 interface JfSubtitleCue {
@@ -180,6 +181,7 @@ export default function CinemaPlayerView({
   // Mobile player initialization & on-screen logs states
   const [isInitialized, setIsInitialized] = useState(true);
   const [playerLogs, setPlayerLogs] = useState<string[]>([]);
+  const [adClicks, setAdClicks] = useState(0);
 
   const addLog = (msg: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -1261,6 +1263,12 @@ export default function CinemaPlayerView({
     const video = videoRef.current;
     if (!video) return;
 
+    if (adClicks < 2) {
+      video.pause();
+      if (playing) setPlaying(false);
+      return;
+    }
+
     if (playing) {
       const playPromise = video.play();
       if (playPromise !== undefined) {
@@ -1449,7 +1457,7 @@ export default function CinemaPlayerView({
             ref={videoRef}
             playsInline
             controls={false}
-            autoPlay={true}
+            autoPlay={adClicks >= 2}
             muted={muted}
             preload="auto"
             crossOrigin="anonymous"
@@ -1593,7 +1601,53 @@ export default function CinemaPlayerView({
         style={{ pointerEvents: isLoading || videoError ? "none" : "auto" }}
       />
 
-      {/* INITIALIZATION USER GESTURE OVERLAY REMOVED - Direct seamless play enabled */}
+      {/* AD WALL OVERLAY */}
+      <AnimatePresence>
+        {adClicks < 2 && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center"
+            onClick={(e) => {
+              const target = e.target as HTMLElement;
+              if (!target.closest('button') && !target.closest('a')) {
+                e.stopPropagation();
+              }
+            }}
+          >
+            <div className="flex flex-col items-center gap-6 max-w-sm w-full px-6">
+              <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 mb-2">
+                <Lock className="w-8 h-8" strokeWidth={1.5} />
+              </div>
+              <div className="text-center space-y-2">
+                <h3 className="text-xl font-bold text-white tracking-tight">Unlock Movie</h3>
+                <p className="text-sm text-zinc-400 leading-relaxed">
+                  Please complete the steps below to unlock the movie and start playback.
+                </p>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open('https://s.pemsrv.com/v1/link.php?cat=&idzone=5964252&type=8', '_blank');
+                  if (adClicks === 0) {
+                    setAdClicks(1);
+                  } else if (adClicks === 1) {
+                    setAdClicks(2);
+                    setPlaying(true); // Auto start playback
+                  }
+                }}
+                className="w-full relative overflow-hidden group bg-amber-500 text-black font-semibold py-3.5 px-6 rounded-xl hover:bg-amber-400 active:scale-[0.98] transition-all block text-center"
+              >
+                <div className="relative z-10 flex items-center justify-center gap-2">
+                  <span>
+                    {adClicks === 0 ? "Watch Ad (0/2)" : "Unlock Movie (1/2)"}
+                  </span>
+                </div>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ON-SCREEN MUTED INDICATOR & PAUSE COVER OVERLAY REMOVED */}
 

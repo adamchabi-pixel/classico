@@ -1636,7 +1636,7 @@ export default function CinemaPlayerView({
                 </div>
                 <button
                   onClick={(e) => {
-                    window.open('https://s.magsrv.com/v1/vast.php?idz=5964150', '_blank');
+                    window.open('https://www.effectivecpmnetwork.com/p7kic0xhh?key=471353696cb771339e1bfbcb52b34d63', '_blank');
                     if (adClicks === 0) {
                       setAdClicks(1);
                     } else if (adClicks === 1) {

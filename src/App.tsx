@@ -33,7 +33,9 @@ const COLLECTION_BANNERS: Record<string, string> = {
   "james-bond": "/src/assets/images/bond_banner_1781396536406.jpg",
   "rocky": "/src/assets/images/rocky_banner_1781396548528.jpg",
   "terminator": "/src/assets/images/terminator_banner_1781396559445.jpg",
-  "fast-and-furious": "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=80&w=1200&auto=format&fit=crop"
+  "fast-and-furious": "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=80&w=1200&auto=format&fit=crop",
+  "mafia-movies": "https://images.unsplash.com/photo-1574676101235-97e3cefa1212?q=80&w=1200&auto=format&fit=crop",
+  "mind-bending-mysteries": "https://images.unsplash.com/photo-1517765371796-58eb241caa36?q=80&w=1200&auto=format&fit=crop"
 };
 
 // -------------------------------------------------------------

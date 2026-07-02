@@ -1698,8 +1698,8 @@ export default function App() {
                           src={jellyfinHeroMovie.backdropUrl || CLASSICO_HERO_BACKDROP}
                           alt={jellyfinHeroMovie.title}
                           referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover [@media(max-height:500px)_and_(orientation:landscape)]:object-center"
-                          style={{ objectPosition: "center top", willChange: "transform" }}
+                          className="w-full h-full object-cover object-center md:object-top"
+                          style={{ willChange: "transform" }}
                           animate={{ 
                             scale: [1.02, 1.05, 1.02],
                             x: [0, 4, 0],

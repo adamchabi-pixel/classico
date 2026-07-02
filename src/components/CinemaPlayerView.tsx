@@ -1035,9 +1035,9 @@ export default function CinemaPlayerView({
     setSeekOffset(0);
     isInitialAutoplayRef.current = true;
 
-    // Force secure autoplay properties in the HTML5 backend ref
+    // Force secure properties in the HTML5 backend ref
     video.muted = true;
-    video.autoplay = true;
+    video.autoplay = false;
     setMuted(true);
 
     const handleLoadedMetadata = () => {
@@ -1120,10 +1120,12 @@ export default function CinemaPlayerView({
       video.src = playbackInfo.streamUrl;
       video.load();
 
-      // play() immédiat
-      video.play().catch((err) => {
-        console.warn("[STREAM LOAD] Playback immédiat DirectPlay reporté");
-      });
+      // play() immédiat seulement si l'utilisateur a débloqué
+      if (adClicks >= 2) {
+        video.play().catch((err) => {
+          console.warn("[STREAM LOAD] Playback immédiat DirectPlay reporté");
+        });
+      }
     } else {
       // Si mode === "Transcoding / HLS", initialiser Hls.js s'il est supporté
       console.log(`[CONCURRENCY] Initialisation asynchrone de Hls.js lancée en parallèle du téléchargement du sous-titre pour : ${playbackInfo.title}`);
@@ -1399,7 +1401,7 @@ export default function CinemaPlayerView({
       {/* 1. STANDALONE CINEMA UPPER DECK (GO BACK & TITLE INFO) */}
       <div className={`relative p-6 bg-gradient-to-b from-black/95 via-black/50 to-transparent flex items-center justify-between transition-opacity duration-300 z-50 ${
         controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"
-      }`}>
+      } ${adClicks < 2 ? "hidden" : ""}`}>
         <div className="flex items-center gap-4">
           <button
             onClick={() => {
@@ -1426,7 +1428,7 @@ export default function CinemaPlayerView({
       <div className="absolute inset-0 z-10 flex items-center justify-center bg-stone-950">
         
         {/* Unified High-End Loader Overlay */}
-        {(!isActuallyPlaying || isLoading || isStreamLoading) && !videoError && (
+        {(isLoading || isStreamLoading || isBuffering) && !videoError && adClicks >= 2 && (
           <div className="fixed inset-0 flex items-center justify-center bg-black z-50">
             <Loader2 className="w-12 h-12 text-amber-500 animate-spin" />
           </div>
@@ -1597,7 +1599,7 @@ export default function CinemaPlayerView({
         onClick={() => {
           handlePlayPauseClick();
         }}
-        className="absolute inset-0 z-20 cursor-pointer"
+        className={`absolute inset-0 z-20 cursor-pointer ${adClicks < 2 ? "hidden" : ""}`}
         style={{ pointerEvents: isLoading || videoError ? "none" : "auto" }}
       />
 
@@ -1607,7 +1609,7 @@ export default function CinemaPlayerView({
           <motion.div
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center"
+            className="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center"
             onClick={(e) => {
               const target = e.target as HTMLElement;
               if (!target.closest('button') && !target.closest('a')) {
@@ -1615,35 +1617,47 @@ export default function CinemaPlayerView({
               }
             }}
           >
-            <div className="flex flex-col items-center gap-6 max-w-sm w-full px-6">
-              <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 mb-2">
-                <Lock className="w-8 h-8" strokeWidth={1.5} />
+            <div className="max-w-2xl w-[90%] md:w-full flex flex-col gap-3">
+              {/* Top Status Bars */}
+              <div className="flex justify-between gap-3 px-1">
+                <div className="h-1.5 flex-1 bg-[#D4AF37] rounded-full transition-all duration-300" />
+                <div className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${adClicks >= 1 ? 'bg-[#D4AF37]' : 'bg-[#333333]'}`} />
               </div>
-              <div className="text-center space-y-2">
-                <h3 className="text-xl font-bold text-white tracking-tight">Unlock Movie</h3>
-                <p className="text-sm text-zinc-400 leading-relaxed">
-                  Please complete the steps below to unlock the movie and start playback.
-                </p>
-              </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.open('https://s.pemsrv.com/v1/link.php?cat=&idzone=5964252&type=8', '_blank');
-                  if (adClicks === 0) {
-                    setAdClicks(1);
-                  } else if (adClicks === 1) {
-                    setAdClicks(2);
-                    setPlaying(true); // Auto start playback
-                  }
-                }}
-                className="w-full relative overflow-hidden group bg-amber-500 text-black font-semibold py-3.5 px-6 rounded-xl hover:bg-amber-400 active:scale-[0.98] transition-all block text-center"
-              >
-                <div className="relative z-10 flex items-center justify-center gap-2">
-                  <span>
-                    {adClicks === 0 ? "Watch Ad (0/2)" : "Unlock Movie (1/2)"}
-                  </span>
+
+              <div className="flex flex-col items-center gap-6 w-full px-6 py-10 md:px-10 bg-[#1e1e1e] rounded-[12px] shadow-[0_10px_40px_rgba(0,0,0,0.8)] border border-[#D4AF37]/30 relative overflow-hidden">
+                <div className="w-16 h-16 rounded-2xl bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] mb-2 shadow-[0_0_20px_rgba(212,175,55,0.1)]">
+                  <Lock className="w-8 h-8" strokeWidth={1.5} />
                 </div>
-              </button>
+                <div className="text-center space-y-4">
+                  <h3 className="text-2xl font-bold text-white tracking-tight">Ads completed: {adClicks} / 2</h3>
+                  <p className="text-[15px] md:text-base text-zinc-300 leading-relaxed max-w-xl mx-auto">
+                    To keep Classico 100% free and premium, please support us by temporarily disabling your AdBlocker and interacting with our sponsored links. Thank you for your amazing support! While you unlock the access, your movie is already safely loading in the background.
+                  </p>
+                </div>
+                <button
+                  onClick={(e) => {
+                    window.open('https://s.magsrv.com/v1/vast.php?idz=5964150', '_blank');
+                    if (adClicks === 0) {
+                      setAdClicks(1);
+                    } else if (adClicks === 1) {
+                      setAdClicks(2);
+                      setPlaying(true); // Auto start playback
+                    }
+                  }}
+                  className="w-full max-w-sm relative overflow-hidden group bg-gradient-to-b from-[#E5C158] to-[#C39B22] text-black font-semibold py-4 px-6 rounded-xl hover:from-[#F6D269] hover:to-[#D4AF37] active:scale-[0.98] transition-all block text-center mt-2 shadow-[0_0_20px_rgba(212,175,55,0.2)]"
+                >
+                  <div className="relative z-10 flex items-center justify-center gap-2">
+                    <span className="text-lg">
+                      Watch Ad & Unlock
+                    </span>
+                  </div>
+                </button>
+                <div className="mt-2 text-center max-w-md mx-auto">
+                  <p className="text-[11px] md:text-xs text-zinc-500 font-mono tracking-wide leading-relaxed">
+                    We strictly guarantee absolutely NO interruptions, unexpected cuts, or pop-up redirections during your movie playback.
+                  </p>
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
@@ -1656,7 +1670,7 @@ export default function CinemaPlayerView({
       {/* 4. CINEMA LOWER CONTROL STATION */}
       <div className={`relative p-6 bg-gradient-to-t from-black/95 via-black/80 to-transparent border-t border-white/5 flex flex-col gap-4 transition-opacity duration-300 z-40 ${
         controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"
-      }`}>
+      } ${adClicks < 2 ? "hidden" : ""}`}>
         
         {/* PROGRESS SCRUB TIMELINE BAR */}
         {!isLoading && !videoError && (

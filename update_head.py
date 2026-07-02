@@ -4,13 +4,14 @@ with open('index.html', 'r') as f:
     html = f.read()
 
 head_additions = """
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180.png" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=classico2" />
+    <link rel="icon" type="image/png" href="/favicon.png?v=classico2" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=classico2" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=classico2" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=classico2" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180.png?v=classico2" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=classico2" />
+    <link rel="manifest" href="/manifest.json?v=classico2" />
 """
 
 # Remove old icon links

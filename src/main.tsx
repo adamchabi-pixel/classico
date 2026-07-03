@@ -3,6 +3,7 @@ import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
 import './index.css';
+import { Analytics } from "@vercel/analytics/react";
 
 // Silence specific benign console warnings and errors (such as WebSocket/HMR disconnects or subtitle resource 404s)
 if (typeof window !== "undefined") {
@@ -272,6 +273,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary fallbackTitle="Une interruption est survenue dans l'application Classico">
       <App />
+      <Analytics />
     </ErrorBoundary>
   </StrictMode>,
 );

@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import Hls from "hls.js";
 import { motion, AnimatePresence } from "motion/react";
 import { 
-  Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, 
-  Maximize2, ArrowLeft, Loader2, Sparkles, AlertCircle, Captions, Lock
+  Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Languages, 
+  Maximize2, ArrowLeft, Loader2, Sparkles, AlertCircle, Captions, Lock, Airplay, Menu, Cast, Settings, ChevronRight, ChevronLeft
 } from "lucide-react";
 
 interface JfSubtitleCue {
@@ -97,6 +97,7 @@ interface CinemaPlayerViewProps {
   movieId: string;
   movieTitle: string;
   movieDuration?: string;
+  moviePoster?: string;
   onClose: () => void;
 }
 
@@ -104,6 +105,7 @@ export default function CinemaPlayerView({
   movieId,
   movieTitle,
   movieDuration,
+  moviePoster,
   onClose
 }: CinemaPlayerViewProps) {
   const deviceId = "CinemaAppClient";
@@ -119,6 +121,7 @@ export default function CinemaPlayerView({
     videoCodec?: string;
     audioCodec?: string;
     chosenPath?: string;
+    audios?: any[];
     subtitles?: {
       index: number;
       language: string;
@@ -134,6 +137,11 @@ export default function CinemaPlayerView({
   const [activeSubtitleIndex, setActiveSubtitleIndex] = useState<number | null>(null);
   const [subtitlesOn, setSubtitlesOn] = useState<boolean>(false);
   const [showSubtitleMenu, setShowSubtitleMenu] = useState(false);
+  const [activeAudioIndex, setActiveAudioIndex] = useState<number | null>(null);
+  const [showAudioMenu, setShowAudioMenu] = useState(false);
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  const [settingsView, setSettingsView] = useState<"main" | "audio" | "subtitles">("main");
+  const [playbackRate, setPlaybackRate] = useState(1);
   
   const [cinemaCues, setCinemaCues] = useState<JfSubtitleCue[]>([]);
   const [activeCinemaCue, setActiveCinemaCue] = useState<string | null>(null);
@@ -259,6 +267,19 @@ export default function CinemaPlayerView({
   };
 
   // Set moviePlayClickTime on mount if accessed directly / not set
+
+  // 4. REPRISE DE LA LECTURE: Inject saved progress on mount
+  useEffect(() => {
+    if (movieId) {
+      try {
+        const saved = JSON.parse(localStorage.getItem("classico_progress") || "{}");
+        if (saved[movieId] && saved[movieId].currentTime > 0) {
+           savedRestoreTimeRef.current = saved[movieId].currentTime;
+           console.log("[RESUME PLAYBACK] Found saved progress for " + movieId + ": " + savedRestoreTimeRef.current + "s");
+        }
+      } catch(e) {}
+    }
+  }, [movieId]);
   useEffect(() => {
     if (!(window as any).moviePlayClickTime) {
       (window as any).moviePlayClickTime = performance.now();
@@ -444,7 +465,7 @@ export default function CinemaPlayerView({
     }
 
     const activeTrack = playbackInfo.subtitles?.find(s => s.index === activeSubtitleIndex);
-    if (!activeTrack) {
+    if (!activeTrack || !isTextSubtitle(activeTrack.codec)) {
       setCinemaCues([]);
       setActiveCinemaCue(null);
       return;
@@ -510,6 +531,10 @@ export default function CinemaPlayerView({
       const target = e.target as HTMLElement;
       if (!target.closest("#cinema-subtitle-btn") && !target.closest("#cinema-subtitle-menu")) {
         setShowSubtitleMenu(false);
+      }
+      if (!target.closest("#cinema-settings-btn") && !target.closest("#cinema-settings-menu")) {
+        setShowSettingsMenu(false);
+        setTimeout(() => setSettingsView("main"), 200);
       }
     };
 
@@ -674,6 +699,12 @@ export default function CinemaPlayerView({
           if (data && data.duration && data.duration > 0) {
             setDuration(data.duration);
           }
+          if (data && data.audios && data.audios.length > 0) {
+            const defaultAudioTrack = data.audios.find((t: any) => t.isDefault) || data.audios[0];
+            if (defaultAudioTrack) {
+              setActiveAudioIndex(defaultAudioTrack.index);
+            }
+          }
           if (data && data.subtitles && data.subtitles.length > 0) {
             const defaultTrack = data.subtitles.find((t: any) => (t.isDefault || t.isForced) && isTextSubtitle(t.codec)) 
               || data.subtitles.find((t: any) => isTextSubtitle(t.codec));
@@ -747,6 +778,118 @@ export default function CinemaPlayerView({
       active = false;
     };
   }, [movieId, forceTranscode, playbackAttempts, isLowQuality]);
+
+  // Handle Audio & non-text Subtitle Track changes by reloading stream
+  useEffect(() => {
+    if (!playbackInfo) return;
+    
+    let currentUrl = playbackInfo.streamUrl;
+    if (!currentUrl) return;
+
+    let needsBurnIn = false;
+    if (activeSubtitleIndex !== null && subtitlesOn) {
+      const activeSub = playbackInfo.subtitles.find((s: any) => s.index === activeSubtitleIndex);
+      if (activeSub && !isTextSubtitle(activeSub.codec)) {
+        needsBurnIn = true;
+      }
+    }
+    
+    try {
+      const baseOrigin = "http://localhost:3000";
+      const urlObj = new URL(currentUrl, baseOrigin);
+      
+      let changed = false;
+
+      if (activeAudioIndex !== null) {
+        const currentAudioIndex = urlObj.searchParams.get("AudioStreamIndex");
+        if (currentAudioIndex !== activeAudioIndex.toString()) {
+          urlObj.searchParams.set("AudioStreamIndex", activeAudioIndex.toString());
+          changed = true;
+        }
+      }
+
+      const currentSubIndex = urlObj.searchParams.get("SubtitleStreamIndex");
+      if (needsBurnIn) {
+        if (currentSubIndex !== activeSubtitleIndex!.toString()) {
+          urlObj.searchParams.set("SubtitleStreamIndex", activeSubtitleIndex!.toString());
+          urlObj.searchParams.set("SubtitleMethod", "Encode");
+          changed = true;
+        }
+      } else {
+        if (currentSubIndex !== null) {
+          urlObj.searchParams.delete("SubtitleStreamIndex");
+          urlObj.searchParams.delete("SubtitleMethod");
+          changed = true;
+        }
+      }
+
+      
+      // If we are DirectPlay but we NEED to change audio or burn-in subtitle, we must switch to Transcoding
+      
+      const defaultAudio = playbackInfo.audios.find((a: any) => a.isDefault) || playbackInfo.audios[0];
+      const isChangingAudio = activeAudioIndex !== null && (!defaultAudio || activeAudioIndex !== defaultAudio.index);
+      
+      // Only convert to transcoding if we ACTUALLY need a non-default audio or burned in subtitles
+      if (playbackInfo.isDirect && (isChangingAudio || needsBurnIn)) {
+        console.log("[STREAM CONVERSION] Converting DirectPlay to Transcoding to support Audio/Subtitle change.");
+        const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
+        const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : "";
+        const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
+        const hlsParams = `Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1&VideoBitrate=140000000&MaxVideoBitrate=140000000`;
+        
+        let transcodeUrl = "";
+        if (isNetlify) {
+            transcodeUrl = `${serverUrl}/Videos/${playbackInfo.id}/master.m3u8?${hlsParams}&api_key=${currentApiKey}&DeviceId=CinemaAppClient&MediaSourceId=${playbackInfo.id}`;
+        } else {
+            transcodeUrl = formatHlsUrl(`/api/jellyfin/proxy/videos/${playbackInfo.id}/master.m3u8?${hlsParams}`, playbackInfo.id, "CinemaAppClient", "");
+        }
+        
+        const transcodeObj = new URL(transcodeUrl, baseOrigin);
+        transcodeObj.searchParams.set("PlaySessionId", Date.now().toString());
+        if (activeAudioIndex !== null) transcodeObj.searchParams.set("AudioStreamIndex", activeAudioIndex.toString());
+        if (needsBurnIn) {
+            transcodeObj.searchParams.set("SubtitleStreamIndex", activeSubtitleIndex!.toString());
+            transcodeObj.searchParams.set("SubtitleMethod", "Encode");
+        }
+        
+        let newUrl = transcodeUrl.startsWith("/") ? transcodeObj.pathname + transcodeObj.search : transcodeObj.toString();
+        
+        if (videoRef.current && videoRef.current.currentTime > 0) {
+            savedRestoreTimeRef.current = videoRef.current.currentTime;
+        }
+        
+        setPlaybackInfo(prev => ({
+            ...prev!,
+            isDirect: false,
+            streamUrl: newUrl
+        }));
+        return; // Early return to avoid setting it again below
+      }
+
+      if (changed) {
+        urlObj.searchParams.set("PlaySessionId", Date.now().toString());
+        let newUrl = "";
+        if (currentUrl.startsWith("/")) {
+          newUrl = urlObj.pathname + urlObj.search;
+        } else {
+          newUrl = urlObj.toString();
+        }
+        
+        console.log(`[STREAM RELOAD] AudioIndex=${activeAudioIndex}, SubtitleIndex=${needsBurnIn ? activeSubtitleIndex : 'Overlay'}`);
+        
+        if (videoRef.current && videoRef.current.currentTime > 0) {
+            savedRestoreTimeRef.current = videoRef.current.currentTime;
+        }
+        
+        setPlaybackInfo(prev => ({
+            ...prev!,
+            streamUrl: newUrl
+        }));
+      }
+    } catch (e) {
+      console.error("Error updating stream url params:", e);
+    }
+  }, [activeAudioIndex, activeSubtitleIndex, subtitlesOn, playbackInfo]);
 
   // Real-time console diagnostics logger for Cinema
   useEffect(() => {
@@ -829,6 +972,8 @@ export default function CinemaPlayerView({
     hideControlsTimeout.current = setTimeout(() => {
       if (playing) {
         setControlsVisible(false);
+        setShowSettingsMenu(false);
+        setTimeout(() => setSettingsView("main"), 200);
       }
     }, 3000);
   };
@@ -1193,6 +1338,13 @@ export default function CinemaPlayerView({
           validateAndSetDuration(liveDur, jellyfinDur);
           // Auto-play the HLS stream
           setPlaying(true);
+          if (video.paused && !isAutoplayBlocked) {
+             video.play().catch((err) => {
+                 console.warn("Autoplay prevented:", err);
+                 setIsAutoplayBlocked(true);
+                 setPlaying(false);
+             });
+          }
         });
 
         hls.on(Hls.Events.ERROR, (event, data) => {
@@ -1457,6 +1609,7 @@ export default function CinemaPlayerView({
         >
           <video
             ref={videoRef}
+            x-webkit-airplay="allow"
             playsInline
             controls={false}
             autoPlay={adClicks >= 2}
@@ -1468,6 +1621,25 @@ export default function CinemaPlayerView({
               trackEventFired("play", "Événement play");
             }}
             onTimeUpdate={(e) => {
+              const curTime = e.currentTarget.currentTime;
+              const dur = e.currentTarget.duration;
+              
+              if (curTime > 0 && dur > 0 && movieId) {
+                try {
+                  const savedStr = localStorage.getItem("classico_progress") || "{}";
+                  const progressObj = JSON.parse(savedStr);
+                  progressObj[movieId] = {
+                    id: movieId,
+                    title: movieTitle,
+                    poster: moviePoster,
+                    currentTime: curTime,
+                    duration: dur,
+                    updatedAt: Date.now()
+                  };
+                  localStorage.setItem("classico_progress", JSON.stringify(progressObj));
+                } catch (err) {}
+              }
+
               if (!videoRef.current) return;
               const currentVideoTime = e.currentTarget.currentTime;
               if (!firstFrameLoggedRef.current && currentVideoTime > 0) {
@@ -1787,109 +1959,219 @@ export default function CinemaPlayerView({
               </div>
             </div>
 
-            {/* Subtitles Button next to Volume */}
-            {playbackInfo?.subtitles && playbackInfo.subtitles.length > 0 && (
-              <div className="relative border-l border-white/10 pl-2 sm:pl-4">
-                <button
-                  id="cinema-subtitle-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowSubtitleMenu(prev => !prev);
-                  }}
-                  className={`p-1.5 rounded-full text-white/60 hover:text-white hover:bg-white/5 active:scale-95 transition-all cursor-pointer flex items-center justify-center ${
-                    subtitlesOn && activeSubtitleIndex !== null ? "text-amber-400" : ""
-                  }`}
-                  title="Subtitles"
-                >
-                  <Captions className="w-5 h-5" />
-                </button>
-
-                {/* Subtitle dropdown/popover */}
-                {showSubtitleMenu && (
-                  <div id="cinema-subtitle-menu" className="absolute bottom-full left-0 mb-3 w-56 bg-zinc-950/95 border border-white/10 rounded-xl shadow-2xl p-2 z-50 overflow-hidden text-[11px] text-zinc-200">
-                    <div className="px-2 py-1.5 border-b border-white/5 flex items-center justify-between gap-1">
-                      <span className="font-bold uppercase tracking-wider text-amber-500 text-[9px] truncate">Subtitles</span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowSubtitleMenu(false);
-                        }}
-                        className="text-zinc-500 hover:text-white text-[10px] cursor-pointer"
-                      >
-                        ✕
-                      </button>
-                    </div>
-
-                    <div className="max-h-48 overflow-y-auto py-1 space-y-0.5 mt-1 select-none">
-                      {/* Disable subtitles option */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveSubtitleIndex(null);
-                          setSubtitlesOn(false);
-                          setShowSubtitleMenu(false);
-                        }}
-                        className={`w-full text-left px-2 py-1.5 rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
-                          activeSubtitleIndex === null || !subtitlesOn
-                            ? "bg-amber-500/10 text-amber-400 font-bold"
-                            : "hover:bg-zinc-900 text-zinc-400 hover:text-zinc-200"
-                        }`}
-                      >
-                        <span>Disable subtitles</span>
-                        {(activeSubtitleIndex === null || !subtitlesOn) && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
-                      </button>
-
-                      {/* Jellyfin subtitle tracks */}
-                      {playbackInfo.subtitles.map((track) => {
-                        const isCurrentActive = subtitlesOn && activeSubtitleIndex === track.index;
-                        return (
-                          <button
-                            key={track.index}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveSubtitleIndex(track.index);
-                              setSubtitlesOn(true);
-                              setShowSubtitleMenu(false);
-                              console.log(`[CINEMA SUBTITLE SELECTED] Activated track ${track.index} (${track.label})`);
-                            }}
-                            className={`w-full text-left px-2 py-1.5 rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
-                              isCurrentActive
-                                ? "bg-amber-500/10 text-amber-400 font-bold"
-                                : "hover:bg-zinc-900 text-zinc-400 hover:text-zinc-200"
-                            }`}
-                          >
-                            <span className="truncate pr-2">{track.label}</span>
-                            {isCurrentActive && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
-
           {/* RIGHT SIDE: DIAGNOSTICS & FULLSCREEN */}
           <div className="flex items-center gap-3">
-            {/* Playback Info Button (Visible only in admin mode) */}
-            {localStorage.getItem("isAdmin") === "true" && (
+            {/* Cast Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (videoRef.current && (videoRef.current as any).remote && (videoRef.current as any).remote.prompt) {
+                  (videoRef.current as any).remote.prompt().catch((err: any) => {
+                    console.log("Cast prompt error:", err);
+                    alert("Impossible de démarrer le casting. Veuillez vérifier votre appareil.");
+                  });
+                } else {
+                  alert("Le casting (Chromecast) n'est pas supporté directement sur ce navigateur ou aucune cible n'est disponible.");
+                }
+              }}
+              className="p-1.5 text-zinc-500 hover:text-white active:scale-95 transition-all cursor-pointer"
+              title="Caster l'écran"
+            >
+              <Cast className="w-5 h-5" />
+            </button>
+
+            {/* AirPlay Control */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (videoRef.current && (videoRef.current as any).webkitShowPlaybackTargetPicker) {
+                  (videoRef.current as any).webkitShowPlaybackTargetPicker();
+                } else {
+                  alert("AirPlay n'est pas supporté sur ce navigateur (nécessite Safari).");
+                }
+              }}
+              className="p-1.5 text-zinc-500 hover:text-white active:scale-95 transition-all cursor-pointer"
+              title="AirPlay"
+            >
+              <Airplay className="w-5 h-5" />
+            </button>
+
+            {/* Unified Settings Menu */}
+            <div className="relative">
               <button
+                id="cinema-settings-btn"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setShowDiagnostics(prev => !prev);
+                  setShowSettingsMenu(prev => !prev);
                 }}
-                className={`p-1.5 rounded-full border transition-all duration-150 flex items-center justify-center cursor-pointer ${
-                  showDiagnostics 
-                    ? "border-amber-500 text-amber-400 bg-amber-500/10" 
-                    : "border-white/5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white"
+                className={`p-1.5 rounded transition-all duration-150 cursor-pointer flex items-center justify-center ${
+                  showSettingsMenu ? "text-amber-400 bg-amber-500/10" : "text-white/60 hover:text-white hover:bg-white/5"
                 }`}
-                title="Real-time playback info (Admin Mode)"
+                title="Paramètres"
               >
-                <AlertCircle className="w-5 h-5" />
+                <Menu className="w-5 h-5" />
               </button>
-            )}
 
+              {showSettingsMenu && (
+                <div 
+                  id="cinema-settings-menu"
+                  className="absolute bottom-full right-0 mb-3 w-64 bg-zinc-950/98 border border-zinc-800 rounded-xl p-3 shadow-2xl font-sans text-xs text-left backdrop-blur-md max-h-[60vh] overflow-y-auto text-zinc-200"
+                  onClick={e => e.stopPropagation()}
+                >
+                  {settingsView === "main" && (
+                    <div className="animate-in fade-in slide-in-from-left-2 duration-200">
+                      {/* Vitesse de lecture */}
+                      <div className="mb-3">
+                        <div className="text-zinc-400 font-bold tracking-wide text-[10px] uppercase mb-1.5">Vitesse de lecture</div>
+                        <div className="flex gap-1 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                          {[0.5, 0.75, 1, 1.25, 1.5, 2].map(speed => (
+                            <button
+                              key={speed}
+                              onClick={() => {
+                                setPlaybackRate(speed);
+                                if (videoRef.current) videoRef.current.playbackRate = speed;
+                              }}
+                              className={`px-2 py-1.5 rounded shrink-0 font-bold transition-colors cursor-pointer text-[10px] ${
+                                playbackRate === speed ? "bg-amber-500 text-zinc-950" : "bg-white/5 text-zinc-300 hover:bg-white/10"
+                              }`}
+                            >
+                              {speed}x
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Menu Audio */}
+                      {playbackInfo?.audios && playbackInfo.audios.length > 0 && (
+                        <button
+                          onClick={() => setSettingsView("audio")}
+                          className="w-full px-2.5 py-2 mb-1 text-left rounded-lg transition-colors flex items-center justify-between cursor-pointer bg-white/5 hover:bg-white/10 text-zinc-300"
+                        >
+                          <span className="font-semibold text-[11px]">Audio</span>
+                          <div className="flex items-center gap-1.5">
+                            <ChevronRight className="w-4 h-4 text-zinc-500" />
+                          </div>
+                        </button>
+                      )}
+
+                      {/* Menu Sous-titres */}
+                      <button
+                        onClick={() => setSettingsView("subtitles")}
+                        className="w-full px-2.5 py-2 mb-3 text-left rounded-lg transition-colors flex items-center justify-between cursor-pointer bg-white/5 hover:bg-white/10 text-zinc-300"
+                      >
+                        <span className="font-semibold text-[11px]">Sous-titres</span>
+                        <div className="flex items-center gap-1.5">
+                          
+                          <ChevronRight className="w-4 h-4 text-zinc-500" />
+                        </div>
+                      </button>
+
+                      {/* Popout (PiP) */}
+                      {typeof document !== "undefined" && (document as any).pictureInPictureEnabled && (
+                        <button
+                          onClick={() => {
+                            if (videoRef.current && videoRef.current !== document.pictureInPictureElement) {
+                              videoRef.current.requestPictureInPicture().catch(() => {});
+                            } else if (document.pictureInPictureElement) {
+                              document.exitPictureInPicture().catch(() => {});
+                            }
+                            setShowSettingsMenu(false);
+                            setTimeout(() => setSettingsView("main"), 200);
+                          }}
+                          className="w-full mt-2 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-zinc-300 font-bold text-[11px] flex justify-center items-center cursor-pointer transition-colors"
+                        >
+                          Mode Popout (PiP)
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {settingsView === "audio" && (
+                    <div className="animate-in fade-in slide-in-from-right-2 duration-200">
+                      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-zinc-800">
+                        <button 
+                          onClick={() => setSettingsView("main")}
+                          className="p-1 rounded hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <span className="text-zinc-300 font-bold tracking-wide text-[11px] uppercase">Audio</span>
+                      </div>
+                      <div className="space-y-0.5 max-h-[40vh] overflow-y-auto pr-1">
+                        {playbackInfo?.audios && playbackInfo.audios.map((track: any) => {
+                          const isCurrentActive = activeAudioIndex === track.index;
+                          return (
+                            <button
+                              key={track.index}
+                              onClick={() => {
+                                setActiveAudioIndex(track.index);
+                                // Don't close immediately so user can see what they clicked
+                              }}
+                              className={`w-full px-2.5 py-2 text-left rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
+                                isCurrentActive ? "bg-amber-500/15 text-amber-400 font-bold border-l-2 border-amber-500" : "text-zinc-300 hover:bg-white/5"
+                              }`}
+                            >
+                              <span className="font-semibold text-[11px] truncate">{track.label || `Track ${track.index}`}</span>
+                              {isCurrentActive && <span className="text-amber-500 pl-2">✔</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {settingsView === "subtitles" && (
+                    <div className="animate-in fade-in slide-in-from-right-2 duration-200">
+                      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-zinc-800">
+                        <button 
+                          onClick={() => setSettingsView("main")}
+                          className="p-1 rounded hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <span className="text-zinc-300 font-bold tracking-wide text-[11px] uppercase">Sous-titres</span>
+                      </div>
+                      <div className="space-y-0.5 max-h-[40vh] overflow-y-auto pr-1">
+                        <button
+                          onClick={() => {
+                            setActiveSubtitleIndex(null);
+                            setSubtitlesOn(false);
+                          }}
+                          className={`w-full px-2.5 py-2 text-left rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
+                            !subtitlesOn || activeSubtitleIndex === null ? "bg-amber-500/15 text-amber-400 font-bold border-l-2 border-amber-500" : "text-zinc-300 hover:bg-white/5"
+                          }`}
+                        >
+                          <span className="font-semibold text-[11px]">Désactivé</span>
+                          {(!subtitlesOn || activeSubtitleIndex === null) && <span className="text-amber-500 pl-2">✔</span>}
+                        </button>
+
+                        {playbackInfo?.subtitles && playbackInfo.subtitles.length > 0 && playbackInfo.subtitles.map((track: any) => {
+                          const isCurrentActive = subtitlesOn && activeSubtitleIndex === track.index;
+                          return (
+                            <button
+                              key={track.index}
+                              onClick={() => {
+                                setActiveSubtitleIndex(track.index);
+                                setSubtitlesOn(true);
+                              }}
+                              className={`w-full px-2.5 py-2 text-left rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
+                                isCurrentActive ? "bg-amber-500/15 text-amber-400 font-bold border-l-2 border-amber-500" : "text-zinc-300 hover:bg-white/5"
+                              }`}
+                            >
+                              <span className="font-semibold text-[11px] truncate">{track.label || track.codec}</span>
+                              {isCurrentActive && <span className="text-amber-500 pl-2">✔</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+</div>
+              )}
+            </div>
+
+            {/* Fullscreen Button */}
             <button
               onClick={(e) => {
                 e.stopPropagation();

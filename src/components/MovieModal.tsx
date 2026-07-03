@@ -195,7 +195,7 @@ export default function MovieModal({
                   {/* Cast Card Grid */}
                   <div className="space-y-3">
                     <h3 className="text-sm font-mono uppercase tracking-widest text-[#f4ecd8] font-bold">
-                      Distribution principale
+                      Cast principale
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {movie.cast.map((actor, idx) => (

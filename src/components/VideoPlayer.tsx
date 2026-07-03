@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import Hls from "hls.js";
 import { 
   Play, Pause, RotateCcw, Volume2, VolumeX, 
-  Captions, Maximize2, Info, Sparkles, AlertCircle, Rewind, FastForward
+  Captions, Airplay, Maximize2, Menu, Cast, Settings2, Info, Sparkles, AlertCircle, Rewind, FastForward, ChevronRight, ChevronLeft
 } from "lucide-react";
 
 const logChrono = (step: string) => {
@@ -31,6 +31,7 @@ interface VideoPlayerProps {
   onCloseView: () => void;
   movieId?: string;
   isJellyfinMovie?: boolean;
+  moviePoster?: string;
 }
 
 const SIMULATED_SUBTITLES = [
@@ -163,7 +164,8 @@ export default function VideoPlayer({
   movieDuration,
   onCloseView,
   movieId,
-  isJellyfinMovie = false
+  isJellyfinMovie = false,
+  moviePoster
 }: VideoPlayerProps) {
   const resolvedTargetId = (movieId === "rocky-3" || movieId === "09d878060e061360dd6ba1a6f81fca03")
     ? "8db5a60d8317cdd9ca66b81e52cad247"
@@ -216,9 +218,10 @@ export default function VideoPlayer({
     }[];
   } | null>(null);
   const [activeSubtitleIndex, setActiveSubtitleIndex] = useState<number | null>(null);
-  const [showSubtitleMenu, setShowSubtitleMenu] = useState(false);
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  const [settingsView, setSettingsView] = useState<"main" | "audio" | "subtitles">("main");
+  const [playbackRate, setPlaybackRate] = useState(1);
   const [activeAudioIndex, setActiveAudioIndex] = useState<number | null>(null);
-  const [showAudioMenu, setShowAudioMenu] = useState(false);
   const [subtitlesTrackStateDebug, setSubtitlesTrackStateDebug] = useState<{ label: string; mode: string }[]>([]);
   const [subtitlesDiagnostic, setSubtitlesDiagnostic] = useState<{
     readyState: number;
@@ -286,14 +289,38 @@ export default function VideoPlayer({
       // Only hide controls if the video is playing
       if (videoRef.current && !videoRef.current.paused) {
         setIsControlsVisible(false);
+        setShowSettingsMenu(false);
+        setTimeout(() => setSettingsView("main"), 200);
       }
     }, 5000);
   };
 
+
+  // 4. REPRISE DE LA LECTURE: Inject saved progress on mount
+  useEffect(() => {
+    if (movieId) {
+      try {
+        const saved = JSON.parse(localStorage.getItem("classico_progress") || "{}");
+        if (saved[movieId] && saved[movieId].currentTime > 0) {
+           savedRestoreTime.current = saved[movieId].currentTime;
+           console.log("[RESUME PLAYBACK] Found saved progress for " + movieId + ": " + savedRestoreTime.current + "s");
+        }
+      } catch(e) {}
+    }
+  }, [movieId]);
   useEffect(() => {
     resetControlsTimeout();
+    const handleDocumentClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest("#player-settings-btn") && !target.closest("#player-settings-menu")) {
+        setShowSettingsMenu(false);
+        setTimeout(() => setSettingsView("main"), 200);
+      }
+    };
+    document.addEventListener("click", handleDocumentClick);
     return () => {
       if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+      document.removeEventListener("click", handleDocumentClick);
     };
   }, []);
 
@@ -718,15 +745,73 @@ export default function VideoPlayer({
     if (!isJellyfinMovie || !playbackInfo) return url;
 
     try {
+      let isForcedTranscoding = false;
+      let workingUrl = url;
+
+      // Check if we need to force transcoding from Direct Play
+      if (playbackInfo.isDirect) {
+         let needsTranscodeForSub = false;
+         if (subOn && subIndex !== null && playbackInfo.subtitles) {
+            const activeSub = playbackInfo.subtitles.find((s: any) => s.index === subIndex);
+            if (activeSub && !isTextSubtitle(activeSub.codec)) {
+               needsTranscodeForSub = true;
+            }
+         }
+         
+         const defaultAudio = playbackInfo.audios.find((a: any) => a.isDefault) || playbackInfo.audios[0];
+         const isChangingAudio = audioIndex !== null && (!defaultAudio || audioIndex !== defaultAudio.index);
+         
+         if (isChangingAudio || needsTranscodeForSub) {
+             console.log("[STREAM CONVERSION] Converting DirectPlay to Transcoding for Audio/Subtitle.");
+             isForcedTranscoding = true;
+             
+             // Construct Transcode URL
+             const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
+             const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : "";
+             const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
+             const hlsParams = `Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1&VideoBitrate=140000000&MaxVideoBitrate=140000000`;
+             
+             if (isNetlify) {
+                 workingUrl = `${serverUrl}/Videos/${playbackInfo.id}/master.m3u8?${hlsParams}&api_key=${currentApiKey}&DeviceId=ClassicoWebClient&MediaSourceId=${playbackInfo.id}&PlaySessionId=${Date.now()}`;
+             } else {
+                 // For internal API, append api_key and deviceId so they are proxied correctly if needed
+                 workingUrl = `/api/jellyfin/proxy/videos/${playbackInfo.id}/master.m3u8?${hlsParams}&DeviceId=ClassicoWebClient&PlaySessionId=${Date.now()}`;
+             }
+             
+             // IMPORTANT: We must also update the playbackInfo so that downstream effects know it's no longer direct play!
+             // However, modifying state inside this pure function is dangerous, but we can set a flag that triggers it if needed.
+             // Actually, for VideoPlayer, the downstream HLS initialization checks `finalStreamUrl.includes(".m3u8")` rather than `isDirect`!
+             // Let's verify that. Yes! `const isHls = finalStreamUrl.toLowerCase().includes(".m3u8");`
+             // So just changing the URL is enough for VideoPlayer!
+         }
+      }
+
       const baseOrigin = "http://localhost:3000";
-      const urlObj = new URL(url, baseOrigin);
+      const urlObj = new URL(workingUrl, baseOrigin);
 
       // Remove existing values to avoid duplication
       urlObj.searchParams.delete("SubtitleStreamIndex");
       urlObj.searchParams.delete("SubtitleMethod");
       urlObj.searchParams.delete("AudioStreamIndex");
 
-      // Subtitle and Audio changes are handled separately/natively without reloading the video stream URL
+      // Set Audio Track if specified
+      if (audioIndex !== null) {
+        urlObj.searchParams.set("AudioStreamIndex", audioIndex.toString());
+        urlObj.searchParams.set("PlaySessionId", Date.now().toString());
+      }
+      
+      // Determine if the subtitle needs to be burned in (non-text codec)
+      if (subOn && subIndex !== null && playbackInfo && playbackInfo.subtitles) {
+        const activeSub = playbackInfo.subtitles.find((s: any) => s.index === subIndex);
+        if (activeSub) {
+          const codec = (activeSub.codec || "").toLowerCase();
+          const isText = !["pgs", "hdmv_pgs_subtitle", "vobsub", "dvdsub", "dvd_subtitle"].includes(codec);
+          if (!isText) {
+             urlObj.searchParams.set("SubtitleStreamIndex", subIndex.toString());
+             urlObj.searchParams.set("SubtitleMethod", "Encode");
+          }
+        }
+      }
 
       // Ensure HLS segments are short (3s) and prebuffering is minimal (1 segment) for instant start
       if (url.includes(".m3u8") || url.includes("hls")) {
@@ -982,6 +1067,9 @@ export default function VideoPlayer({
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         setIsMetadataLoaded(true);
+        if (videoState.playing && videoRef.current && videoRef.current.paused) {
+           videoRef.current.play().catch(e => console.warn("Restore play prevented:", e));
+        }
         console.trace("[PLAYER STATE CHANGE]", {
           action: "setIsStreamLoading(false) - manifest parsed successfully",
           streamUrl: finalStreamUrl,
@@ -1349,7 +1437,14 @@ export default function VideoPlayer({
             try {
               const savedStr = localStorage.getItem("classico_progress") || "{}";
               const progressObj = JSON.parse(savedStr);
-              progressObj[movieId] = newProgress / prev.duration;
+              progressObj[movieId] = {
+                id: movieId,
+                title: movieTitle,
+                poster: moviePoster || "",
+                currentTime: newProgress,
+                duration: prev.duration,
+                updatedAt: Date.now()
+              };
               localStorage.setItem("classico_progress", JSON.stringify(progressObj));
             } catch (e) {}
           }
@@ -1578,7 +1673,7 @@ export default function VideoPlayer({
                   }}
                   className="w-full bg-transparent hover:bg-white/5 border border-zinc-800 text-zinc-400 py-2.5 rounded-xl text-[10px] font-mono tracking-wider font-bold uppercase transition-all cursor-pointer active:scale-95"
                 >
-                  Fermer le lecteur Classico
+                  Close Classico Player
                 </button>
               </div>
             </div>
@@ -1728,7 +1823,14 @@ export default function VideoPlayer({
                 try {
                   const savedStr = localStorage.getItem("classico_progress") || "{}";
                   const progressObj = JSON.parse(savedStr);
-                  progressObj[movieId] = curTime / dur;
+                  progressObj[movieId] = {
+                    id: movieId,
+                    title: movieTitle,
+                    poster: moviePoster || "",
+                    currentTime: curTime,
+                    duration: dur,
+                    updatedAt: Date.now()
+                  };
                   localStorage.setItem("classico_progress", JSON.stringify(progressObj));
                 } catch (e) {
                   // ignore parse errors
@@ -2007,29 +2109,7 @@ export default function VideoPlayer({
               />
             </div>
 
-            {/* Prominent Subtitle Button next to Volume */}
-            {isJellyfinMovie && (
-              <div className="relative border-l border-zinc-850 pl-4 hidden sm:block">
-                <button
-                  id="prominent-subtitle-btn"
-                  onClick={() => setShowSubtitleMenu(prev => !prev)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold select-none transition-all cursor-pointer ${
-                    videoState.subtitlesOn && activeSubtitleIndex !== null
-                      ? "bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border-amber-500/35"
-                      : "bg-zinc-900 border-zinc-800/80 hover:bg-zinc-850 text-zinc-350"
-                  }`}
-                  title="Jellyfin Subtitles"
-                >
-                  <Captions className={`w-4 h-4 ${videoState.subtitlesOn && activeSubtitleIndex !== null ? "text-amber-400 animate-pulse" : "text-zinc-400"}`} />
-                  <span className="text-zinc-400">Subtitles:</span>
-                  <span className="font-sans font-bold text-zinc-100 truncate max-w-[120px]">
-                    {videoState.subtitlesOn && activeSubtitleIndex !== null
-                      ? (playbackInfo?.subtitles?.find(s => s.index === activeSubtitleIndex)?.label || "Oui")
-                      : "None"}
-                  </span>
-                </button>
-              </div>
-            )}
+
           </div>
 
           {/* Title of active film / Jellyfin status */}
@@ -2098,179 +2178,214 @@ export default function VideoPlayer({
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Subtitle Selection Popover Control */}
+            {/* Cast Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (videoRef.current && (videoRef.current as any).remote && (videoRef.current as any).remote.prompt) {
+                  (videoRef.current as any).remote.prompt().catch((err: any) => {
+                    console.log("Cast prompt error:", err);
+                    alert("Impossible de démarrer le casting. Veuillez vérifier votre appareil.");
+                  });
+                } else {
+                  alert("Le casting (Chromecast) n'est pas supporté directement sur ce navigateur ou aucune cible n'est disponible.");
+                }
+              }}
+              className="p-1.5 text-zinc-500 hover:text-white active:scale-95 transition-all cursor-pointer"
+              title="Caster l'écran"
+            >
+              <Cast className="w-5 h-5" />
+            </button>
+
+            {/* AirPlay Control */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (videoRef.current && (videoRef.current as any).webkitShowPlaybackTargetPicker) {
+                  (videoRef.current as any).webkitShowPlaybackTargetPicker();
+                } else {
+                  alert("AirPlay n'est pas supporté sur ce navigateur (nécessite Safari).");
+                }
+              }}
+              className="p-1.5 text-zinc-500 hover:text-white active:scale-95 transition-all cursor-pointer"
+              title="AirPlay"
+            >
+              <Airplay className="w-5 h-5" />
+            </button>
+
+            {/* Unified Settings Menu */}
             <div className="relative">
               <button
-                id="player-subtitle-toggle"
-                onClick={() => {
-                  setShowSubtitleMenu(prev => !prev);
-                  setShowAudioMenu(false);
+                id="player-settings-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSettingsMenu(prev => !prev);
                 }}
                 className={`p-1.5 rounded transition-colors duration-150 cursor-pointer flex items-center justify-center ${
-                  videoState.subtitlesOn && activeSubtitleIndex !== null ? "text-amber-400 bg-amber-500/10 animate-pulse" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
+                  showSettingsMenu ? "text-amber-400 bg-amber-500/10" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
                 }`}
-                title="Jellyfin Subtitles"
+                title="Paramètres"
               >
-                <Captions className="w-4.5 h-4.5" />
+                <Menu className="w-5 h-5" />
               </button>
 
-              {showSubtitleMenu && (
+              {showSettingsMenu && (
                 <div 
-                  className="absolute bottom-10 right-0 z-50 w-64 bg-zinc-950/98 border border-zinc-800 rounded-xl p-2 shadow-2xl font-sans text-xs text-left backdrop-blur-md max-h-64 overflow-y-auto"
+                  id="player-settings-menu"
+                  className="absolute bottom-10 right-0 z-50 w-64 bg-zinc-950/98 border border-zinc-800 rounded-xl p-3 shadow-2xl font-sans text-xs text-left backdrop-blur-md max-h-[50vh] overflow-y-auto animate-in fade-in slide-in-from-bottom-2 duration-150"
+                  onClick={e => e.stopPropagation()}
                 >
-                  <div className="px-2 py-1.5 border-b border-zinc-900 flex justify-between items-center text-zinc-400 font-bold tracking-wide text-[10px] uppercase">
-                    <span>Subtitle Selection</span>
-                    {videoState.subtitlesOn && activeSubtitleIndex !== null && (
-                      <span className="text-amber-400 lowercase font-normal">[actif]</span>
-                    )}
-                  </div>
-                  
-                  <div className="py-1 space-y-0.5">
-                    {/* OPTION DISABLED */}
-                    <button
-                      onClick={() => {
-                        setActiveSubtitleIndex(null);
-                        setVideoState(prev => ({ ...prev, subtitlesOn: false }));
-                        setShowSubtitleMenu(false);
-                        applySubtitleSelection(null);
-                      }}
-                      className={`w-full px-2.5 py-1.5 text-left rounded-lg transition-colors flex items-center justify-between font-medium cursor-pointer ${
-                        activeSubtitleIndex === null || !videoState.subtitlesOn
-                          ? "bg-amber-500/10 text-white font-bold"
-                          : "text-zinc-400 hover:text-white hover:bg-white/5"
-                      }`}
-                    >
-                      <span>🚫 Disable Subtitles</span>
-                      {(activeSubtitleIndex === null || !videoState.subtitlesOn) && (
-                        <span className="text-[9px] font-mono font-black text-amber-500">✔</span>
-                      )}
-                    </button>
-
-                    {/* JELLYFIN SUBTITLE TRACKS */}
-                    {playbackInfo?.subtitles && playbackInfo.subtitles.length > 0 ? (
-                      playbackInfo.subtitles.map((track) => {
-                        const isCurrentActive = videoState.subtitlesOn && activeSubtitleIndex === track.index;
-                        return (
-                          <button
-                            key={track.index}
-                            onClick={() => {
-                              setActiveSubtitleIndex(track.index);
-                              setVideoState(prev => ({ ...prev, subtitlesOn: true }));
-                              setShowSubtitleMenu(false);
-                              console.log(`[SUBTITLE TRACK SELECTED] Activated track ${track.index} (${track.label})`);
-                              applySubtitleSelection(track.index);
-                            }}
-                            className={`w-full px-2.5 py-1.5 text-left rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
-                              isCurrentActive
-                                ? "bg-amber-500/15 text-amber-400 font-bold border-l-2 border-amber-500"
-                                : "text-zinc-300 hover:text-white hover:bg-white/5"
-                            }`}
-                          >
-                            <div className="flex flex-col text-left">
-                              <span className="font-sans text-[11px] font-semibold">{track.label}</span>
-                              <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-tighter">
-                                Codec: {track.codec || "vtt"} • {track.deliveryMethod || "External"}
-                              </span>
-                            </div>
-                            
-                            <div className="flex items-center gap-1 shrink-0">
-                              {track.isDefault && (
-                                <span className="bg-zinc-800 text-zinc-400 text-[8px] font-bold px-1.5 py-0.5 rounded font-mono">DEF</span>
-                              )}
-                              {track.isForced && (
-                                <span className="bg-amber-500/10 text-amber-500 text-[8px] font-bold px-1.5 py-0.5 rounded font-mono">FORCED</span>
-                              )}
-                              {isCurrentActive && (
-                                <span className="text-[10px] font-mono text-amber-500 font-black pl-1">✔</span>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })
-                    ) : (
-                      <div className="px-2.5 py-2 text-zinc-500 italic text-[10px] text-center">
-                        No French or external subtitles available on Jellyfin for this movie.
+                  {settingsView === "main" && (
+                    <div className="animate-in fade-in slide-in-from-left-2 duration-200">
+                      {/* Vitesse de lecture */}
+                      <div className="mb-3">
+                        <div className="text-zinc-400 font-bold tracking-wide text-[10px] uppercase mb-1.5">Vitesse de lecture</div>
+                        <div className="flex gap-1 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                          {[0.5, 0.75, 1, 1.25, 1.5, 2].map(speed => (
+                            <button
+                              key={speed}
+                              onClick={() => {
+                                setPlaybackRate(speed);
+                                if (videoRef.current) videoRef.current.playbackRate = speed;
+                              }}
+                              className={`px-2 py-1 rounded shrink-0 font-medium transition-colors cursor-pointer ${
+                                playbackRate === speed ? "bg-amber-500 text-zinc-950 font-bold" : "bg-white/5 text-zinc-300 hover:bg-white/10"
+                              }`}
+                            >
+                              {speed}x
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
 
-            {/* Audio Language Selection Popover Control */}
-            {isJellyfinMovie && (
-              <div className="relative">
-                <button
-                  id="player-audio-toggle"
-                  onClick={() => {
-                    setShowAudioMenu(prev => !prev);
-                    setShowSubtitleMenu(false);
-                  }}
-                  className={`p-1.5 rounded transition-colors duration-150 cursor-pointer flex items-center justify-center ${
-                    activeAudioIndex !== null ? "text-amber-400 bg-amber-500/10" : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
-                  }`}
-                  title="Langue / Audio de Jellyfin"
-                >
-                  <Volume2 className="w-4.5 h-4.5" />
-                </button>
+                      {/* Menu Audio */}
+                      {isJellyfinMovie && playbackInfo?.audios && playbackInfo.audios.length > 0 && (
+                        <button
+                          onClick={() => setSettingsView("audio")}
+                          className="w-full px-2.5 py-2.5 mb-1 text-left rounded-lg transition-colors flex items-center justify-between cursor-pointer bg-white/5 hover:bg-white/10 text-zinc-300"
+                        >
+                          <span className="font-semibold text-[11px]">Audio</span>
+                          <div className="flex items-center gap-1.5">
+                            <ChevronRight className="w-4 h-4 text-zinc-500" />
+                          </div>
+                        </button>
+                      )}
 
-                {showAudioMenu && (
-                  <div 
-                    className="absolute bottom-10 right-0 z-50 w-64 bg-zinc-950/98 border border-zinc-800 rounded-xl p-2 shadow-2xl font-sans text-xs text-left backdrop-blur-md max-h-64 overflow-y-auto animate-in fade-in slide-in-from-bottom-2 duration-150"
-                  >
-                    <div className="px-2 py-1.5 border-b border-zinc-900 flex justify-between items-center text-zinc-400 font-bold tracking-wide text-[10px] uppercase">
-                      <span>Langue & Audio</span>
-                      {activeAudioIndex !== null && (
-                        <span className="text-amber-400 lowercase font-normal">[actif]</span>
+                      {/* Menu Subtitles */}
+                      <button
+                        onClick={() => setSettingsView("subtitles")}
+                        className="w-full px-2.5 py-2.5 mb-3 text-left rounded-lg transition-colors flex items-center justify-between cursor-pointer bg-white/5 hover:bg-white/10 text-zinc-300"
+                      >
+                        <span className="font-semibold text-[11px]">Subtitles</span>
+                        <div className="flex items-center gap-1.5">
+                          
+                          <ChevronRight className="w-4 h-4 text-zinc-500" />
+                        </div>
+                      </button>
+
+                      {/* Popout (PiP) */}
+                      {typeof document !== "undefined" && (document as any).pictureInPictureEnabled && (
+                        <button
+                          onClick={() => {
+                            if (videoRef.current && videoRef.current !== document.pictureInPictureElement) {
+                              videoRef.current.requestPictureInPicture().catch(() => {});
+                            } else if (document.pictureInPictureElement) {
+                              document.exitPictureInPicture().catch(() => {});
+                            }
+                            setShowSettingsMenu(false);
+                            setTimeout(() => setSettingsView("main"), 200);
+                          }}
+                          className="w-full mt-2 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-zinc-300 font-bold text-[11px] flex justify-center items-center cursor-pointer transition-colors"
+                        >
+                          Mode Popout (PiP)
+                        </button>
                       )}
                     </div>
-                    
-                    <div className="py-1 space-y-0.5">
-                      {playbackInfo?.audios && playbackInfo.audios.length > 0 ? (
-                        playbackInfo.audios.map((track) => {
+                  )}
+
+                  {settingsView === "audio" && (
+                    <div className="animate-in fade-in slide-in-from-right-2 duration-200">
+                      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-zinc-800">
+                        <button 
+                          onClick={() => setSettingsView("main")}
+                          className="p-1 rounded hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <span className="text-zinc-300 font-bold tracking-wide text-[11px] uppercase">Audio</span>
+                      </div>
+                      <div className="space-y-0.5 max-h-[40vh] overflow-y-auto pr-1">
+                        {playbackInfo?.audios && playbackInfo.audios.map(track => {
                           const isCurrentActive = activeAudioIndex === track.index;
                           return (
                             <button
                               key={track.index}
                               onClick={() => {
                                 setActiveAudioIndex(track.index);
-                                setShowAudioMenu(false);
-                                console.log(`[AUDIO TRACK SELECTED] Activated track ${track.index} (${track.label})`);
+                                // Don't close menu immediately, let user see selection
                               }}
-                              className={`w-full px-2.5 py-1.5 text-left rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
-                                isCurrentActive
-                                  ? "bg-amber-500/15 text-amber-400 font-bold border-l-2 border-amber-500"
-                                  : "text-zinc-300 hover:text-white hover:bg-white/5"
+                              className={`w-full px-2.5 py-2 text-left rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
+                                isCurrentActive ? "bg-amber-500/15 text-amber-400 font-bold border-l-2 border-amber-500" : "text-zinc-300 hover:bg-white/5"
                               }`}
                             >
-                              <div className="flex flex-col text-left">
-                                <span className="font-sans text-[11px] font-semibold">{track.label}</span>
-                                <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-tighter">
-                                  Codec: {track.codec || "aac"}
-                                </span>
-                              </div>
-                              
-                              <div className="flex items-center gap-1 shrink-0">
-                                {track.isDefault && (
-                                  <span className="bg-zinc-800 text-zinc-400 text-[8px] font-bold px-1.5 py-0.5 rounded font-mono">DEF</span>
-                                )}
-                                {isCurrentActive && (
-                                  <span className="text-[10px] font-mono text-amber-500 font-black pl-1">✔</span>
-                                )}
-                              </div>
+                              <span className="font-semibold text-[11px] truncate">{track.label}</span>
+                              {isCurrentActive && <span className="text-amber-500 pl-2">✔</span>}
                             </button>
                           );
-                        })
-                      ) : (
-                        <div className="px-2.5 py-2 text-zinc-500 italic text-[10px] text-center">
-                          No alternative audio track detected.
-                        </div>
-                      )}
+                        })}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+
+                  {settingsView === "subtitles" && (
+                    <div className="animate-in fade-in slide-in-from-right-2 duration-200">
+                      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-zinc-800">
+                        <button 
+                          onClick={() => setSettingsView("main")}
+                          className="p-1 rounded hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <span className="text-zinc-300 font-bold tracking-wide text-[11px] uppercase">Subtitles</span>
+                      </div>
+                      <div className="space-y-0.5 max-h-[40vh] overflow-y-auto pr-1">
+                        <button
+                          onClick={() => {
+                            setActiveSubtitleIndex(null);
+                            setVideoState(prev => ({ ...prev, subtitlesOn: false }));
+                          }}
+                          className={`w-full px-2.5 py-2 text-left rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
+                            !videoState.subtitlesOn || activeSubtitleIndex === null ? "bg-amber-500/15 text-amber-400 font-bold border-l-2 border-amber-500" : "text-zinc-300 hover:bg-white/5"
+                          }`}
+                        >
+                          <span className="font-semibold text-[11px]">Off</span>
+                          {(!videoState.subtitlesOn || activeSubtitleIndex === null) && <span className="text-amber-500 pl-2">✔</span>}
+                        </button>
+
+                        {playbackInfo?.subtitles && playbackInfo.subtitles.length > 0 && playbackInfo.subtitles.map(track => {
+                          const isCurrentActive = videoState.subtitlesOn && activeSubtitleIndex === track.index;
+                          return (
+                            <button
+                              key={track.index}
+                              onClick={() => {
+                                setActiveSubtitleIndex(track.index);
+                                setVideoState(prev => ({ ...prev, subtitlesOn: true }));
+                              }}
+                              className={`w-full px-2.5 py-2 text-left rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
+                                isCurrentActive ? "bg-amber-500/15 text-amber-400 font-bold border-l-2 border-amber-500" : "text-zinc-300 hover:bg-white/5"
+                              }`}
+                            >
+                              <span className="font-semibold text-[11px] truncate">{track.label || track.codec}</span>
+                              {isCurrentActive && <span className="text-amber-500 pl-2">✔</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+</div>
+              )}
+            </div>
 
             {/* Fullscreen Button */}
             <button
@@ -2280,29 +2395,10 @@ export default function VideoPlayer({
               className="text-zinc-400 hover:text-amber-400 p-1.5 transition-colors duration-150 cursor-pointer touch-manipulation z-50 relative"
               title="Plein écran"
             >
-              <Maximize2 className="w-4.5 h-4.5" />
+              <Maximize2 className="w-5 h-5" />
             </button>
 
-            {/* Return back to details view - Visible only for administrator */}
-            {localStorage.getItem("isAdmin") === "true" && (
-              <button
-                onClick={() => setShowDiagnostics(prev => !prev)}
-                className={`bg-zinc-900 border ${showDiagnostics ? "border-amber-500/80 text-amber-400 font-black shadow-[0_0_10px_rgba(245,158,11,0.1)]" : "border-zinc-800 hover:bg-neutral-800 text-zinc-300 font-bold"} font-mono text-xs px-3 py-1.5 rounded-lg transition-all duration-150 flex items-center gap-1.5 cursor-pointer`}
-                title="Real-time playback info (Admin Mode)"
-              >
-                <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
-                Playback Info
-              </button>
-            )}
-
-            <button
-              id="player-close-view-btn"
-              onClick={onCloseView}
-              className="bg-zinc-900 border border-zinc-800 hover:bg-neutral-800 text-zinc-300 font-mono text-xs px-3 py-1.5 rounded-lg font-bold transition-all duration-150 flex items-center gap-1.5 cursor-pointer"
-            >
-              <Info className="w-3.5 h-3.5 text-zinc-500" />
-              Details
-            </button>
+            
           </div>
         </div>
 
@@ -2510,7 +2606,7 @@ export default function VideoPlayer({
                   <div className="mb-2 p-1.5 bg-zinc-950 rounded border border-zinc-900 space-y-1 text-[9.5px]">
                     <p><span className="text-zinc-500">Débit estimé :</span> <span className="text-emerald-400 font-bold font-mono">{estimatedBitrate !== null ? `${(estimatedBitrate / 1000000).toFixed(2)} Mbps` : "En cours d'évaluation..."}</span></p>
                     <p><span className="text-zinc-500">Temps buffering initial :</span> <span className="text-teal-400 font-bold font-mono">{initialBufferingTime !== null ? `${initialBufferingTime.toFixed(2)}s` : "Mesure en attente..."}</span></p>
-                    <p><span className="text-zinc-500">Auto Downgrade :</span> <span className={isAutoDowngraded ? "text-rose-400 font-bold" : "text-zinc-400"}>{isAutoDowngraded ? "OUI (Flux allégé activé)" : "NON (Qualité standard)"}</span></p>
+                    <p><span className="text-zinc-500">Auto Downgrade :</span> <span className={isAutoDowngraded ? "text-rose-400 font-bold" : "text-zinc-400"}>{isAutoDowngraded ? "YES (Light stream enabled)" : "NO (Standard quality)"}</span></p>
                   </div>
 
                   <p><span className="text-zinc-500 font-mono">Requested Range:</span> <span className="text-zinc-200 font-semibold font-mono">{serverStreamDebug?.requestRange || "No range (Continuous Playback)"}</span></p>

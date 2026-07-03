@@ -103,7 +103,7 @@ export default function MovieDetailView({
                 className="inline-flex items-center gap-2.5 gold-button px-6 py-3 sm:px-8 sm:py-3.5 [@media(max-height:500px)_and_(orientation:landscape)]:px-4 [@media(max-height:500px)_and_(orientation:landscape)]:py-2 rounded-full text-[13px] [@media(max-height:500px)_and_(orientation:landscape)]:text-[11px] tracking-widest uppercase transition-all duration-200 active:scale-95 cursor-pointer font-bold"
               >
                 <Play className="w-4 h-4 fill-current" />
-                Regarder
+                Play
               </button>
 
               <button
@@ -127,7 +127,6 @@ export default function MovieDetailView({
 
         </div>
       </div>
-
       {/* 3. MINIMALIST COLLAPSIBLE ACCORDION PANELS */}
       <div className="max-w-4xl mx-auto px-4 sm:px-8 mt-12 space-y-4 text-left">
         
@@ -168,18 +167,18 @@ export default function MovieDetailView({
             </AnimatePresence>
           </div>
 
-          {/* SECTION B: CASTING */}
+                    {/* SECTION B: CASTING */}
           <div className="flex flex-col">
             <button
               onClick={() => toggleSection("casting")}
               className="flex items-center justify-between p-5 text-left w-full hover:bg-neutral-900/40 transition-colors cursor-pointer group"
             >
-              <span className="flex items-center gap-3 font-forum text-base sm:text-lg font-bold uppercase tracking-wider text-[#f4ecd8] group-hover:text-white transition-colors duration-250">
-                <Users className="w-5 h-5 text-[#f4ecd8] shadow-[0_0_8px_rgba(244,236,216,0.3)]" />
-                Casting
+              <span className="flex items-center gap-3 font-forum text-base sm:text-lg font-bold uppercase tracking-wider text-[#D4AF37] group-hover:text-[#e8ce7a] transition-colors duration-250">
+                <Users className="w-5 h-5 text-[#D4AF37] shadow-[0_0_8px_rgba(212,175,55,0.3)]" />
+                Cast
               </span>
               <ChevronDown
-                className={`w-5 h-5 text-zinc-500 group-hover:text-[#f4ecd8] transition-transform duration-300 ${
+                className={`w-5 h-5 text-zinc-500 group-hover:text-[#D4AF37] transition-transform duration-300 ${
                   expandedSection === "casting" ? "transform rotate-180" : ""
                 }`}
               />
@@ -195,14 +194,14 @@ export default function MovieDetailView({
                   className="overflow-hidden"
                 >
                   <div className="p-6 pt-0 space-y-4">
-                    <p className="text-xs font-mono uppercase tracking-wider text-zinc-500">Acteurs principaux :</p>
+                    <p className="text-xs font-mono uppercase tracking-wider text-[#D4AF37]">Main Cast:</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {movie.cast.map((actor, idx) => (
                         <div
                           key={`${actor}-${idx}`}
-                          className="flex items-center gap-3 bg-neutral-900/60 border border-zinc-900 p-3.5 rounded-xl text-zinc-300 text-sm font-sans"
+                          className="flex items-center gap-3 bg-neutral-900/60 border border-[#D4AF37]/20 p-3.5 rounded-xl text-zinc-300 text-sm font-sans"
                         >
-                          <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-xs font-mono font-bold text-[#f4ecd8] border border-[#f4ecd8]/20 bg-[#f4ecd8]/5 shadow-sm">
+                          <div className="w-8 h-8 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center text-xs font-mono font-bold text-[#D4AF37] border border-[#D4AF37]/30 shadow-sm">
                             {actor.split(" ").map(n => n[0]).join("").slice(0, 2)}
                           </div>
                           <span className="font-medium tracking-wide text-zinc-200">{actor}</span>
@@ -215,7 +214,7 @@ export default function MovieDetailView({
             </AnimatePresence>
           </div>
 
-          {/* SECTION C: BANDE ANNONCE */}
+          {/* SECTION C: TRAILER */}
           <div className="flex flex-col">
             <button
               onClick={() => toggleSection("trailer")}

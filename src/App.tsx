@@ -15,6 +15,7 @@ import MovieCard from "./components/MovieCard";
 import MovieModal from "./components/MovieModal";
 import MovieDetailView from "./components/MovieDetailView";
 import CinemaPlayerView from "./components/CinemaPlayerView";
+import VideoPlayer from "./components/VideoPlayer";
 import ErrorBoundary from "./components/ErrorBoundary";
 import LazyVirtualCard from "./components/LazyVirtualCard";
 import HeroSkeleton from "./components/HeroSkeleton";
@@ -220,8 +221,8 @@ function sortSagaMovies(sagaId: string, movies: Movie[]): Movie[] {
       if (/\b(episode\s*1|episode\s*i\b|menace\s*fantome|phantom\s*menace)/i.test(s)) return 1;
       if (/\b(episode\s*2|episode\s*ii\b|attaque\s*des\s*clones|attack\s*of\s*the\s*clones)/i.test(s)) return 2;
       if (/\b(episode\s*3|episode\s*iii\b|revanche\s*des\s*sith|revenge\s*of\s*the\s*sith)/i.test(s)) return 3;
-      if (/\brogue\s*one\b/i.test(s)) return 4;
-      if (/\b(episode\s*4|episode\s*iv\b|un\s*nouvel\s*espoir|new\s*hope)/i.test(s)) return 5;
+      if (/\b(episode\s*4|episode\s*iv\b|un\s*nouvel\s*espoir|new\s*hope)/i.test(s) || (s.includes("star wars") && m.year === 1977) || s === "star wars") return 4;
+      if (/\brogue\s*one\b/i.test(s)) return 4.5;
       if (/\b(episode\s*5|episode\s*v\b|empire\s*contre|empire\s*strikes\s*back)/i.test(s)) return 6;
       if (/\b(episode\s*6|episode\s*vi\b|retour\s*du\s*jedi|return\s*of\s*the\s*jedi)/i.test(s)) return 7;
       if (/\b(episode\s*7|episode\s*vii\b|reveil\s*de\s*la\s*force|force\s*awakens)/i.test(s)) return 8;
@@ -352,6 +353,18 @@ function isMovieMatch(title1: string, title2: string): boolean {
   }
 
   const aliasGroups = [
+    ["the godfather", "le parrain", "godfather 1", "godfather part 1", "le parrain 1"],
+    ["the godfather part ii", "le parrain 2", "godfather 2", "le parrain 2e partie", "le parrain 2e partie", "the godfather part 2"],
+    ["the godfather part iii", "le parrain 3", "godfather 3", "le parrain 3e partie", "the godfather part 3"],
+    ["the irishman", "irishman"],
+    ["american gangster", "american gangster (2007)", "american gangster (version longue)"],
+    ["the batman", "batman"],
+    ["star wars episode i", "la menace fantome", "star wars: episode i", "star wars 1"],
+    ["star wars episode ii", "attaque des clones", "star wars: episode ii", "star wars 2"],
+    ["star wars episode iii", "revanche des sith", "star wars: episode iii", "star wars 3"],
+    ["star wars episode iv", "un nouvel espoir", "star wars: episode iv", "star wars 4", "guerre des etoiles", "star wars"],
+    ["star wars episode v", "empire contre attaque", "star wars: episode v", "star wars 5"],
+    ["star wars episode vi", "retour du jedi", "star wars: episode vi", "star wars 6"],
     ["john wick 2", "john wick chapitre 2", "john wick chapter 2", "john wick ii"],
     ["john wick 3", "john wick parabellum", "john wick chapter 3", "john wick iii"],
     ["john wick 4", "john wick chapitre 4", "john wick chapter 4", "john wick iv"],
@@ -400,84 +413,84 @@ const GENRE_AESTHETICS: Record<string, { gradient: string; accentColor: string; 
     accentColor: "text-amber-500 border-amber-500/30 bg-amber-500/10",
     accentHex: "#f59e0b",
     symbol: "💥🔫🥋",
-    description: "Séquences spectaculaires, combats intenses et adrénaline pure."
+    description: "Spectacular sequences, intense fights and pure adrenaline."
   },
   "adventure": {
     gradient: "from-neutral-900 via-amber-950/30 to-amber-950/40",
     accentColor: "text-amber-500 border-amber-500/30 bg-amber-500/10",
     accentHex: "#f59e0b",
     symbol: "🤠🗺️🧭",
-    description: "Explorations lointaines, quêtes épiques et mystères de l'histoire."
+    description: "Distant explorations, epic quests and mysteries of history."
   },
   "aventure": {
     gradient: "from-neutral-900 via-amber-950/30 to-amber-950/40",
     accentColor: "text-amber-500 border-amber-500/30 bg-amber-500/10",
     accentHex: "#f59e0b",
     symbol: "🤠🗺️🧭",
-    description: "Explorations lointaines, quêtes épiques et mystères de l'histoire."
+    description: "Distant explorations, epic quests and mysteries of history."
   },
   "science fiction": {
     gradient: "from-neutral-900 via-emerald-950/30 to-teal-950/40",
     accentColor: "text-emerald-400 border-emerald-400/30 bg-emerald-400/10",
     accentHex: "#34d399",
     symbol: "👽🪐🚀",
-    description: "Futurs extraordinaires, technologies avancées et voyages stellaires."
+    description: "Extraordinary futures, advanced technologies and stellar journeys."
   },
   "science-fiction": {
     gradient: "from-neutral-900 via-emerald-950/30 to-teal-950/40",
     accentColor: "text-emerald-400 border-emerald-400/30 bg-emerald-400/10",
     accentHex: "#34d399",
     symbol: "👽🪐🚀",
-    description: "Futurs extraordinaires, technologies avancées et voyages stellaires."
+    description: "Extraordinary futures, advanced technologies and stellar journeys."
   },
   "crime": {
     gradient: "from-stone-900 via-neutral-900 to-red-950/50",
     accentColor: "text-neutral-200 border-neutral-400/30 bg-neutral-400/10",
     accentHex: "#e5e5e5",
     symbol: "🕶️🤵🚨",
-    description: "Hommes de l'ombre, enquêtes sombres et destins coupables."
+    description: "Men in the shadows, dark investigations and guilty fates."
   },
   "thriller": {
     gradient: "from-slate-900 via-neutral-900 to-purple-950/40",
     accentColor: "text-purple-400 border-purple-400/30 bg-purple-400/10",
     accentHex: "#c084fc",
     symbol: "🔪🤫🔦",
-    description: "Suspense psychologique, mystères insolubles et tension dramatique."
+    description: "Psychological suspense, unsolvable mysteries and dramatic tension."
   },
   "drama": {
     gradient: "from-neutral-900 via-yellow-950/20 to-stone-900",
     accentColor: "text-amber-500 border-amber-500/30 bg-amber-500/10",
     accentHex: "#ca8a04",
     symbol: "🎭🎭🍷",
-    description: "Histoires humaines poignantes, relations complexes et destins bouleversants."
+    description: "Poignant human stories, complex relationships and life-changing destinies."
   },
   "drame": {
     gradient: "from-neutral-900 via-yellow-950/20 to-stone-900",
     accentColor: "text-amber-500 border-amber-500/30 bg-amber-500/10",
     accentHex: "#ca8a04",
     symbol: "🎭🎭🍷",
-    description: "Histoires humaines poignantes, relations complexes et destins bouleversants."
+    description: "Poignant human stories, complex relationships and life-changing destinies."
   },
   "comedy": {
     gradient: "from-neutral-900 via-yellow-950/30 to-amber-950/40",
     accentColor: "text-yellow-500 border-yellow-500/30 bg-yellow-500/10",
     accentHex: "#eab308",
     symbol: "😂🍿🎭",
-    description: "Humour décapant, situations rocambolesques et rires garantis."
+    description: "Dark humor, incredible situations and guaranteed laughs."
   },
   "comédie": {
     gradient: "from-neutral-900 via-yellow-950/30 to-amber-950/40",
     accentColor: "text-yellow-500 border-yellow-500/30 bg-yellow-500/10",
     accentHex: "#eab308",
     symbol: "😂🍿🎭",
-    description: "Humour décapant, situations rocambolesques et rires garantis."
+    description: "Dark humor, incredible situations and guaranteed laughs."
   },
   "animation": {
     gradient: "from-neutral-900 via-blue-950/30 to-indigo-950/40",
     accentColor: "text-blue-400 border-blue-400/30 bg-blue-400/10",
     accentHex: "#60a5fa",
     symbol: "🎨✨🦁",
-    description: "Merveilleux univers dessinés, aventures fantastiques pour tous les âges."
+    description: "Wonderful drawn universes, fantastic adventures for all ages."
   }
 };
 
@@ -487,8 +500,8 @@ const GENRE_AESTHETICS: Record<string, { gradient: string; accentColor: string; 
 const FRANCHISES = [
   {
     id: "matrix",
-    title: "La Saga Matrix",
-    description: "Le chef-d'œuvre cyber-punk des sœurs Wachowski qui a révolutionné les effets spéciaux et le cinéma de science-fiction.",
+    title: "The Matrix Saga",
+    description: "The cyberpunk masterpiece from the Wachowskis that revolutionized visual effects and sci-fi cinema.",
     pattern: /matrix/i,
     gradient: "from-neutral-950 via-emerald-950/40 to-neutral-950",
     accentColor: "text-emerald-400 border-emerald-400/30 bg-emerald-400/10",
@@ -497,9 +510,9 @@ const FRANCHISES = [
   },
   {
     id: "lord-of-the-rings",
-    title: "Le Seigneur des Anneaux",
+    title: "The Lord of the Rings",
     pattern: /\b(lord of the rings|seigneur des anneaux|hobbit)\b/i,
-    description: "L'adaptation légendaire de l'œuvre d'heroic fantasy de J.R.R. Tolkien par Peter Jackson.",
+    description: "The legendary adaptation of J.R.R. Tolkien's heroic fantasy by Peter Jackson.",
     gradient: "from-stone-900 via-amber-950/30 to-amber-950/40",
     accentColor: "text-amber-500 border-amber-500/30 bg-amber-500/10",
     accentHex: "#f59e0b",
@@ -509,7 +522,7 @@ const FRANCHISES = [
     id: "harry-potter",
     title: "Harry Potter",
     pattern: /harry potter/i,
-    description: "Suivez le parcours légendaire du jeune sorcier à lunettes à l'école de magie de Poudlard.",
+    description: "Follow the legendary journey of the young bespectacled wizard at the Hogwarts School of Witchcraft and Wizardry.",
     gradient: "from-indigo-950 via-purple-950/30 to-zinc-950",
     accentColor: "text-purple-400 border-purple-400/30 bg-purple-400/10",
     accentHex: "#c084fc",
@@ -517,9 +530,9 @@ const FRANCHISES = [
   },
   {
     id: "godfather",
-    title: "Le Parrain",
+    title: "The Godfather",
     pattern: /\b(godfather|parrain)\b/i,
-    description: "La trilogie mythique de Francis Ford Coppola sur l'ascension et la chute de la dynastie mafieuse Corleone.",
+    description: "Francis Ford Coppola's mythical trilogy on the rise and fall of the Corleone mafia dynasty.",
     gradient: "from-stone-900 via-neutral-950 to-stone-950",
     accentColor: "text-neutral-300 border-zinc-700 bg-zinc-800/10",
     accentHex: "#d4d4d8",
@@ -529,7 +542,7 @@ const FRANCHISES = [
     id: "mission-impossible",
     title: "Mission: Impossible",
     pattern: /mission\s*:?\s*impossible/i,
-    description: "Les cascades les plus folles du cinéma d'action et d'espionnage menées par Tom Cruise.",
+    description: "The craziest stunts in action and spy cinema, led by Tom Cruise.",
     gradient: "from-neutral-900 via-slate-900 to-red-950/30",
     accentColor: "text-red-500 border-red-500/30 bg-red-500/10",
     accentHex: "#ef4444",
@@ -539,7 +552,7 @@ const FRANCHISES = [
     id: "spider-man",
     title: "Spider-Man",
     pattern: /spider-?man/i,
-    description: "Les aventures de l'homme-araignée de New York à travers différentes époques et dimensions.",
+    description: "The adventures of the New York spider-man across different eras and dimensions.",
     gradient: "from-blue-950 via-slate-900 to-red-950/30",
     accentColor: "text-red-400 border-red-400/30 bg-red-400/10",
     accentHex: "#f87171",
@@ -549,7 +562,7 @@ const FRANCHISES = [
     id: "alien",
     title: "Alien",
     pattern: /\balien\b/i,
-    description: "Le summum du survival horrifique spatial et de la science-fiction d'épouvante.",
+    description: "The pinnacle of space survival horror and sci-fi terror.",
     gradient: "from-zinc-950 via-neutral-900 to-[#0e1c15]",
     accentColor: "text-lime-400 border-lime-400/30 bg-lime-400/10",
     accentHex: "#a3e635",
@@ -557,9 +570,9 @@ const FRANCHISES = [
   },
   {
     id: "back-to-the-future",
-    title: "Retour vers le Futur",
+    title: "Back to the Future",
     pattern: /\b(back to the future|retour vers le futur)\b/i,
-    description: "Le voyage dans le temps mythique de Marty McFly et Doc Brown à bord de la légendaire DeLorean.",
+    description: "The mythical time travel of Marty McFly and Doc Brown aboard the legendary DeLorean.",
     gradient: "from-blue-950 via-amber-950/20 to-neutral-950",
     accentColor: "text-amber-500 border-amber-500/30 bg-amber-500/10",
     accentHex: "#ca8a04",
@@ -567,9 +580,9 @@ const FRANCHISES = [
   },
   {
     id: "fast-and-furious",
-    title: "(fast and Furious)",
+    title: "Fast and Furious",
     pattern: /\b(fast\s*(and|&)?\s*furious|tokyo\s*drift|fast\s*(five|5|6|7|8|9|10)|furious\s*(7|8)|hobbs\s*(&|and)\s*shaw)\b/i,
-    description: "Vitesse, grosses cylindrées, famille et cascades spectaculaires. L'intégrale de la saga légendaire d'action propulsée par Justin Lin.",
+    description: "Speed, big engines, family and spectacular stunts. The entire legendary action saga driven by Justin Lin.",
     gradient: "from-neutral-900 via-amber-950/40 to-neutral-950",
     accentColor: "text-amber-400 border-amber-500/30 bg-amber-500/10",
     accentHex: "#fb923c",
@@ -649,8 +662,6 @@ export default function App() {
   const [activeTab, setActiveTab ] = useState<"accueil" | "collections" | "profil" | "collection-detail" | "movie" | "player">("accueil");
   const [routePath, setRoutePath] = useState(window.location.pathname);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [showBanner, setShowBanner] = useState(true);
-
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -700,6 +711,19 @@ export default function App() {
     return localStorage.getItem("isAdmin") === "true";
   });
   const [searchQuery, setSearchQuery] = useState("");
+  const [showWishlistModal, setShowWishlistModal] = useState(false);
+  const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
+
+  useEffect(() => {
+    const data = localStorage.getItem("classico_progress");
+    if (data) {
+      try {
+        const parsed = JSON.parse(data);
+        const arr = Object.values(parsed).sort((a: any, b: any) => (b.updatedAt || 0) - (a.updatedAt || 0));
+        setRecentlyViewed(arr);
+      } catch(e) {}
+    }
+  }, [activeTab]);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [history, setHistory] = useState<string[]>([]);
@@ -845,7 +869,7 @@ export default function App() {
         dynamicDirectorCollections.push({
           id: `director-${slug}`,
           title: directorName,
-          description: `Rétrospective consacrée à l'œuvre d'exception du réalisateur : ${directorName}.`,
+          description: `Retrospective dedicated to the exceptional work of director: ${directorName}.`,
           movies: enrichedMovies,
         });
       }
@@ -881,7 +905,7 @@ export default function App() {
     const genreCollections = Object.entries(genreGroups).map(([genreName, movies]) => {
       const idClean = genreName.toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, "-");
       const config = GENRE_AESTHETICS[genreName.toLowerCase()] || {
-        description: `Sélection de films d'auteur catalogués sous la thématique ${genreName}.`
+        description: `Selection of auteur films cataloged under the ${genreName} theme.`
       };
 
       return {
@@ -1163,7 +1187,13 @@ export default function App() {
     const savedProgress = localStorage.getItem("classico_progress");
     if (savedProgress) {
       try {
-        setProgressData(JSON.parse(savedProgress));
+        const parsed = JSON.parse(savedProgress);
+        const newProgressData: Record<string, number> = {};
+        Object.keys(parsed).forEach(k => {
+           if (typeof parsed[k] === 'number') newProgressData[k] = parsed[k];
+           else if (parsed[k] && parsed[k].duration) newProgressData[k] = parsed[k].currentTime / parsed[k].duration;
+        });
+        setProgressData(newProgressData);
       } catch (e) {
         console.error(e);
       }
@@ -1349,7 +1379,12 @@ export default function App() {
     const inCollections = new Set<string>();
     mappedCollections.forEach(c => c.movies.forEach(m => inCollections.add(m.id)));
 
-    return jellyfinMovies.filter(m => !inCollections.has(m.id));
+    return jellyfinMovies.filter(m => {
+        if (inCollections.has(m.id)) return false;
+        const lower = m.title.toLowerCase();
+        if (lower.includes("star wars") || lower.includes("guerre des etoiles")) return false;
+        return true;
+    });
   }, [jellyfinMovies, mappedCollections]);
 
   const searchedMovies = searchQuery.trim() === ""
@@ -1378,6 +1413,24 @@ export default function App() {
   // Intercept and return the standalone full-screen cinema view with zero overlay UI
   if (activeTab === "player") {
     const pId = routePath.startsWith("/player/") ? routePath.slice("/player/".length) : "";
+    
+    if (activeMovie && !activeMovie.isJellyfin) {
+      return (
+        <div className="fixed inset-0 z-50 bg-black w-screen h-screen flex flex-col">
+          <VideoPlayer
+            streamUrl={activeMovie.streamUrl || null}
+            movieTitle={activeMovie.title}
+            movieSymbol={activeMovie.symbol}
+            movieGradient={activeMovie.gradient}
+            movieDuration={activeMovie.duration}
+            onCloseView={() => navigateTo("/movie/" + pId)}
+            movieId={pId}
+            isJellyfinMovie={false}
+          />
+        </div>
+      );
+    }
+    
     return (
       <ErrorBoundary 
         fallbackTitle="Interruption de la lecture du film"
@@ -1387,6 +1440,7 @@ export default function App() {
           movieId={pId}
           movieTitle={activeMovie?.title || "Film de Culte"}
           movieDuration={activeMovie?.duration}
+          moviePoster={activeMovie?.posterUrl || (activeMovie as any)?.poster}
           onClose={() => navigateTo("/movie/" + pId)}
         />
       </ErrorBoundary>
@@ -1443,7 +1497,7 @@ export default function App() {
                   onClick={() => setSearchQuery("")}
                   className="absolute inset-y-0 right-3 flex items-center text-zinc-500 hover:text-white text-[10px] font-mono"
                 >
-                  EFFACER
+                  CLEAR
                 </button>
               )}
             </div>
@@ -1471,6 +1525,7 @@ export default function App() {
               {[
                 { id: "accueil", label: "Home", icon: Compass },
                 { id: "collections", label: "Library", icon: FilmIcon },
+                { id: "wishlist", label: "Wishlist", icon: BookmarkCheck },
                 { id: "profil", label: "My Profile", icon: User }
               ].map((tab) => {
                 const IconComp = tab.icon;
@@ -1480,6 +1535,10 @@ export default function App() {
                     id={`nav-tab-${tab.id}`}
                     key={tab.id}
                     onClick={() => {
+                      if (tab.id === "wishlist") {
+                        setShowWishlistModal(true);
+                        return;
+                      }
                       navigateTo(tab.id === "accueil" ? "/" : `/${tab.id}`);
                       setSearchQuery("");
                     }}
@@ -1517,6 +1576,7 @@ export default function App() {
                 {[
                   { id: "accueil", label: "Home", icon: Compass },
                   { id: "collections", label: "Library", icon: FilmIcon },
+                  { id: "wishlist", label: "Wishlist", icon: BookmarkCheck },
                   { id: "profil", label: "My Profile", icon: User }
                 ].map((tab) => {
                   const IconComp = tab.icon;
@@ -1525,9 +1585,13 @@ export default function App() {
                     <button
                       key={tab.id}
                       onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        if (tab.id === "wishlist") {
+                          setShowWishlistModal(true);
+                          return;
+                        }
                         navigateTo(tab.id === "accueil" ? "/" : `/${tab.id}`);
                         setSearchQuery("");
-                        setIsMobileMenuOpen(false);
                       }}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium tracking-wide transition-all duration-300 w-full text-left ${
                         isActive
@@ -1546,29 +1610,7 @@ export default function App() {
         </AnimatePresence>
 
         {/* ALERT BANNER */}
-        <AnimatePresence>
-          {showBanner && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="bg-neutral-950/95 overflow-hidden border-t border-amber-500/20"
-            >
-              <div className="max-w-7xl mx-auto px-4 sm:px-8 py-2 md:py-2.5 flex items-center justify-between gap-4">
-                <p className="text-amber-500/90 text-[11px] sm:text-xs font-light leading-relaxed">
-                  <AlertCircle className="inline-block w-3.5 h-3.5 mr-1.5 -mt-0.5" />
-                  Notice: The site is currently under construction and modification. It is normal if some features are temporarily unavailable or if certain movies are missing from the catalog.
-                </p>
-                <button 
-                  onClick={() => setShowBanner(false)}
-                  className="shrink-0 p-1 text-amber-500/60 hover:text-amber-400 hover:bg-amber-500/10 rounded-full transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        
       </header>
 
       {/* Spacing for Fixed Header - Hidden for the home tab's Hero section to allow full screen 100vh display */}
@@ -1812,7 +1854,7 @@ export default function App() {
                               className="group flex items-center justify-center gap-1.5 sm:gap-2 bg-white hover:bg-neutral-100 text-stone-950 font-sans font-black px-4.5 py-2.5 sm:px-8 sm:py-3.5 rounded-full text-[10.5px] sm:text-xs md:text-sm tracking-widest uppercase transition-all duration-300 hover:shadow-[0_0_24px_rgba(255,255,255,0.25)] hover:scale-103 active:scale-95 cursor-pointer"
                             >
                               <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current text-stone-950 group-hover:scale-110 transition-transform duration-250" />
-                              Regarder
+                              Play
                             </button>
 
                             <button
@@ -1821,7 +1863,7 @@ export default function App() {
                               className="group flex items-center justify-center gap-1.5 sm:gap-2 bg-transparent hover:bg-white/10 border border-white/40 hover:border-white text-white font-sans font-black px-4 py-2.5 sm:px-7 sm:py-3.5 rounded-full text-[10.5px] sm:text-xs md:text-sm tracking-widest uppercase transition-all duration-300 hover:scale-102 active:scale-95 cursor-pointer"
                             >
                               <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white group-hover:scale-110 transition-transform duration-250" />
-                              Plus d'infos
+                              More Info
                             </button>
                           </div>
                         </motion.div>
@@ -1854,6 +1896,9 @@ export default function App() {
                 </div>
               ) : null}
               
+              <div className="max-w-7xl mx-auto px-4 sm:px-8 pt-8">
+                {/* REMOVED RECENTLY VIEWED SECTION */}
+              </div>
                {/* Collections Segment block - Horizontal Carousels grouped by Collection */}
               <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-12 pb-16">
                 
@@ -1920,19 +1965,20 @@ export default function App() {
                   </div>
                 )}
 
+
                 <div className="text-left py-1 select-none">
                   <h2 className="font-cinzel font-bold text-[17px] sm:text-2xl tracking-[0.1em] sm:tracking-[0.22em] gold-metallic-text uppercase leading-none whitespace-nowrap">
                     THEMATIC LIBRARY
                   </h2>
                   <span className="block font-signature text-[18px] sm:text-[23px] text-[#f4ecd8] leading-none mt-1 filter drop-shadow-[0_0_4px_rgba(244,236,216,0.2)]">
-                    Sélections Cinémathèques
+                    Cinematic Selections
                   </span>
                 </div>
 
                 <div className="flex flex-col gap-6 sm:gap-8 divide-y divide-zinc-700/60">
                   {mappedCollections.map((collection, idx) => (
                     <div key={collection.id} className={`space-y-4 text-left ${idx > 0 ? "pt-6 sm:pt-8" : ""}`}>
-                      {/* Collection Header with name and 'Voir Tout' button */}
+                      {/* Collection Header with name and 'View All' button */}
                       <div className="flex flex-row items-center sm:items-end justify-between gap-2 sm:gap-3 border-b border-zinc-900 pb-2 sm:pb-3">
                         <div className="space-y-0.5 max-w-[80%]">
                           <span className="text-[8px] sm:text-[9px] font-mono tracking-[2px] sm:tracking-[3px] text-zinc-500 uppercase font-bold">
@@ -2092,7 +2138,7 @@ export default function App() {
                   Collections
                 </h1>
                 <p className="text-sm sm:text-base text-zinc-400 font-sans leading-relaxed">
-                  Découvrez nos dossiers exclusifs par réalisateur emblématique, sagas infinies, ou thèmes épiques qui ont redéfini l'histoire du cinéma mondial.
+                  Discover our exclusive folders by emblematic director, infinite sagas, or epic themes that redefined world cinema history.
                 </p>
               </div>
 
@@ -2390,7 +2436,13 @@ export default function App() {
           const savedProgress = localStorage.getItem("classico_progress");
           if (savedProgress) {
             try {
-              setProgressData(JSON.parse(savedProgress));
+              const parsed = JSON.parse(savedProgress);
+              const newProgressData: Record<string, number> = {};
+              Object.keys(parsed).forEach(k => {
+                 if (typeof parsed[k] === 'number') newProgressData[k] = parsed[k];
+                 else if (parsed[k] && parsed[k].duration) newProgressData[k] = parsed[k].currentTime / parsed[k].duration;
+              });
+              setProgressData(newProgressData);
             } catch (e) {}
           }
         }}
@@ -2400,6 +2452,48 @@ export default function App() {
 
 
 
+
+      {/* WISHLIST MODAL */}
+      <AnimatePresence>
+        {showWishlistModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+            onClick={() => setShowWishlistModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-md bg-zinc-950 border border-[#D4AF37]/50 rounded-2xl p-8 shadow-[0_0_30px_rgba(212,175,55,0.15)] text-center flex flex-col items-center gap-4"
+            >
+              <button
+                onClick={() => setShowWishlistModal(false)}
+                className="absolute top-4 right-4 text-zinc-500 hover:text-[#D4AF37] transition-colors p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              
+              <div className="w-16 h-16 rounded-full bg-[#D4AF37]/10 flex items-center justify-center border border-[#D4AF37]/30 mb-2">
+                <BookmarkCheck className="w-8 h-8 text-[#D4AF37]" />
+              </div>
+              
+              <h2 className="text-xl sm:text-2xl font-cinzel font-bold text-white uppercase tracking-widest">
+                Under Construction
+              </h2>
+              
+              <p className="text-zinc-300 font-sans text-sm sm:text-base leading-relaxed">
+                The Wishlist is under construction! 🍿<br/><br/>
+                Soon, you will be able to request your favorite movies directly here.
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

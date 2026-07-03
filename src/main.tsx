@@ -47,6 +47,12 @@ if (typeof window !== "undefined") {
           description: item.Overview || "Aucun synopsis disponible pour ce titre sur Jellyfin.",
           director: item.People?.find((p: any) => p.Type === "Director")?.Name || "Réalisateur Inconnu",
           cast: item.People?.filter((p: any) => p.Type === "Actor").slice(0, 4).map((p: any) => p.Name) || [],
+          castDetails: item.People?.filter((p: any) => p.Type === "Actor").slice(0, 8).map((p: any) => ({
+            id: p.Id,
+            name: p.Name,
+            role: p.Role || "",
+            imageUrl: p.PrimaryImageTag ? `${serverUrl}/Items/${p.Id}/Images/Primary?tag=${p.PrimaryImageTag}&quality=90&fillWidth=300&fillHeight=450` : undefined
+          })) || [],
           posterUrl: `${serverUrl}/Items/${item.Id}/Images/Primary?fillHeight=600&fillWidth=400&quality=80`,
           backdropUrl: `${serverUrl}/Items/${item.Id}/Images/Backdrop?fillHeight=1080&fillWidth=1920&quality=90`,
           streamUrl: `${serverUrl}/Videos/${item.Id}/stream.mp4?Static=true&api_key=${apiKey}`,

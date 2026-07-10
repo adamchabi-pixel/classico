@@ -711,6 +711,8 @@ export default function App() {
     return localStorage.getItem("isAdmin") === "true";
   });
   const [searchQuery, setSearchQuery] = useState("");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [showWishlistModal, setShowWishlistModal] = useState(false);
   const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
 
@@ -1296,6 +1298,8 @@ export default function App() {
   };
 
   const handleOpenMovie = (movie: Movie, immediatePlay = false) => {
+    setSearchQuery("");
+    setIsMobileSearchOpen(false);
     if (immediatePlay) {
       // Enregistrer le temps du clic initial
       (window as any).moviePlayClickTime = performance.now();
@@ -1405,10 +1409,6 @@ export default function App() {
     if (!targetId) return null;
     return allMovies.find(m => m.id === targetId) || null;
   }, [routePath, allMovies]);
-
-  // Mobile interaction states
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   // Intercept and return the standalone full-screen cinema view with zero overlay UI
   if (activeTab === "player") {

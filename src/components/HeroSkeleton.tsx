@@ -36,7 +36,7 @@ export default function HeroSkeleton() {
         </span>
       </div>
 
-      <div className="relative z-20 max-w-7xl mx-auto w-full px-4 sm:px-12 pb-14 sm:pb-28 pt-20 sm:pt-36 md:pt-28 flex flex-col items-start text-left">
+      <div className="relative z-20 max-w-[2000px] mx-auto w-full px-4 sm:px-12 pb-14 sm:pb-28 pt-20 sm:pt-36 md:pt-28 flex flex-col items-start text-left">
         <div className="space-y-5 w-full md:max-w-[40%] lg:max-w-[35%] min-w-[280px] sm:min-w-[360px] z-20">
           
           {/* Categories/Metadata Pills Skeletons */}

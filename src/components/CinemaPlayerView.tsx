@@ -119,6 +119,23 @@ const TrackName = ({ track }: { track: any }) => {
   else if (code.includes("pt") || lbl.includes("portuguese") || lbl.includes("portugais") || lbl.includes("por")) { flagCode = "pt"; name = "Português"; }
   else if (code.includes("ru") || lbl.includes("russian") || lbl.includes("russe") || lbl.includes("rus")) { flagCode = "ru"; name = "Русский"; }
   else if (code.includes("ar") || lbl.includes("arabic") || lbl.includes("arabe") || lbl.includes("ara")) { flagCode = "sa"; name = "العربية"; }
+  
+  else if (code.includes("nl") || lbl.includes("dutch") || lbl.includes("néerlandais") || lbl.includes("dut") || lbl.includes("nld")) { flagCode = "nl"; name = "Nederlands"; }
+  else if (code.includes("pl") || lbl.includes("polish") || lbl.includes("polonais") || lbl.includes("pol")) { flagCode = "pl"; name = "Polski"; }
+  else if (code.includes("tr") || lbl.includes("turkish") || lbl.includes("turc") || lbl.includes("tur")) { flagCode = "tr"; name = "Türkçe"; }
+  else if (code.includes("sv") || lbl.includes("swedish") || lbl.includes("suédois") || lbl.includes("swe")) { flagCode = "se"; name = "Svenska"; }
+  else if (code.includes("da") || lbl.includes("danish") || lbl.includes("danois") || lbl.includes("dan")) { flagCode = "dk"; name = "Dansk"; }
+  else if (code.includes("no") || lbl.includes("norwegian") || lbl.includes("norvégien") || lbl.includes("nor")) { flagCode = "no"; name = "Norsk"; }
+  else if (code.includes("fi") || lbl.includes("finnish") || lbl.includes("finnois") || lbl.includes("fin")) { flagCode = "fi"; name = "Suomi"; }
+  else if (code.includes("cs") || lbl.includes("czech") || lbl.includes("tchèque") || lbl.includes("cze") || lbl.includes("ces")) { flagCode = "cz"; name = "Čeština"; }
+  else if (code.includes("hu") || lbl.includes("hungarian") || lbl.includes("hongrois") || lbl.includes("hun")) { flagCode = "hu"; name = "Magyar"; }
+  else if (code.includes("ro") || lbl.includes("romanian") || lbl.includes("roumain") || lbl.includes("rum") || lbl.includes("ron")) { flagCode = "ro"; name = "Română"; }
+  else if (code.includes("el") || lbl.includes("greek") || lbl.includes("grec") || lbl.includes("gre") || lbl.includes("ell")) { flagCode = "gr"; name = "Ελληνικά"; }
+  else if (code.includes("hi") || lbl.includes("hindi") || lbl.includes("hin")) { flagCode = "in"; name = "हिन्दी"; }
+  else if (code.includes("th") || lbl.includes("thai") || lbl.includes("thaï") || lbl.includes("tha")) { flagCode = "th"; name = "ไทย"; }
+  else if (code.includes("id") || lbl.includes("indonesian") || lbl.includes("indonésien") || lbl.includes("ind")) { flagCode = "id"; name = "Bahasa Indonesia"; }
+  else if (code.includes("vi") || lbl.includes("vietnamese") || lbl.includes("vietnamien") || lbl.includes("vie")) { flagCode = "vn"; name = "Tiếng Việt"; }
+  else if (code.includes("he") || lbl.includes("hebrew") || lbl.includes("hébreu") || lbl.includes("heb")) { flagCode = "il"; name = "עברית"; }
   else if (code.includes("und") || lbl.includes("und") || code === "") { 
      flagCode = null; 
      name = (track.label && track.label.length > 3 && !track.label.toLowerCase().includes("und")) ? track.label : "Inconnu"; 

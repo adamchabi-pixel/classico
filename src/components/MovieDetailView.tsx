@@ -60,7 +60,7 @@ export default function MovieDetailView({
         </div>
 
         {/* Hero Content Area */}
-        <div className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-8 pb-10 sm:pb-16 [@media(max-height:500px)_and_(orientation:landscape)]:pb-2 flex flex-col [@media(max-height:500px)_and_(orientation:landscape)]:flex-row items-start [@media(max-height:500px)_and_(orientation:landscape)]:items-center gap-4 sm:gap-6 [@media(max-height:500px)_and_(orientation:landscape)]:gap-6 text-left [@media(max-height:500px)_and_(orientation:landscape)]:h-auto">
+        <div className="relative z-10 max-w-[2000px] mx-auto w-full px-4 sm:px-8 pb-10 sm:pb-16 [@media(max-height:500px)_and_(orientation:landscape)]:pb-2 flex flex-col [@media(max-height:500px)_and_(orientation:landscape)]:flex-row items-start [@media(max-height:500px)_and_(orientation:landscape)]:items-center gap-4 sm:gap-6 [@media(max-height:500px)_and_(orientation:landscape)]:gap-6 text-left [@media(max-height:500px)_and_(orientation:landscape)]:h-auto">
           
           <img src={poster} alt={movie.title} className="hidden [@media(max-height:500px)_and_(orientation:landscape)]:block h-[80vh] max-h-[280px] w-auto object-contain rounded-lg shadow-2xl shrink-0" />
 

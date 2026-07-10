@@ -101,6 +101,44 @@ interface CinemaPlayerViewProps {
   onClose: () => void;
 }
 
+
+const TrackName = ({ track }: { track: any }) => {
+  const code = (track.language || "").toLowerCase();
+  const lbl = (track.label || "").toLowerCase();
+  let flagCode: string | null = null;
+  let name = track.language || track.label || "Inconnu";
+
+  if (code.includes("fr") || lbl.includes("french") || lbl.includes("français") || lbl.includes("fre")) { flagCode = "fr"; name = "Français"; }
+  else if (code.includes("en") || lbl.includes("english") || lbl.includes("eng")) { flagCode = "us"; name = "English"; }
+  else if (code.includes("es") || lbl.includes("spanish") || lbl.includes("español") || lbl.includes("spa")) { flagCode = "es"; name = "Español"; }
+  else if (code.includes("de") || lbl.includes("german") || lbl.includes("deutsch") || lbl.includes("ger")) { flagCode = "de"; name = "Deutsch"; }
+  else if (code.includes("it") || lbl.includes("italian") || lbl.includes("italiano") || lbl.includes("ita")) { flagCode = "it"; name = "Italiano"; }
+  else if (code.includes("ja") || lbl.includes("japanese") || lbl.includes("japonais") || lbl.includes("jpn")) { flagCode = "jp"; name = "日本語"; }
+  else if (code.includes("zh") || lbl.includes("chinese") || lbl.includes("chinois") || lbl.includes("chi") || lbl.includes("zho")) { flagCode = "cn"; name = "中文"; }
+  else if (code.includes("ko") || lbl.includes("korean") || lbl.includes("coréen") || lbl.includes("kor")) { flagCode = "kr"; name = "한국어"; }
+  else if (code.includes("pt") || lbl.includes("portuguese") || lbl.includes("portugais") || lbl.includes("por")) { flagCode = "pt"; name = "Português"; }
+  else if (code.includes("ru") || lbl.includes("russian") || lbl.includes("russe") || lbl.includes("rus")) { flagCode = "ru"; name = "Русский"; }
+  else if (code.includes("ar") || lbl.includes("arabic") || lbl.includes("arabe") || lbl.includes("ara")) { flagCode = "sa"; name = "العربية"; }
+  else if (code.includes("und") || lbl.includes("und") || code === "") { 
+     flagCode = null; 
+     name = (track.label && track.label.length > 3 && !track.label.toLowerCase().includes("und")) ? track.label : "Inconnu"; 
+  }
+  else if (track.label) {
+     name = track.label;
+  }
+  
+  return (
+    <span className="flex items-center gap-1.5 truncate">
+      {flagCode ? (
+        <img src={`https://flagcdn.com/w20/${flagCode}.png`} alt="" className="w-4 h-[11px] object-cover rounded-[1px] opacity-90" />
+      ) : (
+        <span className="text-[11px] leading-none opacity-80">🏳️</span>
+      )}
+      <span className="truncate">{name}</span>
+    </span>
+  );
+};
+
 export default function CinemaPlayerView({
   movieId,
   movieTitle,
@@ -172,6 +210,7 @@ export default function CinemaPlayerView({
   const [volume, setVolume] = useState(85);
   const [muted, setMuted] = useState(true); // Commencer muet pour garantir l'autoplay instantané
   const [fullscreen, setFullscreen] = useState(false);
+  const [objectFit, setObjectFit] = useState<"contain" | "cover">("contain");
 
   // Buffer and Safety Timeout States
   const [isBuffering, setIsBuffering] = useState(false);
@@ -700,7 +739,12 @@ export default function CinemaPlayerView({
             setDuration(data.duration);
           }
           if (data && data.audios && data.audios.length > 0) {
-            const defaultAudioTrack = data.audios.find((t: any) => t.isDefault) || data.audios[0];
+            const enAudioTrack = data.audios.find((t: any) => {
+              const lang = (t.language || "").toLowerCase();
+              const lbl = (t.label || "").toLowerCase();
+              return lang.includes("en") || lang.includes("eng") || lbl.includes("english") || lbl.includes("eng");
+            });
+            const defaultAudioTrack = enAudioTrack || data.audios.find((t: any) => t.isDefault) || data.audios[0];
             if (defaultAudioTrack) {
               setActiveAudioIndex(defaultAudioTrack.index);
             }
@@ -845,7 +889,7 @@ export default function CinemaPlayerView({
         }
         
         const transcodeObj = new URL(transcodeUrl, baseOrigin);
-        transcodeObj.searchParams.set("PlaySessionId", Date.now().toString());
+        transcodeObj.searchParams.set("PlaySessionId", playbackInfo?.id || Date.now().toString());
         if (activeAudioIndex !== null) transcodeObj.searchParams.set("AudioStreamIndex", activeAudioIndex.toString());
         if (needsBurnIn) {
             transcodeObj.searchParams.set("SubtitleStreamIndex", activeSubtitleIndex!.toString());
@@ -867,7 +911,7 @@ export default function CinemaPlayerView({
       }
 
       if (changed) {
-        urlObj.searchParams.set("PlaySessionId", Date.now().toString());
+        urlObj.searchParams.set("PlaySessionId", playbackInfo?.id || Date.now().toString());
         let newUrl = "";
         if (currentUrl.startsWith("/")) {
           newUrl = urlObj.pathname + urlObj.search;
@@ -2112,7 +2156,7 @@ export default function CinemaPlayerView({
                                 isCurrentActive ? "bg-amber-500/15 text-amber-400 font-bold border-l-2 border-amber-500" : "text-zinc-300 hover:bg-white/5"
                               }`}
                             >
-                              <span className="font-semibold text-[11px] truncate">{track.label || `Track ${track.index}`}</span>
+                              <span className="font-semibold text-[11px] truncate"><TrackName track={track} /></span>
                               {isCurrentActive && <span className="text-amber-500 pl-2">✔</span>}
                             </button>
                           );
@@ -2159,7 +2203,7 @@ export default function CinemaPlayerView({
                                 isCurrentActive ? "bg-amber-500/15 text-amber-400 font-bold border-l-2 border-amber-500" : "text-zinc-300 hover:bg-white/5"
                               }`}
                             >
-                              <span className="font-semibold text-[11px] truncate">{track.label || track.codec}</span>
+                              <span className="font-semibold text-[11px] truncate"><TrackName track={track} /></span>
                               {isCurrentActive && <span className="text-amber-500 pl-2">✔</span>}
                             </button>
                           );
@@ -2171,6 +2215,7 @@ export default function CinemaPlayerView({
               )}
             </div>
 
+            
             {/* Fullscreen Button */}
             <button
               onClick={(e) => {

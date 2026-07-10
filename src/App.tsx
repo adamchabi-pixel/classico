@@ -1454,7 +1454,7 @@ export default function App() {
       {/* 1. FIXED GLASS HEADER BAR                                 */}
       {/* ========================================================== */}
       <header className={`fixed top-0 left-0 right-0 z-[9999] transition-all duration-300 ease-in-out border-b ${isScrolled ? "bg-black border-white/5" : "bg-black border-transparent"}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-2 md:py-3.5 flex flex-row items-center justify-between gap-2.5 md:gap-4 font-sans w-full">
+        <div className="max-w-[2000px] mx-auto px-4 sm:px-8 py-2 md:py-3.5 flex flex-row items-center justify-between gap-2.5 md:gap-4 font-sans w-full">
           
           {/* Logo CLASSICO with Metallic Gold Reflection */}
           <div 
@@ -1631,7 +1631,7 @@ export default function App() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-8"
+              className="max-w-[2000px] mx-auto px-4 sm:px-8 py-8 space-y-8"
             >
               <div className="space-y-2 text-left">
                 <p className="text-xs font-mono uppercase tracking-[3px] text-zinc-500">SEARCH ENGINE</p>
@@ -1763,7 +1763,7 @@ export default function App() {
                       />
 
                       {/* Spotlight Content and Description Box with high contrast text drop-shadows */}
-                      <div className="relative z-20 max-w-7xl mx-auto w-full px-4 sm:px-12 pb-14 sm:pb-28 pt-20 sm:pt-36 md:pt-28 flex flex-col items-start text-left [@media(max-height:500px)_and_(orientation:landscape)]:pb-4 [@media(max-height:500px)_and_(orientation:landscape)]:pt-16">
+                      <div className="relative z-20 max-w-[2000px] mx-auto w-full px-4 sm:px-12 pb-14 sm:pb-28 pt-20 sm:pt-36 md:pt-28 flex flex-col items-start text-left [@media(max-height:500px)_and_(orientation:landscape)]:pb-4 [@media(max-height:500px)_and_(orientation:landscape)]:pt-16">
                         
                         {/* Fade-in Text Section Wrapper */}
                         <motion.div
@@ -1896,11 +1896,11 @@ export default function App() {
                 </div>
               ) : null}
               
-              <div className="max-w-7xl mx-auto px-4 sm:px-8 pt-8">
+              <div className="max-w-[2000px] mx-auto px-4 sm:px-8 pt-8">
                 {/* REMOVED RECENTLY VIEWED SECTION */}
               </div>
                {/* Collections Segment block - Horizontal Carousels grouped by Collection */}
-              <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-12 pb-16">
+              <div className="max-w-[2000px] mx-auto px-4 sm:px-8 space-y-12 pb-16">
                 
                 {/* Reprendre la lecture Section */}
                 {history.some(id => progressData[id] > 0 && progressData[id] < 0.95) && (
@@ -2130,7 +2130,7 @@ export default function App() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              className="max-w-7xl mx-auto px-4 sm:px-8 pt-4 pb-8 sm:py-8 space-y-8 sm:space-y-12"
+              className="max-w-[2000px] mx-auto px-4 sm:px-8 pt-4 pb-8 sm:py-8 space-y-8 sm:space-y-12"
             >
               <div className="text-left space-y-2 max-w-2xl">
                 <p className="text-xs font-mono uppercase tracking-[3px] text-zinc-500">THEMATIC INDEXES</p>
@@ -2218,7 +2218,7 @@ export default function App() {
                   className="space-y-6 sm:space-y-10"
                 >
                   {/* Top breadcrumb / navigation bar */}
-                  <div className="hidden sm:block max-w-7xl mx-auto px-4 sm:px-8 pt-4">
+                  <div className="hidden sm:block max-w-[2000px] mx-auto px-4 sm:px-8 pt-4">
                     <button
                       id="back-to-collections"
                       onClick={() => {
@@ -2233,7 +2233,7 @@ export default function App() {
                   </div>
 
                   {/* Content and details wrapper */}
-                  <div className="max-w-7xl mx-auto w-full px-4 sm:px-8 pt-2 sm:pt-6 flex flex-col items-center text-center gap-3 sm:gap-4">
+                  <div className="max-w-[2000px] mx-auto w-full px-4 sm:px-8 pt-2 sm:pt-6 flex flex-col items-center text-center gap-3 sm:gap-4">
                     <div className="w-full flex justify-start sm:hidden mb-1">
                       <button
                         onClick={() => {
@@ -2258,7 +2258,7 @@ export default function App() {
                   </div>
 
                   {/* Grid presentation of films nested inside this collection */}
-                  <div className="max-w-7xl mx-auto px-4 sm:px-8 pb-10 space-y-4 sm:space-y-6 mt-5 sm:mt-8">
+                  <div className="max-w-[2000px] mx-auto px-4 sm:px-8 pb-10 space-y-4 sm:space-y-6 mt-5 sm:mt-8">
                     <div className="border-t border-zinc-700/60 pt-4 sm:pt-6 text-left">
                       <h2 className="text-[13px] sm:text-base font-cinzel font-bold text-white uppercase tracking-[0.15em] sm:tracking-[0.2em] truncate">
                         MOVIE CATALOG
@@ -2328,7 +2328,7 @@ export default function App() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-12"
+              className="max-w-[2000px] mx-auto px-4 sm:px-8 py-8 space-y-12"
             >
               
               {/* Profile Card Deck */}

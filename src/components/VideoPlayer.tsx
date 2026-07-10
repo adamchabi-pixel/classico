@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import Hls from "hls.js";
 import { 
   Play, Pause, RotateCcw, Volume2, VolumeX, 
-  Captions, Airplay, Maximize2, Menu, Cast, Settings2, Info, Sparkles, AlertCircle, Rewind, FastForward, ChevronRight, ChevronLeft
+  Captions, Airplay, Maximize2, Menu, PictureInPicture, Cast, Settings2, Info, Sparkles, AlertCircle, Rewind, FastForward, ChevronRight, ChevronLeft
 } from "lucide-react";
 
 const logChrono = (step: string) => {
@@ -156,6 +156,44 @@ const getStreamUrlWithSeek = (baseStreamUrl: string | null, offsetSeconds: numbe
   return baseStreamUrl;
 };
 
+
+const TrackName = ({ track }: { track: any }) => {
+  const code = (track.language || "").toLowerCase();
+  const lbl = (track.label || "").toLowerCase();
+  let flagCode: string | null = null;
+  let name = track.language || track.label || "Inconnu";
+
+  if (code.includes("fr") || lbl.includes("french") || lbl.includes("français") || lbl.includes("fre")) { flagCode = "fr"; name = "Français"; }
+  else if (code.includes("en") || lbl.includes("english") || lbl.includes("eng")) { flagCode = "us"; name = "English"; }
+  else if (code.includes("es") || lbl.includes("spanish") || lbl.includes("español") || lbl.includes("spa")) { flagCode = "es"; name = "Español"; }
+  else if (code.includes("de") || lbl.includes("german") || lbl.includes("deutsch") || lbl.includes("ger")) { flagCode = "de"; name = "Deutsch"; }
+  else if (code.includes("it") || lbl.includes("italian") || lbl.includes("italiano") || lbl.includes("ita")) { flagCode = "it"; name = "Italiano"; }
+  else if (code.includes("ja") || lbl.includes("japanese") || lbl.includes("japonais") || lbl.includes("jpn")) { flagCode = "jp"; name = "日本語"; }
+  else if (code.includes("zh") || lbl.includes("chinese") || lbl.includes("chinois") || lbl.includes("chi") || lbl.includes("zho")) { flagCode = "cn"; name = "中文"; }
+  else if (code.includes("ko") || lbl.includes("korean") || lbl.includes("coréen") || lbl.includes("kor")) { flagCode = "kr"; name = "한국어"; }
+  else if (code.includes("pt") || lbl.includes("portuguese") || lbl.includes("portugais") || lbl.includes("por")) { flagCode = "pt"; name = "Português"; }
+  else if (code.includes("ru") || lbl.includes("russian") || lbl.includes("russe") || lbl.includes("rus")) { flagCode = "ru"; name = "Русский"; }
+  else if (code.includes("ar") || lbl.includes("arabic") || lbl.includes("arabe") || lbl.includes("ara")) { flagCode = "sa"; name = "العربية"; }
+  else if (code.includes("und") || lbl.includes("und") || code === "") { 
+     flagCode = null; 
+     name = (track.label && track.label.length > 3 && !track.label.toLowerCase().includes("und")) ? track.label : "Inconnu"; 
+  }
+  else if (track.label) {
+     name = track.label;
+  }
+  
+  return (
+    <span className="flex items-center gap-1.5 truncate">
+      {flagCode ? (
+        <img src={`https://flagcdn.com/w20/${flagCode}.png`} alt="" className="w-4 h-[11px] object-cover rounded-[1px] opacity-90" />
+      ) : (
+        <span className="text-[11px] leading-none opacity-80">🏳️</span>
+      )}
+      <span className="truncate">{name}</span>
+    </span>
+  );
+};
+
 export default function VideoPlayer({
   streamUrl,
   movieTitle,
@@ -179,6 +217,7 @@ export default function VideoPlayer({
     duration: number;
     subtitlesOn: boolean;
     fullscreen: boolean;
+    objectFit: "contain" | "cover";
   }>({
     playing: true,
     progress: 0,
@@ -187,6 +226,7 @@ export default function VideoPlayer({
     duration: 0,
     subtitlesOn: true,
     fullscreen: false,
+    objectFit: "contain",
   });
 
   const [videoError, setVideoError] = useState<string | null>(null);
@@ -634,7 +674,12 @@ export default function VideoPlayer({
 
         // Auto-select audio track configured as default on Jellyfin
         const audioTracks = pbData.audios || [];
-        const defaultAudioTrack = audioTracks.find((t: any) => t.isDefault) || audioTracks[0];
+        const enAudioTrack = audioTracks.find((t: any) => {
+          const lang = (t.language || "").toLowerCase();
+          const lbl = (t.label || "").toLowerCase();
+          return lang.includes("en") || lang.includes("eng") || lbl.includes("english") || lbl.includes("eng");
+        });
+        const defaultAudioTrack = enAudioTrack || audioTracks.find((t: any) => t.isDefault) || audioTracks[0];
         if (defaultAudioTrack) {
           setActiveAudioIndex(defaultAudioTrack.index);
           console.log(`[AUDIO AUTOSELECTOR] Default audio track found and applied: Index ${defaultAudioTrack.index} (${defaultAudioTrack.label})`);
@@ -772,10 +817,10 @@ export default function VideoPlayer({
              const hlsParams = `Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1&VideoBitrate=140000000&MaxVideoBitrate=140000000`;
              
              if (isNetlify) {
-                 workingUrl = `${serverUrl}/Videos/${playbackInfo.id}/master.m3u8?${hlsParams}&api_key=${currentApiKey}&DeviceId=ClassicoWebClient&MediaSourceId=${playbackInfo.id}&PlaySessionId=${Date.now()}`;
+                 workingUrl = `${serverUrl}/Videos/${playbackInfo.id}/master.m3u8?${hlsParams}&api_key=${currentApiKey}&DeviceId=ClassicoWebClient&MediaSourceId=${playbackInfo.id}&PlaySessionId=${playbackInfo?.id || Date.now()}`;
              } else {
                  // For internal API, append api_key and deviceId so they are proxied correctly if needed
-                 workingUrl = `/api/jellyfin/proxy/videos/${playbackInfo.id}/master.m3u8?${hlsParams}&DeviceId=ClassicoWebClient&PlaySessionId=${Date.now()}`;
+                 workingUrl = `/api/jellyfin/proxy/videos/${playbackInfo.id}/master.m3u8?${hlsParams}&DeviceId=ClassicoWebClient&PlaySessionId=${playbackInfo?.id || Date.now()}`;
              }
              
              // IMPORTANT: We must also update the playbackInfo so that downstream effects know it's no longer direct play!
@@ -797,7 +842,7 @@ export default function VideoPlayer({
       // Set Audio Track if specified
       if (audioIndex !== null) {
         urlObj.searchParams.set("AudioStreamIndex", audioIndex.toString());
-        urlObj.searchParams.set("PlaySessionId", Date.now().toString());
+        urlObj.searchParams.set("PlaySessionId", playbackInfo?.id || Date.now().toString());
       }
       
       // Determine if the subtitle needs to be burned in (non-text codec)
@@ -1084,6 +1129,19 @@ export default function VideoPlayer({
         if (savedRestoreTime.current > 0) {
           video.currentTime = savedRestoreTime.current;
           savedRestoreTime.current = 0;
+        }
+
+        if (hls.audioTracks && hls.audioTracks.length > 1 && activeAudioIndex !== null) {
+          const selectedMeta = playbackInfo?.audios?.find(a => a.index === activeAudioIndex);
+          if (selectedMeta) {
+            const hlsTrackIdx = hls.audioTracks.findIndex(t => t.name === selectedMeta.label || (t as any).language === selectedMeta.language || (t as any).lang === selectedMeta.language);
+            if (hlsTrackIdx !== -1) {
+              console.log(`[HLS NATIVE AUDIO] Switching HLS audioTrack to ${hlsTrackIdx} (${selectedMeta.label})`);
+              hls.audioTrack = hlsTrackIdx;
+            } else if (hls.audioTracks.findIndex(t => t.default) !== -1) {
+              hls.audioTrack = hls.audioTracks.findIndex(t => t.default);
+            }
+          }
         }
       });
 
@@ -1413,6 +1471,12 @@ export default function VideoPlayer({
     setSubtitlesTrackStateDebug(finalStatusList);
   };
 
+  useEffect(() => {
+    if (isMetadataLoaded) {
+      applySubtitleSelection(videoState.subtitlesOn ? activeSubtitleIndex : null);
+    }
+  }, [activeSubtitleIndex, videoState.subtitlesOn, isMetadataLoaded]);
+
   // Handle timeline animation for non-Jellyfin (simulated) playback
   useEffect(() => {
     if (finalStreamUrl) return; // Do not use custom progress timer for real streaming video
@@ -1689,7 +1753,7 @@ export default function VideoPlayer({
             playsInline
             webkit-playsinline="true"
             controls={false}
-            className="absolute inset-0 w-full h-full object-contain bg-black"
+            className={`absolute inset-0 w-full h-full bg-black ${videoState.objectFit === "cover" ? "object-cover" : "object-contain"}`}
             style={{ display: activeSrc ? "block" : "none" }}
             onPlay={() => {
               console.log("[DEBUG PLAYER] Video play event triggered.");
@@ -2328,7 +2392,7 @@ export default function VideoPlayer({
                                 isCurrentActive ? "bg-amber-500/15 text-amber-400 font-bold border-l-2 border-amber-500" : "text-zinc-300 hover:bg-white/5"
                               }`}
                             >
-                              <span className="font-semibold text-[11px] truncate">{track.label}</span>
+                              <span className="font-semibold text-[11px] truncate"><TrackName track={track} /></span>
                               {isCurrentActive && <span className="text-amber-500 pl-2">✔</span>}
                             </button>
                           );
@@ -2375,7 +2439,7 @@ export default function VideoPlayer({
                                 isCurrentActive ? "bg-amber-500/15 text-amber-400 font-bold border-l-2 border-amber-500" : "text-zinc-300 hover:bg-white/5"
                               }`}
                             >
-                              <span className="font-semibold text-[11px] truncate">{track.label || track.codec}</span>
+                              <span className="font-semibold text-[11px] truncate"><TrackName track={track} /></span>
                               {isCurrentActive && <span className="text-amber-500 pl-2">✔</span>}
                             </button>
                           );
@@ -2387,6 +2451,7 @@ export default function VideoPlayer({
               )}
             </div>
 
+            
             {/* Fullscreen Button */}
             <button
               id="player-fullscreen-btn"

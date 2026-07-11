@@ -424,7 +424,7 @@ export const COLLECTIONS: Collection[] = [
         accentColor: "text-sky-400 border-sky-400/30 bg-sky-400/10",
         accentHex: "#38bdf8",
         symbol: "🏖️⚓✈️",
-        tagline: "Le temps est le pire des ennemis."
+        tagline: "Time is the worst of enemies."
       },
       {
         id: "tenet",
@@ -840,7 +840,7 @@ export const COLLECTIONS: Collection[] = [
       },
       {
         id: "terminator-2",
-        title: "Terminator 2 : Le Jugement dernier",
+        title: "Terminator 2: Judgment Day",
         year: 1991,
         duration: "137 min",
         rating: "8.6",
@@ -856,7 +856,7 @@ export const COLLECTIONS: Collection[] = [
       },
       {
         id: "terminator-3",
-        title: "Terminator 3 : Le Soulèvement des machines",
+        title: "Terminator 3: Rise of the Machines",
         year: 2003,
         duration: "109 min",
         rating: "6.3",

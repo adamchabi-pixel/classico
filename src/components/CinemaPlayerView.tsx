@@ -1638,7 +1638,7 @@ export default function CinemaPlayerView({
       </div>
 
       {/* 2. CORE MOVIE VIEWPORT RENDER CONTAINER */}
-      <div className="absolute inset-0 z-10 flex items-center justify-center bg-stone-950">
+      <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
         
         {/* Unified High-End Loader Overlay */}
         {(isLoading || isStreamLoading || isBuffering) && !videoError && adClicks >= 2 && (
@@ -1648,7 +1648,7 @@ export default function CinemaPlayerView({
         )}
 
         {videoError && (
-          <div className="max-w-md p-6 bg-stone-950/95 border border-rose-500/20 rounded-2xl text-center space-y-4 z-40 mx-4 shadow-2xl">
+          <div className="max-w-md p-6 bg-black/95 border border-rose-500/20 rounded-2xl text-center space-y-4 z-40 mx-4 shadow-2xl">
             <AlertCircle className="w-10 h-10 text-rose-500 mx-auto animate-bounce" />
             <div className="space-y-1">
               <h3 className="text-sm font-bold uppercase tracking-wider text-rose-400">Cinema Playback Error</h3>
@@ -1677,7 +1677,7 @@ export default function CinemaPlayerView({
             muted={muted}
             preload="auto"
             crossOrigin="anonymous"
-            className="w-full h-full object-cover max-h-screen"
+            className="w-full h-full portrait:object-contain landscape:object-cover max-h-screen"
             onPlay={() => {
               trackEventFired("play", "Événement play");
             }}
@@ -2069,7 +2069,7 @@ export default function CinemaPlayerView({
                 className={`p-1.5 rounded transition-all duration-150 cursor-pointer flex items-center justify-center ${
                   showSettingsMenu ? "text-amber-400 bg-amber-500/10" : "text-white/60 hover:text-white hover:bg-white/5"
                 }`}
-                title="Paramètres"
+                title="Settings"
               >
                 <Menu className="w-5 h-5" />
               </button>
@@ -2251,7 +2251,7 @@ export default function CinemaPlayerView({
 
       {/* Floating diagnostic overlay (Admin Mode) */}
       {showDiagnostics && (
-        <div className="absolute top-20 right-6 z-50 w-full max-w-md bg-stone-950/96 border border-amber-500/30 rounded-2xl p-4 font-mono text-[11px] leading-relaxed text-zinc-300 shadow-2xl space-y-3.5 backdrop-blur-md max-h-[72vh] overflow-y-auto pointer-events-auto text-left">
+        <div className="absolute top-20 right-6 z-50 w-full max-w-md bg-black/96 border border-amber-500/30 rounded-2xl p-4 font-mono text-[11px] leading-relaxed text-zinc-300 shadow-2xl space-y-3.5 backdrop-blur-md max-h-[72vh] overflow-y-auto pointer-events-auto text-left">
           <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />

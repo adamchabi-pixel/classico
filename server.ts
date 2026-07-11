@@ -743,19 +743,19 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
       MusicStreamingBitrate: 320000,
       DirectPlayProfiles: [
         {
-          Container: "mp4,m4v,mov,mkv,avi,webm,ts",
+          Container: "mp4,m4v,webm",
           Type: "Video",
-          VideoCodec: "h264,hevc,h265,vp8,vp9,av1",
-          AudioCodec: "aac,mp3,opus,flac,vorbis,ac3,eac3,dts,truehd"
+          VideoCodec: "h264,vp8,vp9",
+          AudioCodec: "aac,mp3,opus"
         },
         {
           Container: "webm",
           Type: "Video",
-          VideoCodec: "vp8,vp9,av1",
+          VideoCodec: "vp8,vp9",
           AudioCodec: "opus,vorbis"
         },
         {
-          Container: "aac,mp3,opus,flac,vorbis",
+          Container: "aac,mp3,opus",
           Type: "Audio"
         }
       ],
@@ -763,16 +763,16 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
         {
           Container: "ts",
           Type: "Video",
-          AudioCodec: "aac,mp3,opus,flac,vorbis,ac3,eac3,dts",
-          VideoCodec: "h264,hevc,vp8,vp9,av1",
+          AudioCodec: "aac,mp3",
+          VideoCodec: "h264",
           Context: "Streaming",
           Protocol: "hls"
         },
         {
           Container: "mp4",
           Type: "Video",
-          AudioCodec: "aac,mp3,opus,flac,vorbis,ac3,eac3,dts",
-          VideoCodec: "h264,hevc,vp8,vp9,av1",
+          AudioCodec: "aac,mp3",
+          VideoCodec: "h264",
           Context: "Static",
           Protocol: "http"
         }
@@ -1076,6 +1076,7 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
       // Assurer les codecs H264 et AAC
       urlObj.searchParams.set("VideoCodec", "h264");
       urlObj.searchParams.set("AudioCodec", "aac");
+      urlObj.searchParams.set("TranscodingMaxAudioChannels", "2");
 
       // Nettoyer les codecs alternatifs non supportés par la conversion HLS cible
       urlObj.searchParams.delete("hevc");

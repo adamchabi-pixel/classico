@@ -15,7 +15,6 @@ import MovieCard from "./components/MovieCard";
 import MovieModal from "./components/MovieModal";
 import MovieDetailView from "./components/MovieDetailView";
 import CinemaPlayerView from "./components/CinemaPlayerView";
-import VideoPlayer from "./components/VideoPlayer";
 import ErrorBoundary from "./components/ErrorBoundary";
 import LazyVirtualCard from "./components/LazyVirtualCard";
 import HeroSkeleton from "./components/HeroSkeleton";
@@ -604,7 +603,7 @@ function getDynamicSagaId(m: Movie): string | null {
 }
 
 function enrichDynamicMovie(m: Movie, contextID: string): Movie {
-  const primaryGenre = (m.genre && m.genre[0]) || "Drame";
+  const primaryGenre = (m.genre && m.genre[0]) || "Drama";
   const aesthetic = GENRE_AESTHETICS[primaryGenre.toLowerCase()] || {
     gradient: "from-slate-900 via-neutral-900 to-zinc-950/40",
     accentColor: "text-zinc-400 border-zinc-500/30 bg-zinc-900/10",
@@ -1414,22 +1413,7 @@ export default function App() {
   if (activeTab === "player") {
     const pId = routePath.startsWith("/player/") ? routePath.slice("/player/".length) : "";
     
-    if (activeMovie && !activeMovie.isJellyfin) {
-      return (
-        <div className="fixed inset-0 z-50 bg-black w-screen h-screen flex flex-col">
-          <VideoPlayer
-            streamUrl={activeMovie.streamUrl || null}
-            movieTitle={activeMovie.title}
-            movieSymbol={activeMovie.symbol}
-            movieGradient={activeMovie.gradient}
-            movieDuration={activeMovie.duration}
-            onCloseView={() => navigateTo("/movie/" + pId)}
-            movieId={pId}
-            isJellyfinMovie={false}
-          />
-        </div>
-      );
-    }
+
     
     return (
       <ErrorBoundary 
@@ -1438,7 +1422,7 @@ export default function App() {
       >
         <CinemaPlayerView
           movieId={pId}
-          movieTitle={activeMovie?.title || "Film de Culte"}
+          movieTitle={activeMovie?.title || "Cult Classic"}
           movieDuration={activeMovie?.duration}
           moviePoster={activeMovie?.posterUrl || (activeMovie as any)?.poster}
           onClose={() => navigateTo("/movie/" + pId)}
@@ -1759,7 +1743,7 @@ export default function App() {
 
                       {/* Progressive cinematic bottom-to-top black gradient that separates the hero from the thematic library below */}
                       <div 
-                        className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-t from-black via-black/50 to-transparent md:!bg-[linear-gradient(to_top,#0c0a09_0%,rgba(12,10,9,0.95)_15%,rgba(12,10,9,0.75)_40%,rgba(12,10,9,0.2)_75%,transparent_100%)]" 
+                        className="absolute inset-0 z-10 pointer-events-none bg-[linear-gradient(to_top,#0c0a09_0%,rgba(12,10,9,0.95)_10%,rgba(12,10,9,0.75)_30%,rgba(12,10,9,0.2)_60%,transparent_100%)] md:!bg-[linear-gradient(to_top,#0c0a09_0%,rgba(12,10,9,0.95)_15%,rgba(12,10,9,0.75)_40%,rgba(12,10,9,0.2)_75%,transparent_100%)]" 
                       />
 
                       {/* Spotlight Content and Description Box with high contrast text drop-shadows */}
@@ -2431,6 +2415,7 @@ export default function App() {
       {/* ========================================================== */}
       <MovieModal
         movie={selectedMovie}
+        onPlay={(id) => navigateTo("/player/" + id)}
         onClose={() => {
           setSelectedMovie(null);
           const savedProgress = localStorage.getItem("classico_progress");

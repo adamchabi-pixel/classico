@@ -6,7 +6,6 @@ import {
   Maximize2, Check, Plus, AlertCircle, Sparkles, ArrowLeft
 } from "lucide-react";
 import { Movie } from "../data";
-import VideoPlayer from "./VideoPlayer";
 
 interface MovieModalProps {
   movie: Movie | null;
@@ -14,6 +13,7 @@ interface MovieModalProps {
   isBookmarked: boolean;
   onToggleBookmark: () => void;
   startAsPlaying?: boolean;
+  onPlay: (id: string) => void;
 }
 
 export default function MovieModal({ 
@@ -103,10 +103,7 @@ export default function MovieModal({
             <ArrowLeft className="w-5 h-5" />
           </button>
 
-          {!isPlaying ? (
-            /* ========================================================== */
-            /* VIEW 1: MOVIE DESCRIPTION & METADATA                        */
-            /* ========================================================== */
+
             <div className="overflow-y-auto custom-scrollbar flex-grow">
               {/* Grand Banner Backdrop of the Movie */}
               <div id={`modal-banner-${movie.id}`} className={`relative h-[280px] sm:h-[400px] w-full bg-gradient-to-r ${movie.gradient} flex items-end p-6 sm:p-10 overflow-hidden`}>
@@ -149,7 +146,7 @@ export default function MovieModal({
                       id="play-movie-trigger"
                       onClick={() => {
                         (window as any).moviePlayClickTime = performance.now();
-                        setIsPlaying(true);
+                        onPlay(movie!.id);
                       }}
                       className="inline-flex items-center justify-center gap-2 gold-button px-6 py-2.5 rounded-full text-sm font-semibold transition-all"
                     >
@@ -195,7 +192,7 @@ export default function MovieModal({
                   {/* Cast Card Grid */}
                   <div className="space-y-3">
                     <h3 className="text-sm font-mono uppercase tracking-widest text-[#f4ecd8] font-bold">
-                      Cast principale
+                      Main Cast
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {movie.cast.map((actor, idx) => (
@@ -212,7 +209,7 @@ export default function MovieModal({
                 {/* Right Column: Spec Sheet */}
                 <div className="space-y-6 bg-neutral-900/40 p-5 sm:p-6 rounded-xl border border-neutral-800/60">
                   <h3 className="text-lg font-forum font-bold text-white tracking-wide uppercase pb-2 border-b border-zinc-800/50">
-                    Fiche Technique
+                    Technical Sheet
                   </h3>
 
                   <div className="space-y-4 text-sm">
@@ -262,18 +259,6 @@ export default function MovieModal({
 
               </div>
             </div>
-          ) : (
-            <VideoPlayer
-              streamUrl={jellyfinStreamUrl}
-              movieTitle={movie.title}
-              movieSymbol={movie.symbol}
-              movieGradient={movie.gradient}
-              movieDuration={movie.duration}
-              onCloseView={() => setIsPlaying(false)}
-              movieId={movie.id}
-              isJellyfinMovie={!!jellyfinStreamUrl || !!movie.isJellyfin}
-            />
-          )}
         </motion.div>
       </div>
     </AnimatePresence>

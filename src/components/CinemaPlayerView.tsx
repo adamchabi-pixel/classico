@@ -1677,7 +1677,7 @@ export default function CinemaPlayerView({
             muted={muted}
             preload="auto"
             crossOrigin="anonymous"
-            className="w-full h-full portrait:object-contain landscape:object-cover max-h-screen"
+            className="w-full h-full bg-black portrait:object-contain landscape:object-cover max-h-screen"
             onPlay={() => {
               trackEventFired("play", "Événement play");
             }}

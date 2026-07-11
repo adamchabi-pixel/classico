@@ -382,6 +382,7 @@ function isMovieMatch(title1: string, title2: string): boolean {
     ["rocky iv", "rocky 4", "rocky iv"],
     ["rocky v", "rocky 5", "rocky v"],
     ["rocky balboa", "rocky 6", "rocky vi"],
+    ["the terminator", "terminator", "terminator 1"],
     ["terminator 2 le jugement dernier", "terminator 2", "t2", "judgment day", "jugement dernier"],
     ["terminator 3 le soulevement des machines", "terminator 3", "rise of the machines", "soulevement des machines"],
     ["terminator renaissance", "terminator salvation", "terminator 4", "salvation"],

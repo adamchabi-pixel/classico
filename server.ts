@@ -832,6 +832,23 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
     throw new Error("Aucune source média trouvée pour ce film.");
   }
 
+  // GLOBAL PIPELINE: Prioritize Web-Friendly Formats (1080p H264 over 4K HEVC) to avoid buffering
+  mediaSources.sort((a: any, b: any) => {
+    const getScore = (src: any) => {
+      const video = (src.MediaStreams || []).find((s: any) => s.Type === "Video");
+      const codec = (video?.Codec || "").toLowerCase();
+      const width = video?.Width || 0;
+      let score = 0;
+      if (codec === "h264") score += 10;
+      if (width > 0 && width < 3840) score += 5;
+      if (codec === "hevc" || codec === "h265") score -= 10;
+      if (width >= 3840) score -= 10;
+      return score;
+    };
+    return getScore(b) - getScore(a);
+  });
+
+
   // FORCE OVERRIDE DERBY ROCKY III FOR PRIORITIZING 8db5a60d8317cdd9ca66b81e52cad247 AND IGNORES 4K/HEVC
   if (activeId === "8db5a60d8317cdd9ca66b81e52cad247" || id === "rocky-3" || id === "09d878060e061360dd6ba1a6f81fca03") {
     console.log(`[ROCKY III SPECIAL PIPELINE] Filtrage rigoureux : élimination des formats lourds 4K/HEVC.`);

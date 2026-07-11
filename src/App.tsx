@@ -613,20 +613,20 @@ function enrichDynamicMovie(m: Movie, contextID: string): Movie {
   };
 
   const titleLower = m.title.toLowerCase();
-  let tagline = m.tagline || "Un film légendaire indiscutable.";
+  let tagline = m.tagline || "An indisputable legendary film.";
   
   if (titleLower.includes("quantum of solace")) {
-    tagline = "La vengeance personnelle est une affaire d'État.";
+    tagline = "Personal revenge is a matter of state.";
   } else if (titleLower.includes("spectre")) {
-    tagline = "Un message secret du passé lance 007 sur une piste sinistre.";
+    tagline = "A cryptic message from the past sends James Bond on a rogue mission.";
   } else if (titleLower.includes("reloaded")) {
-    tagline = "La vérité est une arme.";
+    tagline = "The truth is a weapon.";
   } else if (titleLower.includes("revolutions")) {
-    tagline = "Tout ce qui a un début a une fin.";
+    tagline = "Everything that has a beginning has an end.";
   } else if (titleLower.includes("resurrections")) {
-    tagline = "Retournez à la source.";
+    tagline = "Return to the source.";
   } else if (titleLower.includes("matrix")) {
-    tagline = "Libérez votre esprit.";
+    tagline = "Free your mind.";
   }
 
   // Choose appropriate franchise style if matched

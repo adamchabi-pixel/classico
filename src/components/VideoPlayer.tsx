@@ -243,7 +243,7 @@ export default function VideoPlayer({
     duration: 0,
     subtitlesOn: true,
     fullscreen: false,
-    objectFit: "contain",
+    objectFit: "cover",
   });
 
   const [videoError, setVideoError] = useState<string | null>(null);

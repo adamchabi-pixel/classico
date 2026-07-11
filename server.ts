@@ -340,7 +340,7 @@ function formatJellyfinItem(item: any, serverUrl: string, apiKey: string) {
 
   return {
     id: item.Id,
-    title: item.Name || "Film Sans Titre",
+    title: item.Name || "Untitled Movie",
     originalTitle: item.OriginalTitle || "",
     providerIds: item.ProviderIds || {},
     studios: item.Studios?.map((s: any) => s.Name) || [],
@@ -348,15 +348,15 @@ function formatJellyfinItem(item: any, serverUrl: string, apiKey: string) {
     duration: ticksToMinutes(item.RunTimeTicks),
     rating: item.CommunityRating ? item.CommunityRating.toFixed(1) : "N/A",
     genre: item.Genres || [],
-    description: item.Overview || "Aucun synopsis disponible pour ce titre sur Jellyfin.",
-    director: item.People?.find((p: any) => p.Type === "Director")?.Name || "Réalisateur Inconnu",
+    description: item.Overview || "No synopsis available for this title on Jellyfin.",
+    director: item.People?.find((p: any) => p.Type === "Director")?.Name || "Unknown Director",
     cast: item.People?.filter((p: any) => p.Type === "Actor").slice(0, 4).map((p: any) => p.Name) || [],
     // Secure proxy routes with automatic size optimization and browser long-term cache headers
     posterUrl: `${serverUrl}/Items/${item.Id}/Images/Primary?fillHeight=600&fillWidth=400&quality=80`,
     backdropUrl: `${serverUrl}/Items/${item.Id}/Images/Backdrop?fillHeight=1080&fillWidth=1920&quality=90`,
     // Proxy stream route
     streamUrl: `${serverUrl}/Videos/${item.Id}/stream.mp4?Static=true&api_key=${apiKey}`,
-    tagline: item.Taglines && item.Taglines.length > 0 ? item.Taglines[0] : "Disponible sur votre serveur",
+    tagline: item.Taglines && item.Taglines.length > 0 ? item.Taglines[0] : "Available on your server",
     symbol: "📡🎬",
     accentColor: "text-[#ca8a04] border-[#ca8a04]/30 bg-[#ca8a04]/5",
     accentHex: "#ca8a04"
@@ -382,7 +382,7 @@ app.get("/api/jellyfin/movies", async (req, res) => {
   }
 
   try {
-    const libraryUrl = `${config.url}/Items?recursive=true&includeItemTypes=Movie&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=300&api_key=${config.apiKey}`;
+    const libraryUrl = `${config.url}/Items?recursive=true&includeItemTypes=Movie,Series&Language=en&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=3000&api_key=${config.apiKey}`;
     const response = await fetch(libraryUrl);
     if (!response.ok) {
       res.status(response.status).json({ success: false, error: "Impossible de lire la bibliothèque de médias." });
@@ -398,13 +398,7 @@ app.get("/api/jellyfin/movies", async (req, res) => {
     const data: any = await response.json();
     const rawMovies = data.Items || [];
 
-    // Filtre de sécurité : Éliminer tous les films fantômes ou morts dont le chemin pointe vers le stockage défectueux movies_jellyfin_web
-    const healthyMovies = rawMovies.filter((item: any) => {
-      const p = (item.Path || "").toLowerCase();
-      return !p.includes("movies_jellyfin_web");
-    });
-
-    const formattedMovies = healthyMovies.map((item: any) => formatJellyfinItem(item, config.url, config.apiKey));
+    const formattedMovies = rawMovies.map((item: any) => formatJellyfinItem(item, config.url, config.apiKey));
 
     // Cache results for 5 minutes (300000 ms)
     setCached(cacheKey, formattedMovies, 300000);
@@ -449,7 +443,7 @@ app.get("/api/jellyfin/hero", async (req, res) => {
     }
 
     // 2. Fetch the latest items and filter for Movie
-    const latestUrl = `${config.url}/Users/${userId}/Items/Latest?IncludeItemTypes=Movie&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ImageTags&limit=25&api_key=${config.apiKey}`;
+    const latestUrl = `${config.url}/Users/${userId}/Items/Latest?IncludeItemTypes=Movie,Series&Language=en&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ImageTags&limit=25&api_key=${config.apiKey}`;
     const latestResponse = await fetch(latestUrl);
     
     if (!latestResponse.ok) {
@@ -460,12 +454,7 @@ app.get("/api/jellyfin/hero", async (req, res) => {
     const latestData: any = await latestResponse.json();
     const items = latestData || [];
 
-    // Filter out phantom/broken entries
-    const healthyItems = items.filter((item: any) => {
-      const p = (item.Path || "").toLowerCase();
-      return !p.includes("movies_jellyfin_web");
-    });
-
+    const healthyItems = items;
     if (healthyItems.length === 0) {
       res.json({ success: false, error: "Aucun film valide trouvé dans vos nouveautés." });
       return;
@@ -483,18 +472,18 @@ app.get("/api/jellyfin/hero", async (req, res) => {
       const hasLogo = !!(heroItem.ImageTags && heroItem.ImageTags.Logo);
       return {
         id: heroItem.Id,
-        title: heroItem.Name || "Film Sans Titre",
+        title: heroItem.Name || "Untitled Movie",
         year: heroItem.ProductionYear || new Date().getFullYear(),
         duration: ticksToMinutes(heroItem.RunTimeTicks),
         rating: heroItem.CommunityRating ? heroItem.CommunityRating.toFixed(1) : "N/A",
         genre: heroItem.Genres || [],
-        description: heroItem.Overview || "Aucun synopsis disponible pour ce titre sur Jellyfin.",
-        director: heroItem.People?.find((p: any) => p.Type === "Director")?.Name || "Réalisateur Inconnu",
+        description: heroItem.Overview || "No synopsis available for this title on Jellyfin.",
+        director: heroItem.People?.find((p: any) => p.Type === "Director")?.Name || "Unknown Director",
         cast: heroItem.People?.filter((p: any) => p.Type === "Actor").slice(0, 4).map((p: any) => p.Name) || [],
         posterUrl: `${config.url}/Items/${heroItem.Id}/Images/Primary?fillHeight=600&fillWidth=400&quality=80`,
         backdropUrl: `${config.url}/Items/${heroItem.Id}/Images/Backdrop?fillHeight=1080&fillWidth=1920&quality=90`,
         streamUrl: `${config.url}/Videos/${heroItem.Id}/stream.mp4?Static=true&api_key=${config.apiKey}`,
-        tagline: heroItem.Taglines && heroItem.Taglines.length > 0 ? heroItem.Taglines[0] : "Disponible sur votre serveur",
+        tagline: heroItem.Taglines && heroItem.Taglines.length > 0 ? heroItem.Taglines[0] : "Available on your server",
         hasLogo,
         logoUrl: hasLogo ? `${config.url}/Items/${heroItem.Id}/Images/Logo?fillWidth=600&quality=90` : null,
         symbol: "📡🎬",
@@ -616,7 +605,7 @@ app.get("/api/jellyfin/search", async (req, res) => {
   }
 
   try {
-    const searchUrl = `${config.url}/Items?recursive=true&includeItemTypes=Movie&searchTerm=${encodeURIComponent(String(title))}&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path&api_key=${config.apiKey}`;
+    const searchUrl = `${config.url}/Items?recursive=true&includeItemTypes=Movie,Series&Language=en&searchTerm=${encodeURIComponent(String(title))}&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path&api_key=${config.apiKey}`;
     const response = await fetch(searchUrl);
     if (!response.ok) {
       res.status(response.status).json({ success: false, error: "Recherche de médias en échec." });
@@ -626,13 +615,7 @@ app.get("/api/jellyfin/search", async (req, res) => {
     const data: any = await response.json();
     const rawMovies = data.Items || [];
 
-    // Filtre de sécurité : Éliminer tous les films dont la source est sur movies_jellyfin_web
-    const healthyMovies = rawMovies.filter((item: any) => {
-      const p = (item.Path || "").toLowerCase();
-      return !p.includes("movies_jellyfin_web");
-    });
-
-    const formattedMovies = healthyMovies.map((item: any) => formatJellyfinItem(item, config.url, config.apiKey));
+    const formattedMovies = rawMovies.map((item: any) => formatJellyfinItem(item, config.url, config.apiKey));
 
     // Cache search results for 30 seconds
     setCached(cacheKey, formattedMovies, 30000);
@@ -755,8 +738,8 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   const deviceProfile = {
     DeviceProfile: {
       Name: "Modern Browser",
-      MaxStreamingBitrate: 140000000,
-      MaxStaticBitrate: 140000000,
+      MaxStreamingBitrate: 15000000,
+      MaxStaticBitrate: 15000000,
       MusicStreamingBitrate: 320000,
       DirectPlayProfiles: [
         {
@@ -894,7 +877,7 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
         const movieTitle = itemData.Name;
         if (movieTitle) {
           console.log(`[PLAYBACK PIPELINE] Recherche de doublons sains pour "${movieTitle}"...`);
-          const searchUrl = `${config.url}/Items?recursive=true&includeItemTypes=Movie&searchTerm=${encodeURIComponent(movieTitle)}&fields=Path&api_key=${config.apiKey}`;
+          const searchUrl = `${config.url}/Items?recursive=true&includeItemTypes=Movie,Series&Language=en&searchTerm=${encodeURIComponent(movieTitle)}&fields=Path&api_key=${config.apiKey}`;
           const searchRes = await fetch(searchUrl);
           if (searchRes.ok) {
             const searchData: any = await searchRes.json();
@@ -1046,8 +1029,8 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   const cleanedSourceId = source.Id ? source.Id.replace("-web-optimized", "") : activeId;
 
   // Calcul du bitrate en fonction de la qualité demandée
-  const videoBitrate = lowQuality ? 600000 : 140000000;
-  const maxVideoBitrate = lowQuality ? 600000 : 140000000;
+  const videoBitrate = lowQuality ? 600000 : 15000000;
+  const maxVideoBitrate = lowQuality ? 600000 : 15000000;
   const maxWidth = lowQuality ? 854 : 3840;
   const maxHeight = lowQuality ? 480 : 2160;
   const audioBitrate = lowQuality ? 96000 : 320000;
@@ -1058,6 +1041,7 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
     VideoCodec: "h264",
     AudioCodec: "aac",
     TranscodingMaxAudioChannels: "2",
+    SubtitleStreamIndex: "-1",
     MaxVideoBitrate: maxVideoBitrate.toString(),
     VideoBitrate: videoBitrate.toString(),
     AudioSampleRate: "44100",
@@ -1311,7 +1295,7 @@ app.get(["/api/jellyfin/proxy/stream", "/api/jellyfin/proxy/*", "/stream", "/mas
       } catch (e: any) {
         clearTimeout(timerPlayback);
         console.error(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Échec de getPlaybackData: ${e.message}. Fallback manuel.`);
-        targetPath = `/Videos/${id}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1`;
+        targetPath = `/Videos/${id}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1`;
       }
     }
   } else if (wildcardPath && wildcardPath !== "stream") {
@@ -1332,7 +1316,7 @@ app.get(["/api/jellyfin/proxy/stream", "/api/jellyfin/proxy/*", "/stream", "/mas
       } catch (e: any) {
         clearTimeout(timerPlayback);
         console.error(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Échec de getPlaybackData (else branch): ${e.message}. Fallback manuel.`);
-        targetPath = `/Videos/${id}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1`;
+        targetPath = `/Videos/${id}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1`;
       }
     }
   }

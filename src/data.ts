@@ -45,12 +45,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Chad Stahelski",
         cast: ["Keanu Reeves", "Michael Nyqvist", "Alfie Allen", "Willem Dafoe"],
         genre: ["Action", "Thriller"],
-        description: "Un ancien tueur à gages légendaire sort de sa retraite pour traquer les truands qui ont assassiné son chiot, dernier cadeau inestimable de sa défunte épouse, et volé sa Mustang chérie.",
+        description: "A legendary former hitman comes out of retirement to track down the gangsters who killed his puppy, the priceless last gift from his late wife, and stole his beloved Mustang.",
         gradient: "from-slate-900 via-neutral-900 to-amber-950/40",
         accentColor: "text-amber-500 border-amber-500/30 bg-amber-500/10",
         accentHex: "#f59e0b",
         symbol: "🐕✖️🔫",
-        tagline: "N'auriez-û pas dû toucher à son chien."
+        tagline: "Should not have touched his dog."
       },
       {
         id: "john-wick-2",
@@ -61,12 +61,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Chad Stahelski",
         cast: ["Keanu Reeves", "Common", "Laurence Fishburne", "Riccardo Scamarcio"],
         genre: ["Action", "Crime", "Thriller"],
-        description: "John Wick est contraint de sortir à nouveau de sa retraite par un ancien associé qui souhaite s'emparer d'une cabale de tueurs internationaux. Lié par un serment de sang inviolable, John se rend à Rome.",
+        description: "John Wick is forced out of retirement again by a former associate plotting to seize control of an international assassins' guild. Bound by a blood oath, John travels to Rome.",
         gradient: "from-slate-900 via-neutral-900 to-cyan-950/40",
         accentColor: "text-cyan-400 border-cyan-400/30 bg-cyan-400/10",
         accentHex: "#22d3ee",
         symbol: "🪙🩸🏛️",
-        tagline: "Le serment de sang est inviolable."
+        tagline: "The blood oath is inviolable."
       },
       {
         id: "john-wick-3",
@@ -77,12 +77,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Chad Stahelski",
         cast: ["Keanu Reeves", "Halle Berry", "Ian McShane", "Laurence Fishburne"],
         genre: ["Action", "Thriller"],
-        description: "Excommunié de la Grande Table et privé de tous ses droits, John Wick a sa tête mise à prix pour 14 millions de dollars. Une armée de tueurs est lancée à ses trousses à travers les rues de New York.",
+        description: "Excommunicated from the High Table and stripped of all services, John Wick has a $14 million bounty on his head. An army of assassins is on his trail through the streets of New York.",
         gradient: "from-slate-900 via-neutral-900 to-purple-950/40",
         accentColor: "text-purple-400 border-purple-400/30 bg-purple-400/10",
         accentHex: "#c084fc",
         symbol: "🌧️🐎🤵",
-        tagline: "Si tu veux la paix, prépare la guerre."
+        tagline: "If you want peace, prepare for war."
       },
       {
         id: "john-wick-4",
@@ -93,12 +93,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Chad Stahelski",
         cast: ["Keanu Reeves", "Donnie Yen", "Bill Skarsgård", "Laurence Fishburne"],
         genre: ["Action", "Crime", "Thriller"],
-        description: "John Wick découvre le moyen de vaincre l'organisation criminelle de la Grande Table. Mais pour gagner sa liberté, il doit affronter un nouvel ennemi féroce doté d'alliances mondiales et transformer de vieux amis en redoutables adversaires.",
+        description: "John Wick uncovers a path to defeating The High Table. But before he can earn his freedom, Wick must face off against a new enemy with powerful alliances across the globe and forces that turn old friends into foes.",
         gradient: "from-slate-900 via-neutral-900 to-rose-950/40",
         accentColor: "text-rose-500 border-rose-500/30 bg-rose-500/10",
         accentHex: "#f43f5e",
         symbol: "⏳🏯⚔️",
-        tagline: "Pas de quartier sur les marches du Sacré-Cœur."
+        tagline: "No quarter on the steps of the Sacré-Cœur."
       }
     ]
   },
@@ -116,12 +116,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Steven Spielberg",
         cast: ["Harrison Ford", "Karen Allen", "Paul Freeman", "John Rhys-Davies"],
         genre: ["Adventure", "Action"],
-        description: "Indy est chargé d'une mission périlleuse par les services secrets américains : retrouver l'Arche d'Alliance, coffre contenant les Tables de la Loi, convoitée par les nazis car censée conférer des pouvoirs d'invincibilité militaire.",
+        description: "Indy is tasked with a perilous mission by US intelligence: to find the Ark of the Covenant, a chest containing the Tablets of the Law, coveted by the Nazis for its supposed military invincibility.",
         gradient: "from-neutral-900 via-amber-950/30 to-amber-950/40",
         accentColor: "text-amber-500 border-amber-500/30 bg-amber-500/10",
         accentHex: "#f59e0b",
         symbol: "🤠📜🏺",
-        tagline: "La quête de l'impossible commence ici."
+        tagline: "The quest for the impossible starts here."
       },
       {
         id: "indy-2",
@@ -132,12 +132,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Steven Spielberg",
         cast: ["Harrison Ford", "Kate Capshaw", "Ke Huy Quan", "Amrish Puri"],
         genre: ["Adventure", "Action"],
-        description: "En Inde, Indiana Jones, un jeune garçon astucieux appelé Demi-Lune et une chanteuse de cabaret se retrouvent dans un village appauvri. Leurs habitants les supplient de retrouver une pierre sacrée mystique volée par un culte sanguinaire adepte de sacrifices humains.",
+        description: "In India, Indiana Jones, a clever young boy named Short Round, and a cabaret singer find themselves in an impoverished village. The locals beg them to retrieve a sacred mystical stone stolen by a bloodthirsty cult.",
         gradient: "from-neutral-900 via-red-950/30 to-amber-950/40",
         accentColor: "text-red-400 border-red-400/30 bg-red-400/10",
         accentHex: "#f87171",
         symbol: "🏮🛒💎",
-        tagline: "Une aventure d'une noirceur mystique absolue."
+        tagline: "An adventure of absolute mystical darkness."
       },
       {
         id: "indy-3",
@@ -148,12 +148,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Steven Spielberg",
         cast: ["Harrison Ford", "Sean Connery", "Alison Doody", "Denholm Elliott"],
         genre: ["Adventure", "Action"],
-        description: "Indiana Jones part sur les traces de son père, le professeur Henry Jones, mystérieusement disparu alors qu'il recherchait le légendaire Saint Graal. Ensemble, le père et le fils s'unissent pour surmonter des épreuves millénaires.",
+        description: "Indiana Jones sets out on the trail of his father, Professor Henry Jones, who mysteriously disappeared while searching for the legendary Holy Grail. Together, father and son unite to overcome millennial trials.",
         gradient: "from-neutral-900 via-amber-950/30 to-yellow-950/40",
         accentColor: "text-yellow-500 border-yellow-500/30 bg-yellow-500/10",
         accentHex: "#eab308",
         symbol: "🏆🛡️⚔️",
-        tagline: "Le Graal n'attend que les cœurs purs."
+        tagline: "The Grail only awaits pure hearts."
       },
       {
         id: "indy-4",
@@ -164,12 +164,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Steven Spielberg",
         cast: ["Harrison Ford", "Cate Blanchett", "Shia LaBeouf", "Karen Allen"],
         genre: ["Adventure", "Science Fiction"],
-        description: "En 1957, en pleine Guerre Froide, Indiana Jones est mêlé à un complot soviétique visant à décoder les secrets d'un mystérieux crâne de cristal découvert en Amazonie, lié à des civilisations disparues et d'autres dimensions.",
+        description: "In 1957, during the Cold War, Indiana Jones becomes entangled in a Soviet plot to uncover the secret behind a mysterious crystal skull discovered in the Amazon.",
         gradient: "from-neutral-900 via-emerald-950/30 to-teal-950/40",
         accentColor: "text-emerald-400 border-emerald-400/30 bg-emerald-400/10",
         accentHex: "#34d399",
         symbol: "👽💀🌴",
-        tagline: "Le secret de l'Amazonie dépasse notre monde."
+        tagline: "The secret of the Amazon transcends our world."
       },
       {
         id: "indy-5",
@@ -180,12 +180,12 @@ export const COLLECTIONS: Collection[] = [
         director: "James Mangold",
         cast: ["Harrison Ford", "Phoebe Waller-Bridge", "Mads Mikkelsen", "Antonio Banderas"],
         genre: ["Adventure", "Action"],
-        description: "En 1969, sur fond de conquête spatiale, le célèbre archéologue se prépare à prendre sa retraite. Mais l'apparition de sa filleule Helena et d'un ancien nazi travaillant pour la NASA le replonge dans une course contre la montre temporelle.",
+        description: "In 1969, against the backdrop of the space race, the famous archaeologist prepares to retire. But the appearance of his goddaughter Helena and a former Nazi working for NASA plunges him back into a race against time.",
         gradient: "from-neutral-900 via-yellow-950/20 to-stone-900",
         accentColor: "text-amber-500 border-amber-500/30 bg-amber-500/10",
         accentHex: "#ca8a04",
         symbol: "⚙️🕰️✈️",
-        tagline: "Contre le temps, le voyage ultime commence."
+        tagline: "Against time, the ultimate journey begins."
       }
     ]
   },
@@ -203,12 +203,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Quentin Tarantino",
         cast: ["John Travolta", "Samuel L. Jackson", "Uma Thurman", "Bruce Willis"],
         genre: ["Crime", "Drama"],
-        description: "L'odyssée sanglante, cocasse et dramatique de deux tueurs à gages bavards, d'un boxeur sur le déclin, de la séduisante femme d'un caïd de la pègre et de deux braqueurs amateurs d'un restaurant de quartier.",
+        description: "The bloody, comical and dramatic odyssey of two talkative hitmen, a fading boxer, the seductive wife of a mob boss and two amateur robbers in a local diner.",
         gradient: "from-red-950 via-neutral-900 to-amber-950/40",
         accentColor: "text-yellow-400 border-yellow-400/30 bg-yellow-400/10",
         accentHex: "#facc15",
         symbol: "💃🍔💼",
-        tagline: "La vie n'est pas un long fleuve tranquille au pays des malfrats."
+        tagline: "Life is not a long quiet river in the land of thugs."
       },
       {
         id: "reservoir-dogs",
@@ -219,12 +219,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Quentin Tarantino",
         cast: ["Harvey Keitel", "Tim Roth", "Michael Madsen", "Steve Buscemi"],
         genre: ["Crime", "Thriller"],
-        description: "Six criminels professionnels, qui ne se connaissent pas, sont engagés par un parrain pour cambrioler un diamantaire. Le hold-up tourne au carnage sanglant et les rescapés se regroupent dans un entrepôt abandonné, suspectant un traître.",
+        description: "Six professional criminals, who do not know each other, are hired by a mob boss to rob a diamond merchant. The heist turns into a bloody carnage, and the survivors gather in an abandoned warehouse, suspecting a traitor.",
         gradient: "from-stone-900 via-neutral-900 to-red-950/50",
         accentColor: "text-neutral-200 border-neutral-400/30 bg-neutral-400/10",
         accentHex: "#e5e5e5",
         symbol: "🕶️🤵💎",
-        tagline: "Pas de vrais noms, pas de quartier."
+        tagline: "No real names, no quarter."
       },
       {
         id: "kill-bill-1",
@@ -235,12 +235,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Quentin Tarantino",
         cast: ["Uma Thurman", "Lucy Liu", "Vivica A. Fox", "David Carradine"],
         genre: ["Action", "Crime"],
-        description: "Au cours de son mariage, une ex-tueuse à gages subit l'attaque sanglante de son ancien amant et employeur, Bill. Sortie d'un coma de quatre ans, la Mariée n'a plus qu'un but de survie : se venger méthodiquement.",
+        description: "During her wedding, a former hitwoman is violently attacked by her former lover and boss, Bill. Waking up from a four-year coma, the Bride has only one goal for survival: exact methodical revenge.",
         gradient: "from-yellow-950 via-neutral-900 to-amber-950/30",
         accentColor: "text-yellow-400 border-yellow-400/30 bg-yellow-400/10",
         accentHex: "#eab308",
         symbol: "🥻⚔️🩸",
-        tagline: "La vengeance est un plat qui se mange froid."
+        tagline: "Revenge is a dish best served cold."
       },
       {
         id: "kill-bill-2",
@@ -251,12 +251,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Quentin Tarantino",
         cast: ["Uma Thurman", "David Carradine", "Michael Madsen", "Daryl Hannah"],
         genre: ["Action", "Crime"],
-        description: "Après s'être débarrassée de ses premières cibles, la Mariée poursuit sa vengeance implacable contre Budd et Elle Driver. Son face-à-face final et inévitable avec son mentor et bourreau, Bill, approche.",
+        description: "After eliminating her first targets, the Bride continues her relentless revenge against Budd and Elle Driver. Her final and inevitable confrontation with her mentor and tormentor, Bill, is approaching.",
         gradient: "from-amber-950 via-neutral-900 to-stone-950",
         accentColor: "text-amber-500 border-amber-500/30 bg-amber-500/10",
         accentHex: "#ca8a04",
         symbol: "🐍🥋🎯",
-        tagline: "Le dernier chapitre de sa liste noire."
+        tagline: "The final chapter of her blacklist."
       },
       {
         id: "inglourious-basterds",
@@ -267,12 +267,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Quentin Tarantino",
         cast: ["Brad Pitt", "Mélanie Laurent", "Christoph Waltz", "Michael Fassbender"],
         genre: ["War", "Drama", "Action"],
-        description: "Dans la France occupée, une jeune Juive propriétaire d'un cinéma prépare une vengeance incendiaire, tandis qu'un commando de soldats juifs américains, les 'Basterds', sèment la terreur chez l'occupant en scalpant leurs adversaires.",
+        description: "In occupied France, a young Jewish cinema owner plots an incendiary revenge, while a commando of Jewish-American soldiers, the 'Basterds', spread terror among the occupiers by scalping their enemies.",
         gradient: "from-red-950 via-stone-900 to-neutral-950",
         accentColor: "text-red-500 border-red-500/30 bg-red-500/10",
         accentHex: "#ef4444",
         symbol: "🎦🎖️🪓",
-        tagline: "Une réécriture explosive de la grande Histoire."
+        tagline: "An explosive rewrite of great history."
       },
       {
         id: "django-unchained",
@@ -283,12 +283,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Quentin Tarantino",
         cast: ["Jamie Foxx", "Christoph Waltz", "Leonardo DiCaprio", "Kerry Washington"],
         genre: ["Western", "Drama"],
-        description: "Deux ans avant la Guerre de Sécession, Django, un esclave, s'associe au docteur King Schultz, un excentrique chasseur de primes allemand. Schultz libère Django et l'aide à retrouver sa femme Broomhilda, retenue dans la plantation du cruel Calvin Candie.",
+        description: "Two years before the Civil War, Django, a slave, teams up with Dr. King Schultz, an eccentric German bounty hunter. Schultz frees Django and helps him find his wife Broomhilda, held in the plantation of the cruel Calvin Candie.",
         gradient: "from-amber-950 via-neutral-900 to-red-950/40",
         accentColor: "text-amber-400 border-amber-400/30 bg-amber-400/10",
         accentHex: "#fbbf24",
         symbol: "🐎🩸⛓️",
-        tagline: "La liberté n'est pas négociable, elle s'arrache."
+        tagline: "Freedom is not negotiable, it is snatched."
       },
       {
         id: "once-upon-a-time",
@@ -299,12 +299,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Quentin Tarantino",
         cast: ["Leonardo DiCaprio", "Brad Pitt", "Margot Robbie", "Emile Hirsch"],
         genre: ["Drama", "Comedy"],
-        description: "En 1969 de l'âge d'or hollywoodien, Rick Dalton, star déclinante de séries télévisées de westerns, et Cliff Booth, sa doublure cascade impassible de toujours, errent dans un milieu qu'ils ne reconnaissent plus.",
+        description: "In 1969 of the Hollywood Golden Age, Rick Dalton, a fading star of western TV series, and Cliff Booth, his impassive longtime stunt double, wander in a world they no longer recognize.",
         gradient: "from-yellow-950/40 via-neutral-900 to-amber-950/40",
         accentColor: "text-amber-300 border-amber-300/30 bg-amber-300/10",
         accentHex: "#fde047",
         symbol: "🎬🎙️🐕",
-        tagline: "Un conte de fées mélancolique et flamboyant sur le cinéma."
+        tagline: "A melancholic and flamboyant fairy tale about cinema."
       },
       {
         id: "the-hateful-eight",
@@ -315,12 +315,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Quentin Tarantino",
         cast: ["Samuel L. Jackson", "Kurt Russell", "Jennifer Jason Leigh", "Walton Goggins"],
         genre: ["Western", "Crime", "Mystère"],
-        description: "Quelques années après la Guerre de Sécession, un chasseur de primes renommé et sa prisonnière se retrouvent bloqués par un terrible blizzard de montagne dans un refuge de diligence aux côtés de six clients suspects de complot.",
+        description: "A few years after the Civil War, a renowned bounty hunter and his prisoner are stranded by a terrible mountain blizzard in a stagecoach refuge alongside six suspects of a conspiracy.",
         gradient: "from-stone-900 via-zinc-900 to-blue-950/30",
         accentColor: "text-sky-300 border-sky-300/30 bg-sky-300/10",
         accentHex: "#7dd3fc",
         symbol: "❄️🛖🥃",
-        tagline: "Huit menteurs. Aucun ne sortira indemne."
+        tagline: "Eight liars. None will escape unscathed."
       }
     ]
   },
@@ -338,12 +338,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Christopher Nolan",
         cast: ["Leonardo DiCaprio", "Joseph Gordon-Levitt", "Elliot Page", "Tom Hardy"],
         genre: ["Science Fiction", "Action", "Thriller"],
-        description: "Dom Cobb est un voleur expérimenté dans l'art de soustraire des secrets enfouis dans le subconscient des gens pendant qu'ils rêvent. Pour retrouver sa vie et ses enfants, il doit accomplir l'impossible : implanter une idée dans l'esprit d'un homme.",
+        description: "Dom Cobb is a skilled thief, the absolute best in the dangerous art of extraction, stealing valuable secrets from deep within the subconscious during the dream state. To get his life back, he must do the impossible: inception.",
         gradient: "from-indigo-950 via-slate-900 to-slate-950",
         accentColor: "text-cyan-400 border-cyan-400/30 bg-cyan-400/10",
         accentHex: "#22d3ee",
         symbol: "🌀🌀🎲",
-        tagline: "Votre esprit est la scène du crime."
+        tagline: "Your mind is the scene of the crime."
       },
       {
         id: "interstellar",
@@ -354,13 +354,13 @@ export const COLLECTIONS: Collection[] = [
         director: "Christopher Nolan",
         cast: ["Matthew McConaughey", "Anne Hathaway", "Jessica Chastain", "Michael Caine"],
         genre: ["Science Fiction", "Drama", "Adventure"],
-        description: "Alors que la Terre s'éteint doucement, un groupe d'astronautes et d'ingénieurs intrépides franchit une faille spatio-temporelle récemment découverte pour tenter de trouver une planète capable de sauver l'humanité.",
+        description: "As Earth slowly dies, a group of intrepid astronauts and engineers travel through a newly discovered wormhole in an attempt to find a habitable planet to save humanity.",
         gradient: "from-blue-950 via-indigo-950/50 to-neutral-950",
         backdropUrl: "https://www.wallpaperflare.com/static/536/846/466/interstellar-movie-movies-interstellar-movie-wallpaper.jpg",
         accentColor: "text-sky-400 border-sky-400/30 bg-sky-400/10",
         accentHex: "#38bdf8",
         symbol: "🪐🚀🌾",
-        tagline: "L'amour est la seule chose qui transcende le temps et l'espace."
+        tagline: "Love is the one thing that transcends time and space."
       },
       {
         id: "batman-begins",
@@ -371,12 +371,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Christopher Nolan",
         cast: ["Christian Bale", "Michael Caine", "Liam Neeson", "Katie Holmes"],
         genre: ["Action", "Drama"],
-        description: "Marqué par l'assassinat de ses parents, Bruce Wayne voyage à travers le monde pour trouver une arme pour combattre l'injustice. De retour à Gotham infesté par le crime, il dévoile son alter-ego masqué.",
+        description: "Marked by the murder of his parents, Bruce Wayne travels the world to find a weapon to fight injustice. Returning to crime-infested Gotham, he unveils his masked alter-ego.",
         gradient: "from-slate-900 via-neutral-900 to-stone-900/40",
         accentColor: "text-neutral-400 border-neutral-400/30 bg-neutral-400/10",
         accentHex: "#a3a3a3",
         symbol: "🦇⛩️🏙️",
-        tagline: "Ce n'est pas qui je suis en dessous, mais ce que je fais qui me définit."
+        tagline: "It's not who I am underneath, but what I do that defines me."
       },
       {
         id: "the-dark-knight",
@@ -387,12 +387,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Christopher Nolan",
         cast: ["Christian Bale", "Heath Ledger", "Aaron Eckhart", "Maggie Gyllenhaal"],
         genre: ["Action", "Crime", "Drama"],
-        description: "Batman hausse sa lutte contre la pègre de Gotham avec l'aide du lieutenant Jim Gordon et du procureur Harvey Dent. Mais un génie du crime anarchiste et sadique connu sous le nom du Joker plonge la ville dans un chaos indescriptible.",
+        description: "Batman raises the stakes in his war on crime with the help of Lt. Jim Gordon and DA Harvey Dent. But a sadistically anarchic criminal mastermind known as the Joker plunges the city into chaos.",
         gradient: "from-blue-950/30 via-neutral-900 to-stone-950",
         accentColor: "text-blue-400 border-blue-400/30 bg-blue-400/10",
         accentHex: "#60a5fa",
         symbol: "🃏🔥🌃",
-        tagline: "Pourquoi cet air si sérieux ?"
+        tagline: "Why so serious?"
       },
       {
         id: "the-dark-knight-rises",
@@ -403,12 +403,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Christopher Nolan",
         cast: ["Christian Bale", "Tom Hardy", "Anne Hathaway", "Gary Oldman"],
         genre: ["Action", "Thriller"],
-        description: "Huit ans après la mort d'Harvey Dent, Batman a disparu de Gotham. Cependant, l'apparition d'une voleuse de bijoux astucieuse et d'un terroriste impitoyable nommé Bane forcent Bruce Wayne à sortir d'un long exil physique.",
+        description: "Eight years after the death of Harvey Dent, Batman has vanished from Gotham. However, the appearance of a cunning cat burglar and a ruthless terrorist named Bane forces Bruce Wayne out of his long physical exile.",
         gradient: "from-zinc-900 via-slate-900 to-stone-900/50",
         accentColor: "text-slate-400 border-slate-400/30 bg-slate-400/10",
         accentHex: "#94a3b8",
         symbol: "🕸️💥🎙️",
-        tagline: "La légende s'achève dans le feu."
+        tagline: "The legend ends in fire."
       },
       {
         id: "dunkirk",
@@ -419,7 +419,7 @@ export const COLLECTIONS: Collection[] = [
         director: "Christopher Nolan",
         cast: ["Fionn Whitehead", "Tom Hardy", "Mark Rylance", "Cillian Murphy"],
         genre: ["War", "Drama", "History"],
-        description: "En mai 1940, environ 400 000 soldats des armées alliées se retrouvent encerclés et piégés sur la plage de Dunkerque par les armées allemandes. L'évacuation navale la plus audacieuse de l'histoire s'organise.",
+        description: "In May 1940, some 400,000 Allied soldiers found themselves surrounded and trapped on the beach of Dunkirk by the German army. The most daring naval evacuation in history is organized.",
         gradient: "from-sky-950/30 via-slate-900 to-zinc-900",
         accentColor: "text-sky-400 border-sky-400/30 bg-sky-400/10",
         accentHex: "#38bdf8",
@@ -435,12 +435,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Christopher Nolan",
         cast: ["John David Washington", "Robert Pattinson", "Elizabeth Debicki", "Kenneth Branagh"],
         genre: ["Science Fiction", "Action", "Espionage"],
-        description: "Armé d'un seul mot – Tenet – et luttant pour sa survie, le Protagoniste voyage à travers le crépuscule de l'espionnage international. Sa mission cruciale : empêcher une menace plus grave encore qu'une apocalypse nucléaire, en inversant la flèche du temps.",
+        description: "Armed with only one word—Tenet—and fighting for the survival of the entire world, the Protagonist journeys through a twilight world of international espionage on a mission that will unfold in something beyond real time.",
         gradient: "from-indigo-950 via-neutral-900 to-teal-950/20",
         accentColor: "text-emerald-400 border-emerald-400/30 bg-emerald-400/10",
         accentHex: "#34d399",
         symbol: "◀️▶️🚢",
-        tagline: "N'essayez pas de comprendre, ressentez-le."
+        tagline: "Don't try to understand it, feel it."
       },
       {
         id: "oppenheimer",
@@ -451,12 +451,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Christopher Nolan",
         cast: ["Cillian Murphy", "Emily Blunt", "Matt Damon", "Robert Downey Jr."],
         genre: ["Biography", "Drama", "History"],
-        description: "Le physicien J. Robert Oppenheimer prend la tête du projet top-secret Manhattan au désert du Nouveau-Mexique avec un groupe de scientifiques brillants pour développer la première bombe atomique, changeant à jamais l'histoire du monde.",
+        description: "Physicist J. Robert Oppenheimer takes the lead on the top-secret Manhattan Project in the New Mexico desert with a group of brilliant scientists to develop the first atomic bomb, forever changing the course of history.",
         gradient: "from-amber-950/50 via-neutral-900 to-stone-950",
         accentColor: "text-amber-500 border-amber-500/30 bg-amber-500/10",
         accentHex: "#ca8a04",
         symbol: "☢️🔬🤯",
-        tagline: "Je suis devenu la Mort, le destructeur des mondes."
+        tagline: "Now I am become Death, the destroyer of worlds."
       }
     ]
   },
@@ -474,12 +474,12 @@ export const COLLECTIONS: Collection[] = [
         director: "George Lucas",
         cast: ["Liam Neeson", "Ewan McGregor", "Natalie Portman", "Jake Lloyd"],
         genre: ["Science Fiction", "Adventure"],
-        description: "Deux chevaliers Jedi protègent la reine Amidala de Naboo et découvrent par hasard sur la sablonneuse Tatooine un jeune esclave d'un talent exceptionnel nommé Anakin Skywalker, réceptacle d'une prophétie galactique.",
+        description: "Two Jedi Knights escape a hostile blockade to find allies and come across a young boy who may bring balance to the Force, but the long dormant Sith resurface to claim their original glory.",
         gradient: "from-blue-950/30 via-neutral-900 to-amber-950/30",
         accentColor: "text-sky-400 border-sky-400/30 bg-sky-400/10",
         accentHex: "#38bdf8",
         symbol: "🏜️⚔️👹",
-        tagline: "La destinée d'un prodige galactique s'éveille."
+        tagline: "The destiny of a galactic prodigy awakens."
       },
       {
         id: "sw-2",
@@ -490,12 +490,12 @@ export const COLLECTIONS: Collection[] = [
         director: "George Lucas",
         cast: ["Ewan McGregor", "Natalie Portman", "Hayden Christensen", "Christopher Lee"],
         genre: ["Science Fiction", "Adventure"],
-        description: "Dix ans après, Anakin Skywalker est le padawan d'Obi-Wan Kenobi. Alors qu'une mystérieuse menace de séparatisme grandit, Anakin tombe amoureux de la sénatrice Padmé Amidala tandis qu'une armée secrète de clones se prépare.",
+        description: "Ten years later, Anakin Skywalker shares a forbidden romance with Padmé Amidala, while Obi-Wan Kenobi investigates an assassination attempt on the Senator and discovers a secret clone army crafted for the Jedi.",
         gradient: "from-indigo-950/40 via-neutral-900 to-slate-950",
         accentColor: "text-cyan-400 border-cyan-400/30 bg-cyan-400/10",
         accentHex: "#22d3ee",
         symbol: "🪐🧪🤖",
-        tagline: "Une passion interdite dans une galaxie à l'aube du conflit."
+        tagline: "A forbidden passion in a galaxy on the dawn of conflict."
       },
       {
         id: "sw-3",
@@ -506,12 +506,12 @@ export const COLLECTIONS: Collection[] = [
         director: "George Lucas",
         cast: ["Ewan McGregor", "Natalie Portman", "Hayden Christensen", "Ian McDiarmid"],
         genre: ["Science Fiction", "Adventure"],
-        description: "Trois ans après le début de la Guerre des Clones, Anakin Skywalker est tiraillé entre sa loyauté envers les Jedi et les tentations d'un pouvoir obscur proposé par le Chancelier Palpatine dans le but de sauver sa femme.",
+        description: "Three years into the Clone Wars, Anakin Skywalker is torn between his loyalty to the Jedi and the temptations of dark power offered by Chancellor Palpatine to save his wife.",
         gradient: "from-red-950/60 via-neutral-900 to-stone-900",
         accentColor: "text-red-500 border-red-500/30 bg-red-500/10",
         accentHex: "#ef4444",
         symbol: "🌋⚔️💀",
-        tagline: "La naissance tragique de Dark Vador."
+        tagline: "The tragic birth of Darth Vader."
       },
       {
         id: "sw-4",
@@ -522,12 +522,12 @@ export const COLLECTIONS: Collection[] = [
         director: "George Lucas",
         cast: ["Mark Hamill", "Harrison Ford", "Carrie Fisher", "Alec Guinness"],
         genre: ["Science Fiction", "Adventure"],
-        description: "Le jeune fermier Luke Skywalker sur Tatooine se retrouve entraîné dans un conflit intergalactique lorsqu'il intercepte un message de détresse de la princesse Leia, retenue par l'Empire et sa redoutable Étoile de la Mort.",
+        description: "Luke Skywalker joins forces with a Jedi Knight, a cocky pilot, a Wookiee and two droids to save the galaxy from the Empire's world-destroying battle station, while also attempting to rescue Princess Leia from the mysterious Darth Vader.",
         gradient: "from-neutral-900 via-blue-950/30 to-slate-900",
         accentColor: "text-blue-400 border-blue-400/30 bg-blue-400/10",
         accentHex: "#60a5fa",
         symbol: "🏜️🚀🔵",
-        tagline: "Il y a bien longtemps, dans une galaxie lointaine..."
+        tagline: "A long time ago, in a galaxy far, far away..."
       },
       {
         id: "sw-5",
@@ -538,12 +538,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Irvin Kershner",
         cast: ["Mark Hamill", "Harrison Ford", "Carrie Fisher", "Billy Dee Williams"],
         genre: ["Science Fiction", "Adventure"],
-        description: "L'Empire traque impitoyablement les rebelles dispersés. Pendant que Han Solo et Leia fuient vers la Cité des Nuages, Luke Skywalker entame son entraînement rigoureux de Jedi sur la planète marécageuse de Dagobah auprès du maître Yoda.",
+        description: "After the Rebels are brutally overpowered by the Empire on the ice planet Hoth, Luke Skywalker begins Jedi training with Yoda, while his friends are pursued by Darth Vader.",
         gradient: "from-sky-950/40 via-neutral-900 to-slate-950",
         accentColor: "text-sky-400 border-sky-400/30 bg-sky-400/10",
         accentHex: "#38bdf8",
         symbol: "❄️🐸🪐",
-        tagline: "Le Côté Obscur se dévoile. Une vérité fracassante."
+        tagline: "The Dark Side reveals itself. A shattering truth."
       },
       {
         id: "sw-6",
@@ -554,12 +554,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Richard Marquand",
         cast: ["Mark Hamill", "Harrison Ford", "Carrie Fisher", "Billy Dee Williams"],
         genre: ["Science Fiction", "Adventure"],
-        description: "Luke Skywalker organise une mission pour libérer Han Solo de Jabba le Hutt avant d'affronter son père, Dark Vador, et l'Empereur Palpatine en personne sur la lune forestière d'Endor pour le destin de l'univers.",
+        description: "After a daring mission to rescue Han Solo from Jabba the Hutt, the Rebels dispatch to Endor to destroy the second Death Star. Meanwhile, Luke struggles to help Darth Vader back from the dark side without falling into the Emperor's trap.",
         gradient: "from-emerald-950/30 via-neutral-900 to-stone-900",
         accentColor: "text-emerald-400 border-emerald-400/30 bg-emerald-400/10",
         accentHex: "#34d399",
         symbol: "🌳⚡⚔️",
-        tagline: "L'affrontement final pour la rédemption d'un père."
+        tagline: "The final showdown for a father's redemption."
       },
       {
         id: "sw-7",
@@ -570,12 +570,12 @@ export const COLLECTIONS: Collection[] = [
         director: "J.J. Abrams",
         cast: ["Daisy Ridley", "John Boyega", "Oscar Isaac", "Adam Driver"],
         genre: ["Science Fiction", "Adventure"],
-        description: "Une nouvelle menace surgit des cendres de l'Empire : le Premier Ordre. Rey, une pilleuse d'épaves solitaire, s'associe à Finn, un stormtrooper déserteur, et Han Solo pour retrouver la trace du dernier maître Jedi, Luke Skywalker.",
+        description: "A new threat arises from the ashes of the Empire: the First Order. Rey, a solitary scavenger, teams up with Finn, a deserting stormtrooper, and Han Solo to track down the last Jedi master, Luke Skywalker.",
         gradient: "from-neutral-900 via-zinc-900 to-purple-950/30",
         accentColor: "text-purple-400 border-purple-400/30 bg-purple-400/10",
         accentHex: "#c084fc",
         symbol: "🧭🌅🔵",
-        tagline: "Une nouvelle génération de héros face au Côté Obscur."
+        tagline: "A new generation of heroes faces the Dark Side."
       },
       {
         id: "sw-8",
@@ -586,12 +586,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Rian Johnson",
         cast: ["Daisy Ridley", "John Boyega", "Mark Hamill", "Carrie Fisher"],
         genre: ["Science Fiction", "Adventure"],
-        description: "Rey tente de convaincre le légendaire Luke Skywalker, aigri et exilé sur son île isolée, de la guider dans l'usage de la Force, tandis que la Résistance tente d'échapper à une poursuite spatiale implacable du Premier Ordre mené par Kylo Ren.",
+        description: "Rey develops her newly discovered abilities with the guidance of Luke Skywalker, who is unsettled by the strength of her powers. Meanwhile, the Resistance prepares to do battle with the First Order.",
         gradient: "from-rose-950/30 via-neutral-900 to-stone-900",
         accentColor: "text-rose-400 border-rose-400/30 bg-rose-400/10",
         accentHex: "#f43f5e",
         symbol: "🪨🦅🔴",
-        tagline: "Brisez le passé pour réécrire l'avenir galactique."
+        tagline: "Break the past to rewrite the galactic future."
       },
       {
         id: "sw-9",
@@ -602,12 +602,12 @@ export const COLLECTIONS: Collection[] = [
         director: "J.J. Abrams",
         cast: ["Daisy Ridley", "Adam Driver", "John Boyega", "Oscar Isaac"],
         genre: ["Science Fiction", "Adventure"],
-        description: "Alors que l'Empereur Palpatine réapparaît mystérieusement d'entre les morts dans l'ombre galactique, Rey et la Résistance lancent un assaut ultime désespéré contre les forces sith de la " + '"Flotte éternelle".',
+        description: "The surviving members of the resistance face the First Order once again, and the legendary conflict between the Jedi and the Sith reaches its peak bringing the Skywalker saga to its end.",
         gradient: "from-cyan-950/30 via-neutral-900 to-slate-950",
         accentColor: "text-cyan-400 border-cyan-400/30 bg-cyan-400/10",
         accentHex: "#22d3ee",
         symbol: "⚡🔮🛸",
-        tagline: "La fin glorieuse de la grande saga Skywalker."
+        tagline: "The glorious end of the great Skywalker saga."
       },
       {
         id: "sw-rogue-one",
@@ -618,12 +618,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Gareth Edwards",
         cast: ["Felicity Jones", "Diego Luna", "Ben Mendelsohn", "Donnie Yen"],
         genre: ["Science Fiction", "Action", "War"],
-        description: "Un groupe de rebelles disparates s'unissent pour une mission suicide de renseignement militaire : voler les plans secrets de l'Étoile de la Mort, l'arme de destruction massive ultime de l'Empire.",
+        description: "A disparate group of rebels unite for a suicide military intelligence mission: steal the secret plans to the Death Star, the Empire's ultimate weapon of mass destruction.",
         gradient: "from-zinc-900 via-neutral-900 to-slate-950/40",
         accentColor: "text-teal-400 border-teal-400/30 bg-teal-400/10",
         accentHex: "#2dd4bf",
         symbol: "🏖️🚨🎖️",
-        tagline: "Le vol audacieux qui déclencha l'espoir."
+        tagline: "The daring heist that sparked hope."
       }
     ]
   },
@@ -641,12 +641,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Terence Young",
         cast: ["Sean Connery", "Ursula Andress", "Joseph Wiseman", "Jack Lord"],
         genre: ["Action", "Adventure", "Espionage"],
-        description: "L'agent d'élite britannique James Bond est envoyé en Jamaïque pour enquêter sur la disparition mystérieuse d'un chef de station locale. Il découvre le repaire secret du maléfique Dr No sur l'île de Crab Key.",
+        description: "A resourceful British government agent seeks answers in a case involving the disappearance of a colleague and the disruption of the American space program.",
         gradient: "from-slate-900 via-neutral-900 to-blue-950/30",
         accentColor: "text-blue-400 border-blue-400/30 bg-blue-400/10",
         accentHex: "#60a5fa",
         symbol: "🏝️🦀🤵",
-        tagline: "Présentation mondiale de l'agent 007."
+        tagline: "The worldwide introduction of Agent 007."
       },
       {
         id: "bond-goldfinger",
@@ -657,12 +657,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Terence Young",
         cast: ["Sean Connery", "Honor Blackman", "Gert Fröbe", "Harold Sakata"],
         genre: ["Action", "Espionage"],
-        description: "Bond enquête sur les tractations financières d'Auric Goldfinger, un richissime homme d'affaires obsédé par l'or, et met au jour son plan démoniaque d'assaut de la réserve d'or fédérale de Fort Knox.",
+        description: "While investigating a gold magnate's smuggling, James Bond uncovers a plot to contaminate the Fort Knox gold reserve.",
         gradient: "from-stone-900 via-neutral-900 to-amber-950/40",
         accentColor: "text-amber-400 border-amber-400/30 bg-amber-400/10",
         accentHex: "#fbbf24",
         symbol: "👑🚗🪙",
-        tagline: "Tout ce qu'il touche se change en or."
+        tagline: "Everything he touches turns to gold."
       },
       {
         id: "bond-casino-royale",
@@ -673,12 +673,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Martin Campbell",
         cast: ["Daniel Craig", "Eva Green", "Mads Mikkelsen", "Judi Dench"],
         genre: ["Espionage", "Action", "Thriller"],
-        description: "Pour sa toute première mission en tant qu'agent double-Zéro, James Bond doit affronter Le Chiffre, banquier d'un réseau terroriste mondial, dans une partie de poker clandestine à hauts enjeux au Casino Royale au Monténégro.",
+        description: "After earning 00 status and a licence to kill, Secret Agent James Bond sets out on his first mission as 007. Bond must defeat a private banker funding terrorists in a high-stakes game of poker at Casino Royale, Montenegro.",
         gradient: "from-neutral-900 via-neutral-950 to-red-950/30",
         accentColor: "text-rose-500 border-rose-500/30 bg-rose-500/10",
         accentHex: "#f43f5e",
         symbol: "🃏🥃🤵",
-        tagline: "Découvrez comment Bond est devenu 007."
+        tagline: "Discover how Bond became 007."
       },
       {
         id: "bond-skyfall",
@@ -689,12 +689,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Sam Mendes",
         cast: ["Daniel Craig", "Javier Bardem", "Judi Dench", "Ralph Fiennes"],
         genre: ["Espionage", "Action"],
-        description: "La fidélité de Bond envers sa supérieure M est ébranlée alors que les secrets du passé tumultueux de celle-ci menacent de détruire le MI6, cyber-attaqué par un ancien agent vengeur d'une incroyable noirceur, Silva.",
+        description: "James Bond's loyalty to M is tested when her past comes back to haunt her. When MI6 comes under attack, 007 must track down and destroy the threat, no matter how personal the cost.",
         gradient: "from-slate-900 via-blue-950/20 to-neutral-950",
         accentColor: "text-cyan-400 border-cyan-400/30 bg-cyan-400/10",
         accentHex: "#22d3ee",
         symbol: "🏚️🚁🚇",
-        tagline: "Le passé resurgit toujours au cœur d'un hiver écossais."
+        tagline: "The past always resurfaces in the heart of a Scottish winter."
       },
       {
         id: "bond-no-time-to-die",
@@ -705,12 +705,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Cary Joji Fukunaga",
         cast: ["Daniel Craig", "Rami Malek", "Léa Seydoux", "Lashana Lynch"],
         genre: ["Espionage", "Action"],
-        description: "Bond a quitté le MI6 pour couler des jours tranquilles en Jamaïque. Mais un vieil ami de la CIA réapparaît pour lui demander de sauver un scientifique kidnappé détenant une technologie nanorobotique dévastatrice.",
+        description: "James Bond has left active service. His peace is short-lived when Felix Leiter, an old friend from the CIA, turns up asking for help, leading Bond onto the trail of a mysterious villain armed with dangerous new technology.",
         gradient: "from-neutral-900 via-zinc-900 to-indigo-950/30",
         accentColor: "text-slate-200 border-slate-300/30 bg-slate-300/10",
         accentHex: "#e2e8f0",
         symbol: "🚤🧬🥀",
-        tagline: "L'adieu triomphal du commandant Bond."
+        tagline: "The triumphant farewell of Commander Bond."
       }
     ]
   },
@@ -831,12 +831,12 @@ export const COLLECTIONS: Collection[] = [
         director: "James Cameron",
         cast: ["Arnold Schwarzenegger", "Linda Hamilton", "Michael Biehn"],
         genre: ["Science Fiction", "Action"],
-        description: "En 1984, un tueur cybernétique froid conçu par Skynet – le T-800 – est envoyé depuis l'an 2029 pour éliminer Sarah Connor, dont le futur fils John mènera victorieusement l'humanité face aux machines.",
+        description: "In 1984, a cold cybernetic assassin created by Skynet - the T-800 - is sent from 2029 to kill Sarah Connor, whose unborn son John will lead humanity to victory in a future war against the machines.",
         gradient: "from-blue-950/50 via-neutral-900 to-slate-900",
         accentColor: "text-blue-400 border-blue-400/30 bg-blue-400/10",
         accentHex: "#60a5fa",
         symbol: "🕶️🏍️🚨",
-        tagline: "Je reviendrai."
+        tagline: "I'll be back."
       },
       {
         id: "terminator-2",
@@ -847,7 +847,7 @@ export const COLLECTIONS: Collection[] = [
         director: "James Cameron",
         cast: ["Arnold Schwarzenegger", "Linda Hamilton", "Edward Furlong", "Robert Patrick"],
         genre: ["Science Fiction", "Action"],
-        description: "Un reprogrammé T-800 musclé est envoyé par la résistance humaine pour protéger l'enfance turbulente de John Connor contre un nouveau cyborg à métal liquide hautement avancé et presque indestructible : le T-1000.",
+        description: "A reprogrammed muscular T-800 is sent by the human resistance to protect a young John Connor from a highly advanced and nearly indestructible liquid metal cyborg: the T-1000.",
         gradient: "from-blue-950 via-zinc-900 to-amber-950/10",
         accentColor: "text-cyan-400 border-cyan-400/30 bg-cyan-400/10",
         accentHex: "#22d3ee",
@@ -863,12 +863,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Jonathan Mostow",
         cast: ["Arnold Schwarzenegger", "Nick Stahl", "Claire Danes", "Kristanna Loken"],
         genre: ["Science Fiction", "Action"],
-        description: "John Connor vit désormais tapi à l'écart du monde pour échapper à toute menace. Malheureusement, Skynet parvient à envoyer la redoutable T-X, un agent assassin surpuissant, tandis qu'un T-850 vieillissant fait barrage.",
+        description: "John Connor now lives off the grid to avoid detection. Unfortunately, Skynet manages to send the formidable T-X, a superpowered assassin, while an aging T-850 attempts to protect him.",
         gradient: "from-neutral-900 via-stone-900 to-red-950/30",
         accentColor: "text-red-400 border-red-400/30 bg-red-400/10",
         accentHex: "#f87171",
         symbol: "🔌💥👩‍🎤",
-        tagline: "Le réveil de la fin du monde."
+        tagline: "The awakening of the end of the world."
       },
       {
         id: "terminator-4",
@@ -879,12 +879,12 @@ export const COLLECTIONS: Collection[] = [
         director: "McG",
         cast: ["Christian Bale", "Sam Worthington", "Moon Bloodgood", "Helena Bonham Carter"],
         genre: ["Science Fiction", "Action", "War"],
-        description: "En 2018, après le cataclysme du Jugement Dernier, John Connor mène avec acharnement la résistance humaine. Il est confronté à Marcus Wright, un mystérieux condamné à mort cybernétique persuadé d'être resté humain.",
+        description: "In 2018, after the cataclysm of Judgment Day, John Connor relentlessly leads the human resistance. He is confronted by Marcus Wright, a mysterious cybernetic death row inmate who believes he is still human.",
         gradient: "from-neutral-900 via-stone-950 to-neutral-800",
         accentColor: "text-emerald-400 border-emerald-400/30 bg-emerald-400/10",
         accentHex: "#34d399",
         symbol: "🛩️⚙️🤖",
-        tagline: "Le début de la fin pour Skynet."
+        tagline: "The beginning of the end for Skynet."
       },
       {
         id: "terminator-5",
@@ -895,12 +895,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Alan Taylor",
         cast: ["Arnold Schwarzenegger", "Jason Clarke", "Emilia Clarke", "Jai Courtney"],
         genre: ["Science Fiction", "Action"],
-        description: "En envoyant Kyle Reese en 1984 pour sauver Sarah, John déclenche une distorsion temporelle. Reese atterrit ainsi dans un passé fracturé où Sarah Connor, élevée par un T-800 protecteur, est déjà une combattante aguerrie.",
+        description: "By sending Kyle Reese back to 1984 to save Sarah, John triggers a temporal distortion. Reese arrives in a fractured past where Sarah Connor, raised by a protective T-800, is already a seasoned fighter.",
         gradient: "from-indigo-950/30 via-neutral-900 to-slate-950",
         accentColor: "text-purple-400 border-purple-400/30 bg-purple-400/10",
         accentHex: "#c084fc",
         symbol: "🧭🌀🛡️",
-        tagline: "Réinitialisez le futur."
+        tagline: "Reset the future."
       },
       {
         id: "terminator-6",
@@ -911,12 +911,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Tim Miller",
         cast: ["Linda Hamilton", "Arnold Schwarzenegger", "Mackenzie Davis", "Natalia Reyes"],
         genre: ["Science Fiction", "Action"],
-        description: "Près de trente ans après le salut mondial mené par Sarah Connor, une humaine augmentée débarque pour escorter une jeune ouvrière mexicaine traquée par un prototype de Terminator ultra-avancé séparable, le Rev-9.",
+        description: "Nearly thirty years after Sarah Connor saved the world, an augmented human arrives to protect a young Mexican factory worker hunted by a highly advanced, separable Terminator prototype, the Rev-9.",
         gradient: "from-zinc-900 via-neutral-900 to-rose-950/20",
         accentColor: "text-rose-500 border-rose-500/30 bg-rose-500/10",
         accentHex: "#f43f5e",
         symbol: "🌪️💀🔫",
-        tagline: "Bienvenue au lendemain du jour fatidique."
+        tagline: "Welcome to the day after Judgment Day."
       }
     ]
   },
@@ -934,12 +934,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Rob Cohen",
         cast: ["Vin Diesel", "Paul Walker", "Michelle Rodriguez", "Jordana Brewster"],
         genre: ["Action", "Thriller"],
-        description: "Un flic infiltré de Los Angeles pénètre le milieu des courses de rue nocturnes à hauts risques pour démanteler un gang d'audacieux braqueurs de camions.",
+        description: "An undercover LA cop infiltrates the high-stakes underground street racing scene to dismantle a gang of daring truck hijackers.",
         gradient: "from-neutral-900 via-orange-950/45 to-neutral-950",
         accentColor: "text-orange-400 border-orange-500/30 bg-orange-500/10",
         accentHex: "#fb923c",
         symbol: "🚗💨🔥",
-        tagline: "Si vous avez ce qu'il faut, vous pouvez tout avoir."
+        tagline: "If you have what it takes, you can have it all."
       },
       {
         id: "fast-2",
@@ -950,12 +950,12 @@ export const COLLECTIONS: Collection[] = [
         director: "John Singleton",
         cast: ["Paul Walker", "Tyrese Gibson", "Eva Mendes", "Cole Hauser"],
         genre: ["Action", "Thriller"],
-        description: "Brian O'Conner fait équipe avec son ami d'enfance Roman Pearce pour faire tomber un parrain de la drogue à Miami en échange du blanchiment de leur casier.",
+        description: "Brian O'Conner teams up with his childhood friend Roman Pearce to take down a drug lord in Miami in exchange for a clean record.",
         gradient: "from-neutral-900 via-blue-950/45 to-neutral-950",
         accentColor: "text-blue-400 border-blue-500/30 bg-blue-500/10",
         accentHex: "#60a5fa",
         symbol: "⚡🏙️🏎️",
-        tagline: "Trop rapide pour la police, trop furieux pour le monde."
+        tagline: "Too fast for the police, too furious for the world."
       },
       {
         id: "fast-3",
@@ -966,12 +966,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Justin Lin",
         cast: ["Lucas Black", "Bow Wow", "Sung Kang", "Brian Tee"],
         genre: ["Action", "Thriller"],
-        description: "Envoyé à Tokyo chez son père, Sean Boswell s'immerge dans l'univers clandestin et hyper-stylisé du drift de rue japonais.",
+        description: "Sent to Tokyo to live with his father, Sean Boswell immerses himself in the clandestine and hyper-stylized world of Japanese street drifting.",
         gradient: "from-neutral-900 via-red-950/45 to-amber-950/20",
         accentColor: "text-red-400 border-red-400/30 bg-red-400/10",
         accentHex: "#f87171",
         symbol: "🇯🇵🌀🏁",
-        tagline: "Bienvenue dans le berceau de la glisse."
+        tagline: "Welcome to the cradle of drifting."
       },
       {
         id: "fast-4",
@@ -982,12 +982,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Justin Lin",
         cast: ["Vin Diesel", "Paul Walker", "Michelle Rodriguez", "Jordana Brewster"],
         genre: ["Action", "Thriller"],
-        description: "De retour à Los Angeles, Dominic Toretto et l'agent Brian O'Conner s'associent pour infiltrer de l'intérieur un impitoyable cartel mexicain de drogue.",
+        description: "Back in Los Angeles, Dominic Toretto and agent Brian O'Conner team up to infiltrate a ruthless Mexican drug cartel from within.",
         gradient: "from-neutral-900 via-zinc-800/40 to-neutral-950",
         accentColor: "text-zinc-300 border-zinc-700 bg-zinc-800/10",
         accentHex: "#d4d4d8",
         symbol: "🏜️🔧💪",
-        tagline: "Nouveau modèle. Pièces d'origine."
+        tagline: "New model. Original parts."
       },
       {
         id: "fast-5",
@@ -998,12 +998,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Justin Lin",
         cast: ["Vin Diesel", "Paul Walker", "Dwayne Johnson", "Jordana Brewster"],
         genre: ["Action", "Thriller"],
-        description: "Toretto et sa famille de pilotes préparent le casse ultime de 100 millions de dollars à Rio, pourchassés par le colossal agent Luke Hobbs.",
+        description: "Toretto and his family of drivers plan the ultimate $100 million heist in Rio, pursued by the colossal agent Luke Hobbs.",
         gradient: "from-neutral-900 via-amber-955/45 to-neutral-950",
         accentColor: "text-amber-400 border-amber-500/30 bg-amber-500/10",
         accentHex: "#fbbf24",
         symbol: "🇧🇷🪙🚔",
-        tagline: "La vitesse a son prix. La famille n'en a pas."
+        tagline: "Speed has a price. Family does not."
       },
       {
         id: "fast-6",
@@ -1014,12 +1014,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Justin Lin",
         cast: ["Vin Diesel", "Paul Walker", "Dwayne Johnson", "Michelle Rodriguez"],
         genre: ["Action", "Thriller"],
-        description: "L'agent Hobbs sollicite l'aide de l'équipe de Toretto pour traquer des mercenaires à Londres en échange de l'annulation complète de tous leurs délits.",
+        description: "Agent Hobbs enlists the help of Toretto's team to track down mercenaries in London in exchange for full pardons for their crimes.",
         gradient: "from-neutral-900 via-indigo-955/45 to-neutral-950",
         accentColor: "text-indigo-400 border-indigo-400/30 bg-indigo-400/10",
         accentHex: "#818cf8",
         symbol: "🇬🇧✈️💥",
-        tagline: "Tous les chemins mènent au même carrefour."
+        tagline: "All roads lead to the same crossroads."
       },
       {
         id: "fast-7",
@@ -1030,12 +1030,12 @@ export const COLLECTIONS: Collection[] = [
         director: "James Wan",
         cast: ["Vin Diesel", "Paul Walker", "Dwayne Johnson", "Jason Statham"],
         genre: ["Action", "Thriller"],
-        description: "L'équipe fait face à Deckard Shaw, un assassin impitoyable assoiffé de vengeance bien décidé à éliminer la famille Toretto, un par un.",
+        description: "The crew faces Deckard Shaw, a ruthless assassin out for revenge, determined to take out the Toretto family one by one.",
         gradient: "from-neutral-900 via-rose-955/45 to-stone-900",
         accentColor: "text-rose-450 border-rose-450/30 bg-rose-450/10",
         accentHex: "#f43f5e",
         symbol: "🏙️🪂🥀",
-        tagline: "Un dernier tour de piste pour la légende de Paul."
+        tagline: "One last ride for Paul's legend."
       },
       {
         id: "fast-8",
@@ -1046,12 +1046,12 @@ export const COLLECTIONS: Collection[] = [
         director: "F. Gary Gray",
         cast: ["Vin Diesel", "Dwayne Johnson", "Charlize Theron", "Jason Statham"],
         genre: ["Action", "Thriller"],
-        description: "Une cyber-terroriste mystérieuse manipule Dom pour qu'il trahisse sa propre famille, forçant l'équipe de survivants à coopérer avec Deckard Shaw.",
+        description: "A mysterious cyber-terrorist manipulates Dom into betraying his own family, forcing the surviving team to cooperate with Deckard Shaw.",
         gradient: "from-neutral-900 via-cyan-955/45 to-neutral-950",
         accentColor: "text-cyan-400 border-cyan-400/30 bg-cyan-400/10",
         accentHex: "#22d3ee",
         symbol: "❄️🛰️🛥️",
-        tagline: "Ne jamais tourner le dos à la famille."
+        tagline: "Never turn your back on family."
       },
       {
         id: "fast-9",
@@ -1062,12 +1062,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Justin Lin",
         cast: ["Vin Diesel", "Michelle Rodriguez", "John Cena", "Tyrese Gibson"],
         genre: ["Action", "Thriller"],
-        description: "Dom doit faire face aux secrets douloureux de son passé lorsque son frère Jakob, renié depuis longtemps et assassin de choc, reparaît.",
+        description: "Dom must face the painful secrets of his past when his long-estranged brother Jakob, a master assassin, resurfaces.",
         gradient: "from-neutral-900 via-emerald-955/45 to-neutral-950",
         accentColor: "text-emerald-400 border-emerald-400/30 bg-emerald-400/10",
         accentHex: "#34d399",
         symbol: "🧲🚀🏔️",
-        tagline: "La justice accélère."
+        tagline: "Justice is fast."
       },
       {
         id: "fast-10",
@@ -1078,12 +1078,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Louis Leterrier",
         cast: ["Vin Diesel", "Michelle Rodriguez", "Jason Momoa", "John Cena"],
         genre: ["Action", "Thriller"],
-        description: "L'équipe de Dom est la cible de Dante Reyes, le fils rancunier d'un défunt baron de la drogue brésilien bien décidé à détruire tout ce à quoi Dom tient.",
+        description: "Dom's crew is targeted by Dante Reyes, the vengeful son of a deceased Brazilian drug lord determined to destroy everything Dom cares about.",
         gradient: "from-neutral-905 via-teal-955/45 to-slate-900",
         accentColor: "text-teal-400 border-teal-400/30 bg-teal-400/10",
         accentHex: "#2dd4bf",
         symbol: "💥💣🏛️",
-        tagline: "La fin du chemin commence."
+        tagline: "The end of the road begins."
       }
     ]
   },
@@ -1101,12 +1101,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Francis Ford Coppola",
         cast: ["Marlon Brando", "Al Pacino", "James Caan", "Diane Keaton"],
         genre: ["Crime", "Drama"],
-        description: "Le patriarche vieillissant d'une dynastie du crime organisé transfère le contrôle de son empire clandestin à son fils réticent.",
+        description: "The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.",
         gradient: "from-amber-950 via-stone-900 to-black",
         accentColor: "text-amber-500 border-amber-500/30 bg-amber-500/10",
         accentHex: "#f59e0b",
         symbol: "🌹🥃🔫",
-        tagline: "Une offre qu'on ne peut pas refuser."
+        tagline: "An offer you can't refuse."
       },
       {
         id: "goodfellas",
@@ -1117,12 +1117,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Martin Scorsese",
         cast: ["Robert De Niro", "Ray Liotta", "Joe Pesci", "Lorraine Bracco"],
         genre: ["Biography", "Crime", "Drama"],
-        description: "L'histoire de Henry Hill et de sa vie au sein de la mafia, couvrant sa relation avec sa femme Karen Hill et ses partenaires mafieux Jimmy Conway et Tommy DeVito.",
+        description: "The story of Henry Hill and his life in the mafia, covering his relationship with his wife Karen Hill and his mob partners Jimmy Conway and Tommy DeVito.",
         gradient: "from-red-950 via-neutral-900 to-stone-950",
         accentColor: "text-red-500 border-red-500/30 bg-red-500/10",
         accentHex: "#ef4444",
         symbol: "🍝🔫🚁",
-        tagline: "Aussi loin que je me souvienne, j'ai toujours voulu être un gangster."
+        tagline: "As far back as I can remember, I always wanted to be a gangster."
       },
       {
         id: "scarface",
@@ -1133,12 +1133,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Brian De Palma",
         cast: ["Al Pacino", "Michelle Pfeiffer", "Steven Bauer", "Mary Elizabeth Mastrantonio"],
         genre: ["Crime", "Drama"],
-        description: "En 1980, un immigrant cubain arrive à Miami sans rien et finit par devenir un puissant caïd de la drogue.",
+        description: "In 1980, a Cuban immigrant arrives in Miami with nothing and eventually becomes a powerful drug kingpin.",
         gradient: "from-slate-900 via-rose-950/40 to-black",
         accentColor: "text-rose-500 border-rose-500/30 bg-rose-500/10",
         accentHex: "#f43f5e",
         symbol: "💰🌴🔫",
-        tagline: "Le monde est à toi."
+        tagline: "The world is yours."
       },
     {
         id: "godfather-2",
@@ -1149,12 +1149,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Francis Ford Coppola",
         cast: ["Al Pacino", "Robert De Niro", "Robert Duvall", "Diane Keaton"],
         genre: ["Crime", "Drama"],
-        description: "L'histoire de la famille Corleone continue avec Vito Corleone construisant son empire et Michael Corleone le gérant dans les années 1950.",
+        description: "The story of the Corleone family continues with Vito Corleone building his empire and Michael Corleone managing it in the 1950s.",
         gradient: "from-amber-950 via-stone-900 to-black",
         accentColor: "text-amber-500 border-amber-500/30 bg-amber-500/10",
         accentHex: "#f59e0b",
         symbol: "🌹🥃🔫",
-        tagline: "Gardez vos amis proches, mais vos ennemis encore plus proches."
+        tagline: "Keep your friends close, but your enemies closer."
       },
       {
         id: "godfather-3",
@@ -1165,12 +1165,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Francis Ford Coppola",
         cast: ["Al Pacino", "Diane Keaton", "Andy Garcia", "Talia Shire"],
         genre: ["Crime", "Drama"],
-        description: "Michael Corleone tente de légitimer les affaires de sa famille, mais est rattrapé par les péchés de son passé.",
+        description: "Michael Corleone attempts to legitimize his family's business but is pulled back in by the sins of his past.",
         gradient: "from-amber-950 via-stone-900 to-black",
         accentColor: "text-amber-500 border-amber-500/30 bg-amber-500/10",
         accentHex: "#f59e0b",
         symbol: "🌹🥃🔫",
-        tagline: "Juste au moment où je pensais être dehors... ils me ramènent dedans."
+        tagline: "Just when I thought I was out... they pull me back in."
       },
       {
         id: "irishman",
@@ -1181,12 +1181,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Martin Scorsese",
         cast: ["Robert De Niro", "Al Pacino", "Joe Pesci", "Harvey Keitel"],
         genre: ["Biography", "Crime", "Drama"],
-        description: "Frank Sheeran, un ancien combattant de la Seconde Guerre mondiale, escroc et tueur à gages, revient sur son passé.",
+        description: "Frank Sheeran, a WWII veteran, hustler, and hitman, looks back on his past.",
         gradient: "from-zinc-900 via-neutral-900 to-stone-950",
         accentColor: "text-zinc-400 border-zinc-400/30 bg-zinc-400/10",
         accentHex: "#a1a1aa",
         symbol: "🇮🇪🔫👴",
-        tagline: "J'ai entendu dire que tu peignais des maisons."
+        tagline: "I heard you paint houses."
       },
       {
         id: "american-gangster",
@@ -1197,12 +1197,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Ridley Scott",
         cast: ["Denzel Washington", "Russell Crowe", "Chiwetel Ejiofor", "Josh Brolin"],
         genre: ["Biography", "Crime", "Drama"],
-        description: "Un flic de New York est chargé de faire tomber le plus grand baron de la drogue de la ville.",
+        description: "A New York cop is tasked with taking down the city's biggest drug lord.",
         gradient: "from-stone-900 via-neutral-900 to-black",
         accentColor: "text-stone-400 border-stone-400/30 bg-stone-400/10",
         accentHex: "#a8a29e",
         symbol: "🚔❄️💰",
-        tagline: "Il y a des flics pourris, et des gangsters honnêtes."
+        tagline: "There are dirty cops, and honest gangsters."
       },
       {
         id: "casino",
@@ -1213,12 +1213,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Martin Scorsese",
         cast: ["Robert De Niro", "Sharon Stone", "Joe Pesci", "James Woods"],
         genre: ["Crime", "Drama"],
-        description: "L'histoire de l'ambition aveugle et de la cupidité qui ont mené à la chute d'un empire du jeu mafieux.",
+        description: "The story of the blind ambition and greed that led to the fall of a mafia gambling empire.",
         gradient: "from-yellow-950 via-stone-900 to-black",
         accentColor: "text-yellow-500 border-yellow-500/30 bg-yellow-500/10",
         accentHex: "#eab308",
         symbol: "🎰🎲💼",
-        tagline: "Personne ne reste éternellement au sommet."
+        tagline: "No one stays at the top forever."
       }
     ]
   },
@@ -1236,12 +1236,12 @@ export const COLLECTIONS: Collection[] = [
         director: "David Fincher",
         cast: ["Brad Pitt", "Morgan Freeman", "Gwyneth Paltrow", "Kevin Spacey"],
         genre: ["Crime", "Drama", "Mystery"],
-        description: "Deux détectives, un vétéran et une recrue, traquent un tueur en série dont les crimes sont basés sur les sept péchés capitaux.",
+        description: "Two detectives, a rookie and a veteran, hunt a serial killer who uses the seven deadly sins as his motives.",
         gradient: "from-stone-900 via-yellow-950/20 to-black",
         accentColor: "text-stone-400 border-stone-400/30 bg-stone-400/10",
         accentHex: "#a8a29e",
         symbol: "📦🌧️🔍",
-        tagline: "Qu'est-ce qu'il y a dans la boîte ?"
+        tagline: "What's in the box?"
       },
       {
         id: "memento",
@@ -1252,12 +1252,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Christopher Nolan",
         cast: ["Guy Pearce", "Carrie-Anne Moss", "Joe Pantoliano", "Mark Boone Junior"],
         genre: ["Mystery", "Thriller"],
-        description: "Un homme souffrant d'amnésie antérograde (perte de la mémoire à court terme) utilise des notes et des tatouages pour traquer le meurtrier de sa femme.",
+        description: "A man suffering from anterograde amnesia uses notes and tattoos to hunt for the man he thinks killed his wife.",
         gradient: "from-slate-900 via-indigo-950/30 to-black",
         accentColor: "text-indigo-400 border-indigo-400/30 bg-indigo-400/10",
         accentHex: "#818cf8",
         symbol: "📸🖊️🧠",
-        tagline: "Certains souvenirs sont meilleurs oubliés."
+        tagline: "Some memories are best forgotten."
       },
       {
         id: "zodiac",
@@ -1268,12 +1268,12 @@ export const COLLECTIONS: Collection[] = [
         director: "David Fincher",
         cast: ["Jake Gyllenhaal", "Robert Downey Jr.", "Mark Ruffalo", "Anthony Edwards"],
         genre: ["Crime", "Drama", "Mystery"],
-        description: "L'histoire vraie de la traque du tueur du Zodiaque, un meurtrier en série qui terrorisa la baie de San Francisco à la fin des années 60 et 70.",
+        description: "The true story of the hunt for the Zodiac Killer, a serial killer who terrorized the San Francisco Bay Area in the late 1960s and 70s.",
         gradient: "from-stone-950 via-zinc-900 to-black",
         accentColor: "text-zinc-400 border-zinc-400/30 bg-zinc-400/10",
         accentHex: "#a1a1aa",
         symbol: "🗞️🕵️‍♂️✉️",
-        tagline: "Il n'y a pas de fin à l'obsession."
+        tagline: "There is no end to obsession."
       },
       {
         id: "prisoners",
@@ -1284,12 +1284,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Denis Villeneuve",
         cast: ["Hugh Jackman", "Jake Gyllenhaal", "Viola Davis", "Maria Bello"],
         genre: ["Crime", "Drama", "Mystery"],
-        description: "Lorsque la fille de Keller Dover est kidnappée avec son amie, il prend les choses en main alors que la police explore de multiples pistes sans succès.",
+        description: "When Keller Dover's daughter and her friend go missing, he takes matters into his own hands as the police pursue multiple leads and the pressure mounts.",
         gradient: "from-neutral-950 via-stone-900 to-black",
         accentColor: "text-stone-300 border-stone-300/30 bg-stone-300/10",
         accentHex: "#d6d3d1",
         symbol: "❄️🚐🔎",
-        tagline: "Chaque moment compte."
+        tagline: "Every moment counts."
       }
     ]
   },
@@ -1307,12 +1307,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Christopher Nolan",
         cast: ["Christian Bale", "Michael Caine", "Liam Neeson", "Katie Holmes"],
         genre: ["Action", "Crime", "Drama"],
-        description: "Après s'être entraîné avec son mentor, Bruce Wayne entame son combat pour libérer Gotham City de la corruption.",
+        description: "After training with his mentor, Bruce Wayne begins his fight to free crime-ridden Gotham City from corruption.",
         gradient: "from-zinc-950 via-neutral-900 to-black",
         accentColor: "text-zinc-500 border-zinc-500/30 bg-zinc-500/10",
         accentHex: "#71717a",
         symbol: "🦇🌃🥷",
-        tagline: "Le mythe commence."
+        tagline: "The myth begins."
       },
       {
         id: "the-dark-knight",
@@ -1323,12 +1323,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Christopher Nolan",
         cast: ["Christian Bale", "Heath Ledger", "Aaron Eckhart", "Michael Caine"],
         genre: ["Action", "Crime", "Drama"],
-        description: "Lorsque la menace connue sous le nom du Joker sème le chaos sur les habitants de Gotham, Batman doit accepter l'un des plus grands tests psychologiques et physiques de sa capacité à combattre l'injustice.",
+        description: "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.",
         gradient: "from-zinc-900 via-neutral-900 to-black",
         accentColor: "text-purple-500 border-purple-500/30 bg-purple-500/10",
         accentHex: "#a855f7",
         symbol: "🦇🃏🔥",
-        tagline: "Pourquoi cet air si sérieux ?"
+        tagline: "Why so serious?"
       },
       {
         id: "the-dark-knight-rises",
@@ -1339,12 +1339,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Christopher Nolan",
         cast: ["Christian Bale", "Tom Hardy", "Anne Hathaway", "Gary Oldman"],
         genre: ["Action", "Crime", "Drama"],
-        description: "Huit ans après les événements du Joker, le terroriste Bane force Bruce Wayne à reprendre du service en tant que Batman.",
+        description: "Eight years after the Joker's reign of anarchy, Batman, with the help of the enigmatic Catwoman, is forced from his exile to save Gotham City from the brutal guerrilla terrorist Bane.",
         gradient: "from-stone-900 via-neutral-900 to-black",
         accentColor: "text-stone-400 border-stone-400/30 bg-stone-400/10",
         accentHex: "#a8a29e",
         symbol: "🦇💪🔥",
-        tagline: "La fin d'une légende."
+        tagline: "The end of a legend."
       },
       {
         id: "the-batman-2022",
@@ -1355,12 +1355,12 @@ export const COLLECTIONS: Collection[] = [
         director: "Matt Reeves",
         cast: ["Robert Pattinson", "Zoë Kravitz", "Paul Dano", "Colin Farrell"],
         genre: ["Action", "Crime", "Drama"],
-        description: "Lorsqu'un tueur en série s'attaque à l'élite de Gotham avec une série d'intrigues sadiques, une piste d'indices cryptiques envoie le plus grand détective du monde dans une enquête.",
+        description: "When a sadistic serial killer begins murdering key political figures in Gotham, Batman is forced to investigate the city's hidden corruption and question his family's involvement.",
         gradient: "from-red-950/40 via-neutral-900 to-black",
         accentColor: "text-red-600 border-red-600/30 bg-red-600/10",
         accentHex: "#dc2626",
         symbol: "🦇❓🌧️",
-        tagline: "Démasquez la vérité."
+        tagline: "Unmask the truth."
       }
     ]
   }

@@ -1438,7 +1438,7 @@ export default function App() {
       {/* ========================================================== */}
       {/* 1. FIXED GLASS HEADER BAR                                 */}
       {/* ========================================================== */}
-      <header className={`fixed top-0 left-0 right-0 z-[9999] transition-all duration-300 ease-in-out border-b ${isScrolled ? "bg-black border-white/5" : "bg-black border-transparent"}`}>
+      <header className={`fixed top-0 left-0 right-0 z-[9999] pt-[env(safe-area-inset-top)] transition-all duration-300 ease-in-out border-b ${isScrolled ? "bg-black border-white/5" : "bg-black border-transparent"}`}>
         <div className="max-w-[2000px] mx-auto px-4 sm:px-8 py-2 md:py-3.5 flex flex-row items-center justify-between gap-2.5 md:gap-4 font-sans w-full">
           
           {/* Logo CLASSICO with Metallic Gold Reflection */}
@@ -1555,7 +1555,7 @@ export default function App() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="md:hidden absolute top-16 right-4 w-48 bg-black/75 backdrop-blur-md overflow-hidden border border-white/5 rounded-2xl shadow-2xl origin-top-right"
+              className="md:hidden absolute top-[calc(100%+0.5rem)] right-4 w-48 bg-black/75 backdrop-blur-md overflow-hidden border border-white/5 rounded-2xl shadow-2xl origin-top-right"
             >
               <nav className="flex flex-col py-2 px-2 gap-1">
                 {[
@@ -1744,7 +1744,7 @@ export default function App() {
 
                       {/* Progressive cinematic bottom-to-top black gradient that separates the hero from the thematic library below */}
                       <div 
-                        className="absolute inset-0 z-10 pointer-events-none bg-[linear-gradient(to_top,#0c0a09_0%,rgba(12,10,9,0.95)_10%,rgba(12,10,9,0.75)_30%,rgba(12,10,9,0.2)_60%,transparent_100%)] md:!bg-[linear-gradient(to_top,#0c0a09_0%,rgba(12,10,9,0.95)_15%,rgba(12,10,9,0.75)_40%,rgba(12,10,9,0.2)_75%,transparent_100%)]" 
+                        className="absolute inset-0 z-10 pointer-events-none bg-[linear-gradient(to_top,#000_0%,#000_10%,rgba(0,0,0,0.9)_30%,rgba(0,0,0,0.4)_60%,transparent_100%)] md:!bg-[linear-gradient(to_top,#000_0%,#000_10%,rgba(0,0,0,0.95)_25%,rgba(0,0,0,0.6)_50%,transparent_100%)]" 
                       />
 
                       {/* Spotlight Content and Description Box with high contrast text drop-shadows */}

@@ -245,7 +245,7 @@ export default function CinemaPlayerView({
   // Mobile player initialization & on-screen logs states
   const [isInitialized, setIsInitialized] = useState(true);
   const [playerLogs, setPlayerLogs] = useState<string[]>([]);
-  const [adClicks, setAdClicks] = useState(2);
+  const [adClicks, setAdClicks] = useState(0);
 
   const addLog = (msg: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -1622,7 +1622,7 @@ export default function CinemaPlayerView({
     >
       
       {/* 1. STANDALONE CINEMA UPPER DECK (GO BACK & TITLE INFO) */}
-      <div className={`relative p-6 bg-gradient-to-b from-black/95 via-black/50 to-transparent flex items-center justify-between transition-opacity duration-300 z-50 ${
+      <div className={`relative p-6 pt-[calc(1.5rem+env(safe-area-inset-top))] bg-gradient-to-b from-black/95 via-black/50 to-transparent flex items-center justify-between transition-opacity duration-300 z-50 ${
         controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"
       } ${adClicks < 2 ? "hidden" : ""}`}>
         <div className="flex items-center gap-4">

@@ -1433,7 +1433,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-950 text-stone-100 font-sans selection:bg-amber-500 selection:text-black antialiased overflow-x-hidden font-sans">
+    <div className="min-h-screen bg-black text-stone-100 font-sans selection:bg-amber-500 selection:text-black antialiased overflow-x-hidden font-sans">
       
       {/* ========================================================== */}
       {/* 1. FIXED GLASS HEADER BAR                                 */}
@@ -1668,7 +1668,7 @@ export default function App() {
                 <HeroSkeleton />
               ) : jellyfinConfig?.configured && jellyfinHeroMovies.length > 0 && jellyfinHeroMovie ? (
                 <div 
-                  className="relative w-full h-[85vh] [@media(max-height:500px)_and_(orientation:landscape)]:h-[100vh] md:h-screen bg-stone-950 overflow-hidden flex items-end select-none"
+                  className="relative w-full h-[85vh] [@media(max-height:500px)_and_(orientation:landscape)]:h-[100vh] md:h-screen bg-black overflow-hidden flex items-end select-none"
                   onTouchStart={(e) => {
                     heroTouchStartX.current = e.touches[0].clientX;
                   }}
@@ -1859,7 +1859,7 @@ export default function App() {
                   </AnimatePresence>
 
                   {/* Carousel Dots Navigation Indicator at the bottom center */}
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30 flex items-center gap-1.5 bg-stone-950/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/5 shadow-lg">
+                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/5 shadow-lg">
                     {jellyfinHeroMovies.map((_, idx) => (
                       <button
                         key={idx}

@@ -245,7 +245,7 @@ export default function CinemaPlayerView({
   // Mobile player initialization & on-screen logs states
   const [isInitialized, setIsInitialized] = useState(true);
   const [playerLogs, setPlayerLogs] = useState<string[]>([]);
-  const [adClicks, setAdClicks] = useState(0);
+  const [adClicks, setAdClicks] = useState(2);
 
   const addLog = (msg: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -1677,7 +1677,7 @@ export default function CinemaPlayerView({
             muted={muted}
             preload="auto"
             crossOrigin="anonymous"
-            className="w-full h-full bg-black portrait:object-contain landscape:object-cover max-h-screen"
+            className="w-full h-full bg-black object-contain "
             onPlay={() => {
               trackEventFired("play", "Événement play");
             }}

@@ -3,7 +3,7 @@ import Hls from "hls.js";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Languages, 
-  Maximize2, ArrowLeft, Loader2, Sparkles, AlertCircle, Captions, Lock, Airplay, Menu, Cast, Settings, ChevronRight, ChevronLeft
+  Maximize2, ArrowLeft, Loader2, Sparkles, AlertCircle, Captions, Lock, Menu, Cast, Settings, ChevronRight, ChevronLeft
 } from "lucide-react";
 
 interface JfSubtitleCue {
@@ -1336,7 +1336,18 @@ export default function CinemaPlayerView({
       // Si mode === "Transcoding / HLS", initialiser Hls.js s'il est supporté
       console.log(`[CONCURRENCY] Initialisation asynchrone de Hls.js lancée en parallèle du téléchargement du sous-titre pour : ${playbackInfo.title}`);
       addLog("Stream attached (HLS)");
-      if (Hls.isSupported()) {
+      // Detect Apple devices to prioritize native HLS for AirPlay support
+      const isApple = /Mac|iPod|iPhone|iPad/.test(navigator.platform) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      const preferNativeHLS = (isApple || isSafari) && video.canPlayType("application/vnd.apple.mpegurl");
+
+      if (preferNativeHLS) {
+        // Native support (Safari iOS/macOS) prioritizes AirPlay compatibility
+        console.log("[STREAM LOAD] Lecture native HLS activée (priorité Apple/Safari pour AirPlay)");
+        logChrono("Attribution du src vidéo");
+        video.src = playbackInfo.streamUrl;
+        video.load();
+      } else if (Hls.isSupported()) {
         if (hlsRef.current) {
           console.warn("[HLS CONTROLLER] Destroying previous HLS player instance to prevent double instantiation.");
           console.trace("[PLAYER STATE CHANGE]", {
@@ -1447,17 +1458,16 @@ export default function CinemaPlayerView({
             setIsMetadataLoaded(false);
           }
         });
-      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        // Native support (Safari iOS/macOS)
-        console.log("[STREAM LOAD] Lecture native HLS activée (Safari)");
-        logChrono("Attribution du src vidéo");
-        video.src = playbackInfo.streamUrl;
-        video.load();
       } else {
-        // Fallback
-        console.log("[STREAM LOAD] Fallback HLS non supporté au niveau du navigateur");
+        // Fallback Native HLS if Hls.js is not supported but native is
+        if (video.canPlayType("application/vnd.apple.mpegurl")) {
+            console.log("[STREAM LOAD] Lecture native HLS activée (Fallback)");
+            video.src = playbackInfo.streamUrl;
+        } else {
+            console.log("[STREAM LOAD] Fallback HLS non supporté au niveau du navigateur");
+            video.src = playbackInfo.streamUrl;
+        }
         logChrono("Attribution du src vidéo");
-        video.src = playbackInfo.streamUrl;
         video.load();
       }
     }
@@ -2023,39 +2033,28 @@ export default function CinemaPlayerView({
           </div>
           {/* RIGHT SIDE: DIAGNOSTICS & FULLSCREEN */}
           <div className="flex items-center gap-3">
-            {/* Cast Button */}
+            {/* Cast / AirPlay Unified Button */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                if (videoRef.current && (videoRef.current as any).remote && (videoRef.current as any).remote.prompt) {
-                  (videoRef.current as any).remote.prompt().catch((err: any) => {
+                const video = videoRef.current as any;
+                if (!video) return;
+                
+                if (video.webkitShowPlaybackTargetPicker) {
+                  video.webkitShowPlaybackTargetPicker();
+                } else if (video.remote && video.remote.prompt) {
+                  video.remote.prompt().catch((err: any) => {
                     console.log("Cast prompt error:", err);
                     alert("Impossible de démarrer le casting. Veuillez vérifier votre appareil.");
                   });
                 } else {
-                  alert("Le casting (Chromecast) n'est pas supporté directement sur ce navigateur ou aucune cible n'est disponible.");
+                  alert("Le casting n'est pas supporté directement sur ce navigateur.");
                 }
               }}
               className="p-1.5 text-zinc-500 hover:text-white active:scale-95 transition-all cursor-pointer"
               title="Caster l'écran"
             >
               <Cast className="w-5 h-5" />
-            </button>
-
-            {/* AirPlay Control */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (videoRef.current && (videoRef.current as any).webkitShowPlaybackTargetPicker) {
-                  (videoRef.current as any).webkitShowPlaybackTargetPicker();
-                } else {
-                  alert("AirPlay n'est pas supporté sur ce navigateur (nécessite Safari).");
-                }
-              }}
-              className="p-1.5 text-zinc-500 hover:text-white active:scale-95 transition-all cursor-pointer"
-              title="AirPlay"
-            >
-              <Airplay className="w-5 h-5" />
             </button>
 
             {/* Unified Settings Menu */}

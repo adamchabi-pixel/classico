@@ -1,16 +1,49 @@
-with open('server.ts', 'r') as f:
-    text = f.read()
-
 import re
 
-# Add TranscodingMaxAudioChannels to the urlObj block
-pattern = re.compile(r'urlObj\.searchParams\.set\("VideoCodec", "h264"\);\s*urlObj\.searchParams\.set\("AudioCodec", "aac"\);', re.DOTALL)
-replacement = """urlObj.searchParams.set("VideoCodec", "h264");
-      urlObj.searchParams.set("AudioCodec", "aac");
-      urlObj.searchParams.set("TranscodingMaxAudioChannels", "2");"""
+with open('src/components/CinemaPlayerView.tsx', 'r') as f:
+    text = f.read()
 
-text = pattern.sub(replacement, text)
+old_code = """      if (Hls.isSupported()) {
+        if (hlsRef.current) {"""
 
-with open('server.ts', 'w') as f:
+new_code = """      // Detect Apple devices to prioritize native HLS for AirPlay support
+      const isApple = /Mac|iPod|iPhone|iPad/.test(navigator.platform) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      const preferNativeHLS = (isApple || isSafari) && video.canPlayType("application/vnd.apple.mpegurl");
+
+      if (preferNativeHLS) {
+        // Native support (Safari iOS/macOS) prioritizes AirPlay compatibility
+        console.log("[STREAM LOAD] Lecture native HLS activée (priorité Apple/Safari pour AirPlay)");
+        logChrono("Attribution du src vidéo");
+        video.src = playbackInfo.streamUrl;
+        video.load();
+      } else if (Hls.isSupported()) {
+        if (hlsRef.current) {"""
+
+text = text.replace(old_code, new_code)
+
+old_fallback = """      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        // Native support (Safari iOS/macOS)
+        console.log("[STREAM LOAD] Lecture native HLS activée (Safari)");
+        logChrono("Attribution du src vidéo");
+        video.src = playbackInfo.streamUrl;
+        video.load();
+      } else {"""
+
+new_fallback = """      } else {
+        // Fallback Native HLS if Hls.js is not supported but native is
+        if (video.canPlayType("application/vnd.apple.mpegurl")) {
+            console.log("[STREAM LOAD] Lecture native HLS activée (Fallback)");
+            video.src = playbackInfo.streamUrl;
+        } else {
+            console.log("[STREAM LOAD] Fallback HLS non supporté au niveau du navigateur");
+            video.src = playbackInfo.streamUrl;
+        }
+        logChrono("Attribution du src vidéo");
+        video.load();
+      }"""
+
+text = text.replace(old_fallback, new_fallback)
+
+with open('src/components/CinemaPlayerView.tsx', 'w') as f:
     f.write(text)
-

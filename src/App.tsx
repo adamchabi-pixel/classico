@@ -7,10 +7,8 @@ import {
   Star, CheckCircle, AlertCircle, RefreshCw, X, Shield, Menu
 } from "lucide-react";
 import { COLLECTIONS as RAW_COLLECTIONS, Movie, Collection } from "./data";
+const COLLECTIONS: Collection[] = [...RAW_COLLECTIONS].sort((a, b) => { if (a.id === "trending-now") return -1; if (b.id === "trending-now") return 1; return a.title.localeCompare(b.title); });
 
-const COLLECTIONS: Collection[] = [...RAW_COLLECTIONS].sort((a, b) => 
-  a.title.localeCompare(b.title)
-);
 import MovieCard from "./components/MovieCard";
 import MovieModal from "./components/MovieModal";
 import MovieDetailView from "./components/MovieDetailView";
@@ -785,9 +783,16 @@ export default function App() {
               year: match.year || movie.year,
               originalTitle: match.originalTitle || movie.originalTitle,
               studios: match.studios || movie.studios,
-              director: match.director || movie.director,
-              genre: match.genre || movie.genre
+              director: movie.director || match.director,
+              genre: (movie.genre && movie.genre.length > 0) ? movie.genre : match.genre,
+              description: movie.description || match.description,
+              cast: (movie.cast && movie.cast.length > 0) ? movie.cast : match.cast,
+              tagline: movie.tagline || match.tagline,
+              rating: movie.rating && movie.rating !== "N/A" ? movie.rating : match.rating
             } as Movie;
+          }
+          if (collection.id === "trending-now" || collection.id === "comedy-gold" || collection.id === "mind-bending-mysteries" || collection.id === "mafia-movies") {
+            return movie;
           }
           return null;
         })
@@ -851,7 +856,7 @@ export default function App() {
       if (m.director && m.director.trim() !== "" && !/unknown|inconnu|divers|various|various directors/i.test(m.director)) {
         const dName = m.director.trim();
         // Skip directors already in main sagas (Quentin Tarantino and Christopher Nolan)
-        if (!/tarantino|nolan/i.test(dName)) {
+        if (!/tarantino|nolan|avildsen|stallone|stalonne|fincher/i.test(dName)) {
           if (!directorGroups[dName]) {
             directorGroups[dName] = [];
           }
@@ -881,7 +886,18 @@ export default function App() {
     dynamicDirectorCollections.sort((a, b) => a.title.localeCompare(b.title));
 
     // 4. Classify leftover unmatched movies into genre categories (shelf rows)
-    const finalUnmatchedMovies = jellyfinMovies.filter((m) => !matchedServersMovieIds.has(m.id));
+    const finalUnmatchedMovies = jellyfinMovies.filter((m) => {
+      if (matchedServersMovieIds.has(m.id)) return false;
+      const t = m.title.toLowerCase();
+      if (t.includes("john wick")) return false;
+      if (t.includes("batman begins")) return false;
+      if (t.includes("fast and furious") || t.includes("fast & furious") || t.includes("furious 7") || t.includes("fast 5") || t.includes("fast x")) return false;
+      if (t.includes("devil wears prada 2") || t.includes("le diable s'habille en prada 2")) return false;
+      if (t.includes("bronx tale") || t.includes("il était une fois dans le bronx")) return false;
+      if (t.includes("21 jump street") || t.includes("22 jump street") || t.includes("superbad") || t.includes("grown ups") || t.includes("white chicks")) return false;
+      if (t.includes("memories of murder")) return false;
+      return true;
+    });
 
     const genreGroups: Record<string, Movie[]> = {};
     finalUnmatchedMovies.forEach((movie) => {
@@ -1362,32 +1378,36 @@ export default function App() {
     
     // Add custom mapped collection movies first (they have beautiful gradients, symbols, etc., and are now enriched with Jellyfin dynamic streams!)
     mappedCollections.flatMap(c => c.movies).forEach(m => {
-      const key = cleanTitle(m.title);
-      map.set(key, m);
+      map.set(m.id, m);
     });
 
     // Add Jellyfin-only library movies that did not match any of the hand-crafted collections
     jellyfinMovies.forEach(m => {
-      const key = cleanTitle(m.title);
-      if (!map.has(key)) {
-        map.set(key, m);
+      if (!map.has(m.id)) {
+        map.set(m.id, { ...m, isJellyfin: true });
       }
     });
 
     return Array.from(map.values());
   }, [mappedCollections, jellyfinMovies]);
 
-  const unmatchedMovies = React.useMemo(() => {
+    const unmatchedMovies = React.useMemo(() => {
     if (!jellyfinMovies || jellyfinMovies.length === 0) return [];
     
     const inCollections = new Set<string>();
     mappedCollections.forEach(c => c.movies.forEach(m => inCollections.add(m.id)));
 
     return jellyfinMovies.filter(m => {
-        if (inCollections.has(m.id)) return false;
-        const lower = m.title.toLowerCase();
-        if (lower.includes("star wars") || lower.includes("guerre des etoiles")) return false;
-        return true;
+      if (inCollections.has(m.id)) return false;
+      const t = m.title.toLowerCase();
+      if (t.includes("john wick")) return false;
+      if (t.includes("batman begins")) return false;
+      if (t.includes("fast and furious") || t.includes("fast & furious") || t.includes("furious 7") || t.includes("fast 5") || t.includes("fast x")) return false;
+      if (t.includes("devil wears prada 2") || t.includes("le diable s'habille en prada 2")) return false;
+      if (t.includes("bronx tale") || t.includes("il était une fois dans le bronx")) return false;
+      if (t.includes("21 jump street") || t.includes("22 jump street") || t.includes("superbad") || t.includes("grown ups") || t.includes("white chicks")) return false;
+      if (t.includes("memories of murder")) return false;
+      return true;
     });
   }, [jellyfinMovies, mappedCollections]);
 
@@ -1629,7 +1649,7 @@ export default function App() {
               </div>
 
               {searchedMovies.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6 pt-2 justify-items-center">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-8 pt-2 justify-items-center">
                   {searchedMovies.map((movie, idx) => (
                     <LazyVirtualCard key={`${movie.id}-search-${idx}`}>
                       <MovieCard
@@ -1881,9 +1901,7 @@ export default function App() {
                 </div>
               ) : null}
               
-              <div className="max-w-[2000px] mx-auto px-4 sm:px-8 pt-8">
-                {/* REMOVED RECENTLY VIEWED SECTION */}
-              </div>
+
                {/* Collections Segment block - Horizontal Carousels grouped by Collection */}
               <div className="max-w-[2000px] mx-auto px-4 sm:px-8 space-y-12 pb-16">
                 
@@ -1929,7 +1947,7 @@ export default function App() {
                         ref={(el) => {
                           carouselRefs.current['resume-lecture'] = el;
                         }}
-                        className="flex gap-3 sm:gap-6 overflow-x-auto no-scrollbar py-2.5 px-1 pb-4"
+                        className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar pt-4 px-1 pb-6 sm:pb-10"
                       >
                         {history
                           .filter(id => progressData[id] > 0 && progressData[id] < 0.95)
@@ -1950,6 +1968,45 @@ export default function App() {
                   </div>
                 )}
 
+                {/* Premium Discord Community Banner */}
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-zinc-900 via-[#1e1f24] to-zinc-900 border border-white/5 shadow-[0_8px_32px_rgba(0,0,0,0.4)] group">
+                  {/* Subtle Background Glow */}
+                  <div className="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-[#5865F2]/10 to-transparent opacity-50 pointer-events-none blur-3xl"></div>
+                  <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-[#5865F2]/20 rounded-full blur-[80px] pointer-events-none group-hover:bg-[#5865F2]/30 transition-colors duration-700"></div>
+
+                  <div className="relative px-5 py-6 sm:px-8 sm:py-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-6 w-full">
+                      {/* Discord Logo Container */}
+                      <div className="flex-shrink-0 flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#5865F2]/10 border border-[#5865F2]/20 shadow-[0_0_20px_rgba(88,101,242,0.15)] group-hover:scale-105 group-hover:bg-[#5865F2]/20 group-hover:border-[#5865F2]/40 transition-all duration-300">
+                        <svg className="w-8 h-8 sm:w-9 sm:h-9 text-[#5865F2]" fill="currentColor" viewBox="0 0 127.14 96.36">
+                          <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.31,60,73.31,53s5-12.74,11.43-12.74S96.1,46,96,53,91,65.69,84.69,65.69Z"/>
+                        </svg>
+                      </div>
+
+                      {/* Text Content */}
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <h3 className="text-lg sm:text-xl font-sans font-bold tracking-tight text-white flex items-center gap-2">
+                          Join Classico's community!
+                        </h3>
+                        <p className="text-sm sm:text-[15px] text-zinc-400 font-sans leading-relaxed max-w-2xl">
+                          Connect with other movie lovers, report bugs, get updates, suggest movies, and be part of the Classico communit.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* CTA Button */}
+                    <div className="flex-shrink-0 w-full md:w-auto">
+                      <a
+                        href="https://discord.gg/DZwkAVbqf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center w-full md:w-auto gap-2.5 bg-[#5865F2] hover:bg-[#4752C4] text-white font-sans font-bold px-6 py-3.5 sm:px-8 sm:py-4 rounded-xl text-[13px] sm:text-[14px] tracking-wide transition-all duration-300 shadow-[0_0_20px_rgba(88,101,242,0.3)] hover:shadow-[0_0_25px_rgba(88,101,242,0.5)] hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+                      >
+                        Join Discord
+                      </a>
+                    </div>
+                  </div>
+                </div>
 
                 <div className="text-left py-1 select-none">
                   <h2 className="font-cinzel font-bold text-[17px] sm:text-2xl tracking-[0.1em] sm:tracking-[0.22em] gold-metallic-text uppercase leading-none whitespace-nowrap">
@@ -2025,14 +2082,18 @@ export default function App() {
                           ref={(el) => {
                             carouselRefs.current[collection.id] = el;
                           }}
-                          className="flex gap-3 sm:gap-6 overflow-x-auto no-scrollbar py-2.5 px-1 pb-4"
+                          className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar pt-4 px-1 pb-6 sm:pb-10"
                         >
-                          {collection.movies.map((movie) => (
-                            <LazyVirtualCard key={`${collection.id}-${movie.id}`}>
+                          {collection.movies.map((movie, idx) => (
+                            <LazyVirtualCard 
+                              key={`${collection.id}-${movie.id}`}
+                              className={collection.id === "trending-now" ? "w-[200px] min-[400px]:w-[240px] sm:w-[300px] aspect-[2/3] mr-12 sm:mr-20" : undefined}
+                            >
                               <MovieCard
                                 movie={movie}
                                 onSelect={(m) => handleOpenMovie(m, false)}
                                 onPlay={(m) => handleOpenMovie(m, true)}
+                                trendingIndex={collection.id === "trending-now" ? idx + 1 : undefined}
                               />
                             </LazyVirtualCard>
                           ))}
@@ -2089,7 +2150,7 @@ export default function App() {
                         ref={(el) => {
                           carouselRefs.current["other-bangers"] = el;
                         }}
-                        className="flex gap-3 sm:gap-6 overflow-x-auto no-scrollbar py-2.5 px-1 pb-4"
+                        className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar pt-4 px-1 pb-6 sm:pb-10"
                       >
                         {unmatchedMovies.map((movie) => (
                           <LazyVirtualCard key={`other-bangers-${movie.id}`}>
@@ -2250,7 +2311,7 @@ export default function App() {
                       </h2>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-6 justify-items-center">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-8 justify-items-center">
                       {selectedCollection.movies.map((movie, idx) => (
                         <LazyVirtualCard key={`${movie.id}-detail-${idx}`}>
                           <MovieCard
@@ -2330,7 +2391,7 @@ export default function App() {
                     </h3>
 
                     {watchlist.length > 0 ? (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-6 justify-items-center">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-8 justify-items-center">
                         {allMovies
                           .filter(m => watchlist.includes(m.id))
                           .map((movie, idx) => (
@@ -2368,7 +2429,7 @@ export default function App() {
                     </h3>
 
                     {history.length > 0 ? (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-6 justify-items-center">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-8 justify-items-center">
                         {allMovies
                           .filter(m => history.includes(m.id))
                           .map((movie, idx) => (

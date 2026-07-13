@@ -98,6 +98,7 @@ export default function MovieDetailView({
 
             {/* Main Interactive CTA Button Area */}
             <div className="flex items-center gap-3.5 pt-3 [@media(max-height:500px)_and_(orientation:landscape)]:pt-1">
+              {movie.isJellyfin ? (
               <button
                 onClick={() => onPlay(movie.id)}
                 className="inline-flex items-center gap-2.5 gold-button px-6 py-3 sm:px-8 sm:py-3.5 [@media(max-height:500px)_and_(orientation:landscape)]:px-4 [@media(max-height:500px)_and_(orientation:landscape)]:py-2 rounded-full text-[13px] [@media(max-height:500px)_and_(orientation:landscape)]:text-[11px] tracking-widest uppercase transition-all duration-200 active:scale-95 cursor-pointer font-bold"
@@ -105,6 +106,11 @@ export default function MovieDetailView({
                 <Play className="w-4 h-4 fill-current" />
                 Play
               </button>
+            ) : (
+              <div className="inline-flex items-center gap-2.5 bg-neutral-900/60 border border-zinc-800 text-zinc-500 px-6 py-3 sm:px-8 sm:py-3.5 rounded-full text-[13px] tracking-widest uppercase font-bold cursor-not-allowed">
+                <span className="whitespace-nowrap">Non dispo sur Jellyfin</span>
+              </div>
+            )}
 
               <button
                 onClick={onToggleBookmark}
@@ -265,12 +271,21 @@ export default function MovieDetailView({
                             Official high-definition trailer prepared by the studio. Click the main button to play the full movie.
                           </p>
                         </div>
-                        <button
-                          onClick={() => onPlay(movie.id)}
-                          className="bg-zinc-900 hover:bg-[#f4ecd8] hover:text-black border border-zinc-800 text-white text-[11px] font-mono font-bold uppercase tracking-wider py-2 px-4 rounded-lg transition-all duration-200"
-                        >
-                          Play Full Movie
-                        </button>
+                        {movie.isJellyfin ? (
+                          <button
+                            onClick={() => onPlay(movie.id)}
+                            className="bg-zinc-900 hover:bg-[#f4ecd8] hover:text-black border border-zinc-800 text-white text-[11px] font-mono font-bold uppercase tracking-wider py-2 px-4 rounded-lg transition-all duration-200 cursor-pointer"
+                          >
+                            Play Full Movie
+                          </button>
+                        ) : (
+                          <button
+                            disabled
+                            className="bg-zinc-900/50 border border-zinc-800/50 text-zinc-600 text-[11px] font-mono font-bold uppercase tracking-wider py-2 px-4 rounded-lg cursor-not-allowed"
+                          >
+                            Bientôt Disponible
+                          </button>
+                        )}
                       </div>
 
                     </div>

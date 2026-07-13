@@ -3,9 +3,10 @@ import React, { useState, useEffect, useRef } from "react";
 interface LazyVirtualCardProps {
   children: React.ReactNode;
   key?: string;
+  className?: string;
 }
 
-export default function LazyVirtualCard({ children }: LazyVirtualCardProps) {
+export default function LazyVirtualCard({ children, className }: LazyVirtualCardProps) {
   const [isIntersecting, setIsIntersecting] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -38,8 +39,8 @@ export default function LazyVirtualCard({ children }: LazyVirtualCardProps) {
   return (
     <div
       ref={containerRef}
-      className="w-[170px] sm:w-[210px] aspect-[2/3] shrink-0"
-      style={{ contentVisibility: "auto", containIntrinsicSize: "170px 255px" }}
+      className={`shrink-0 ${className || "w-[140px] min-[400px]:w-[160px] sm:w-[210px] aspect-[2/3]"}`}
+      style={{ containIntrinsicSize: "170px 255px" }}
     >
       {isIntersecting ? (
         children

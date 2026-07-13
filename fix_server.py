@@ -1,29 +1,37 @@
+import re
+
 with open('server.ts', 'r') as f:
     text = f.read()
 
-replacement = """  let mediaSources = pbData.MediaSources || [];
-  if (mediaSources.length === 0) {
-    throw new Error("Aucune source média trouvée pour ce film.");
-  }
+# Replace the library fetch
+old_fetch = r'''    const libraryUrl = `\$\{config\.url\}/Items\?recursive=true&includeItemTypes=Movie,Series&Language=en&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=3000&api_key=\$\{config\.apiKey\}`;
+    const response = await fetch\(libraryUrl\);
+    if \(!response\.ok\) \{
+      res\.status\(response\.status\)\.json\(\{ success: false, error: "Impossible de lire la bibliothèque de médias." \}\);
+      return;
+    \}'''
 
-  // GLOBAL PIPELINE: Prioritize Web-Friendly Formats (1080p H264 over 4K HEVC) to avoid buffering
-  mediaSources.sort((a: any, b: any) => {
-    const getScore = (src: any) => {
-      const video = (src.MediaStreams || []).find((s: any) => s.Type === "Video");
-      const codec = (video?.Codec || "").toLowerCase();
-      const width = video?.Width || 0;
-      let score = 0;
-      if (codec === "h264") score += 10;
-      if (width > 0 && width < 3840) score += 5;
-      if (codec === "hevc" || codec === "h265") score -= 10;
-      if (width >= 3840) score -= 10;
-      return score;
-    };
-    return getScore(b) - getScore(a);
-  });
-"""
+new_fetch = '''    // Fetch users first to use the user's item list (fixes missing movies bug in global /Items)
+    const usersResp = await fetch(`${config.url}/Users?api_key=${config.apiKey}`);
+    let userId = "";
+    if (usersResp.ok) {
+      const usersData = await usersResp.json();
+      if (usersData && usersData.length > 0) {
+        userId = usersData[0].Id;
+      }
+    }
 
-text = text.replace('  let mediaSources = pbData.MediaSources || [];\n  if (mediaSources.length === 0) {\n    throw new Error("Aucune source média trouvée pour ce film.");\n  }', replacement)
+    const libraryUrl = userId 
+      ? `${config.url}/Users/${userId}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=3000&api_key=${config.apiKey}`
+      : `${config.url}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=3000&api_key=${config.apiKey}`;
+      
+    const response = await fetch(libraryUrl);
+    if (!response.ok) {
+      res.status(response.status).json({ success: false, error: "Impossible de lire la bibliothèque de médias." });
+      return;
+    }'''
+
+text = re.sub(old_fetch, new_fetch, text)
 
 with open('server.ts', 'w') as f:
     f.write(text)

@@ -339,6 +339,7 @@ function formatJellyfinItem(item: any, serverUrl: string, apiKey: string) {
   };
 
   return {
+    isJellyfin: true,
     id: item.Id,
     title: item.Name || "Untitled Movie",
     originalTitle: item.OriginalTitle || "",
@@ -382,7 +383,20 @@ app.get("/api/jellyfin/movies", async (req, res) => {
   }
 
   try {
-    const libraryUrl = `${config.url}/Items?recursive=true&includeItemTypes=Movie,Series&Language=en&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=3000&api_key=${config.apiKey}`;
+    // Fetch users first to use the user's item list (fixes missing movies bug in global /Items)
+    const usersResp = await fetch(`${config.url}/Users?api_key=${config.apiKey}`);
+    let userId = "";
+    if (usersResp.ok) {
+      const usersData = await usersResp.json();
+      if (usersData && usersData.length > 0) {
+        userId = usersData[0].Id;
+      }
+    }
+
+    const libraryUrl = userId 
+      ? `${config.url}/Users/${userId}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=3000&api_key=${config.apiKey}`
+      : `${config.url}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=3000&api_key=${config.apiKey}`;
+      
     const response = await fetch(libraryUrl);
     if (!response.ok) {
       res.status(response.status).json({ success: false, error: "Impossible de lire la bibliothèque de médias." });
@@ -605,7 +619,16 @@ app.get("/api/jellyfin/search", async (req, res) => {
   }
 
   try {
-    const searchUrl = `${config.url}/Items?recursive=true&includeItemTypes=Movie,Series&Language=en&searchTerm=${encodeURIComponent(String(title))}&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path&api_key=${config.apiKey}`;
+    // Resolve user for consistent access
+    const usersResp = await fetch(`${config.url}/Users?api_key=${config.apiKey}`);
+    let userId = "";
+    if (usersResp.ok) {
+      const usersData = await usersResp.json();
+      if (usersData && usersData.length > 0) userId = usersData[0].Id;
+    }
+    const searchUrl = userId
+      ? `${config.url}/Users/${userId}/Items?recursive=true&includeItemTypes=Movie,Series&searchTerm=${encodeURIComponent(String(title))}&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path&api_key=${config.apiKey}`
+      : `${config.url}/Items?recursive=true&includeItemTypes=Movie,Series&searchTerm=${encodeURIComponent(String(title))}&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path&api_key=${config.apiKey}`;
     const response = await fetch(searchUrl);
     if (!response.ok) {
       res.status(response.status).json({ success: false, error: "Recherche de médias en échec." });

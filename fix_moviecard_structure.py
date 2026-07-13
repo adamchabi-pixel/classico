@@ -1,27 +1,28 @@
-import React from "react";
-import { Star, Play, Clock } from "lucide-react";
-import { Movie } from "../data";
+import re
 
-interface MovieCardProps {
-  key?: string;
-  movie: Movie;
-  onSelect: (movie: Movie) => void;
-  onPlay: (movie: Movie) => void;
-  layoutId?: string;
-  progressPercent?: number; // Optional progress (0-1)
-  trendingIndex?: number;
-}
+with open('src/components/MovieCard.tsx', 'r') as f:
+    text = f.read()
 
-export default function MovieCard({ movie, onSelect, onPlay, progressPercent, trendingIndex }: MovieCardProps) {
+# I will rewrite the MovieCard function body completely to be clean.
+
+new_function = """export default function MovieCard({ movie, onSelect, onPlay, progressPercent, trendingIndex }: MovieCardProps) {
   return (
     <div
       id={`movie-card-${movie.id}`}
       style={{
         "--hover-glow": `${movie.accentHex || "#e5e7eb"}40`
       } as React.CSSProperties}
-      className="relative w-full h-full cursor-pointer group transition-all duration-300 ease-out will-change-transform hover:scale-[1.03]"
+      className={`relative flex-none aspect-[2/3] cursor-pointer group transition-all duration-300 ease-out will-change-transform hover:scale-[1.03] ${trendingIndex !== undefined ? "w-[170px] min-[400px]:w-[200px] sm:w-[250px] mr-12 sm:mr-20" : "w-[140px] min-[400px]:w-[160px] sm:w-[210px]"}`}
       onClick={() => onSelect(movie)}
     >
+      {/* Trending Number Indicator */}
+      {trendingIndex !== undefined && (
+        <div className="absolute -bottom-2 sm:-bottom-4 -right-12 sm:-right-20 z-0 font-display font-black italic text-black select-none pointer-events-none drop-shadow-xl group-hover:scale-105 transition-transform duration-300 origin-bottom-left" 
+             style={{ fontSize: "clamp(10rem, 15vw, 16rem)", lineHeight: "0.8", WebkitTextStroke: "clamp(2px, 0.4vw, 4px) rgba(255,255,255,0.9)" }}>
+          {trendingIndex}
+        </div>
+      )}
+
       {/* Poster Container */}
       <div className="absolute inset-0 z-10 bg-neutral-900 border border-neutral-800/80 rounded-xl overflow-hidden group-hover:shadow-[0_15px_30px_-5px_rgba(0,0,0,0.8),0_0_15px_2px_var(--hover-glow)]">
         {/* Cinematic Poster Image or Gradient Placeholder */}
@@ -82,18 +83,13 @@ export default function MovieCard({ movie, onSelect, onPlay, progressPercent, tr
           </div>
         )}
       </div>
-
-      {/* Trending Number Indicator - positioned ON TOP of the right edge */}
-      {trendingIndex !== undefined && (
-        <div className={`absolute -bottom-1 sm:-bottom-2 ${trendingIndex === 1 ? "-right-6 sm:-right-10" : "-right-8 sm:-right-12"} z-50 font-cinzel font-black italic gold-metallic-text text-transparent bg-clip-text select-none pointer-events-none drop-shadow-[0_10px_20px_rgba(0,0,0,1)] group-hover:scale-105 transition-transform duration-300 origin-bottom-right pr-3 pb-2`}
-             style={{ 
-               fontSize: "clamp(5.5rem, 8vw, 9rem)", 
-               lineHeight: "0.8", 
-               WebkitTextStroke: "clamp(1px, 0.2vw, 2px) rgba(0,0,0,0.6)" 
-             }}>
-          {trendingIndex}
-        </div>
-      )}
     </div>
   );
-}
+}"""
+
+# Replace from export default function to the end
+pattern = r"export default function MovieCard\(\{ movie.*?}\);"
+text = re.sub(pattern, new_function, text, flags=re.DOTALL)
+
+with open('src/components/MovieCard.tsx', 'w') as f:
+    f.write(text)

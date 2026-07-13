@@ -60,14 +60,27 @@ if (typeof window !== "undefined") {
           tagline: item.Taglines && item.Taglines.length > 0 ? item.Taglines[0] : "Disponible sur votre serveur",
           symbol: "📡🎬",
           accentColor: "text-[#ca8a04] border-[#ca8a04]/30 bg-[#ca8a04]/5",
-          accentHex: "#ca8a04"
+          accentHex: "#ca8a04",
+          isJellyfin: true
         };
       };
 
       if (url.includes("/api/jellyfin/movies")) {
         return (async () => {
           try {
-            const libraryUrl = `${serverUrl}/Items?recursive=true&includeItemTypes=Movie&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=300&api_key=${apiKey}`;
+            const userRes = await originalFetch(`${serverUrl}/Users?api_key=${apiKey}`);
+            let userId = "";
+            if (userRes.ok) {
+              const users = await userRes.json();
+              if (users && users.length > 0) {
+                userId = users[0].Id;
+              }
+            }
+
+            const libraryUrl = userId
+              ? `${serverUrl}/Users/${userId}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=3000&api_key=${apiKey}`
+              : `${serverUrl}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=3000&api_key=${apiKey}`;
+            
             const res = await originalFetch(libraryUrl);
             const data = await res.json();
             const healthyMovies = (data.Items || []).filter((item: any) => {

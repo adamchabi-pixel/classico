@@ -21,7 +21,8 @@ export default function MovieModal({
   onClose, 
   isBookmarked, 
   onToggleBookmark,
-  startAsPlaying = false 
+  startAsPlaying = false,
+  onPlay 
 }: MovieModalProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [jellyfinStreamUrl, setJellyfinStreamUrl] = useState<string | null>(null);

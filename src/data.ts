@@ -8,12 +8,12 @@ export interface Movie {
   cast: string[];
   castDetails?: { id: string; name: string; role?: string; imageUrl?: string; }[];
   genre: string[];
-  description: string;
-  gradient: string; // Tailwind gradient colors e.g., 'from-slate-900 to-indigo-950'
-  accentColor: string; // Tailwind text/border e.g., 'text-indigo-400 font-bold border-indigo-400'
-  accentHex: string; // Hex code for custom badges and glows
-  symbol: string; // Emoji symbols reflecting theme for graphic poster layout
-  tagline: string;
+  description?: string;
+  gradient?: string; // Tailwind gradient colors e.g., 'from-slate-900 to-indigo-950'
+  accentColor?: string; // Tailwind text/border e.g., 'text-indigo-400 font-bold border-indigo-400'
+  accentHex?: string; // Hex code for custom badges and glows
+  symbol?: string; // Emoji symbols reflecting theme for graphic poster layout
+  tagline?: string;
   streamUrl?: string;
   posterUrl?: string;
   backdropUrl?: string;

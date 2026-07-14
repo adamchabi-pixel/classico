@@ -17,6 +17,10 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import LazyVirtualCard from "./components/LazyVirtualCard";
 import HeroSkeleton from "./components/HeroSkeleton";
 
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+
 // Import custom generated cinema assets safely
 const CLASSICO_HERO_BACKDROP = "/src/assets/images/classico_hero_backdrop_1781395618793.jpg";
 const CLASSICO_ABSTRACT_BANNER = "/src/assets/images/classico_abstract_banner_1781395631739.jpg";
@@ -668,9 +672,17 @@ export default function App() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const routeScrollPositions = useRef<Record<string, number>>({});
+  const currentRouteRef = useRef(routePath);
+
+  useEffect(() => {
+    currentRouteRef.current = routePath;
+  }, [routePath]);
+
   // Synchronize custom router state with HTML5 pushState
   useEffect(() => {
     const handlePopState = () => {
+      routeScrollPositions.current[currentRouteRef.current] = window.scrollY;
       setRoutePath(window.location.pathname);
     };
     window.addEventListener("popstate", handlePopState);
@@ -678,12 +690,24 @@ export default function App() {
   }, []);
 
   const navigateTo = (path: string) => {
+    routeScrollPositions.current[currentRouteRef.current] = window.scrollY;
     window.history.pushState(null, "", path);
     setRoutePath(path);
   };
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const savedPos = routeScrollPositions.current[routePath] || 0;
+    
+    // Attempt scroll immediately
+    setTimeout(() => {
+      window.scrollTo(0, savedPos);
+    }, 0);
+    
+    // Attempt again after AnimatePresence 'wait' exit animations complete (typically 300-400ms)
+    const timer = setTimeout(() => {
+      window.scrollTo(0, savedPos);
+    }, 450);
+    
     if (routePath === "/" || routePath === "/accueil") {
       setActiveTab("accueil");
       setSelectedCollectionId(null);
@@ -702,6 +726,8 @@ export default function App() {
     } else if (routePath.startsWith("/player/")) {
       setActiveTab("player");
     }
+
+    return () => clearTimeout(timer);
   }, [routePath]);
 
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
@@ -1310,6 +1336,14 @@ export default function App() {
       const updated = [movieID, ...history].slice(0, 10); // Keep last 10
       setHistory(updated);
       localStorage.setItem("classico_history", JSON.stringify(updated));
+    }
+  };
+
+  const goBackOrHome = () => {
+    if (Object.keys(routeScrollPositions.current).length > 0) {
+      window.history.back();
+    } else {
+      navigateTo("/");
     }
   };
 
@@ -2337,7 +2371,7 @@ export default function App() {
               {activeMovie ? (
                 <MovieDetailView
                   movie={activeMovie}
-                  onBack={() => navigateTo("/")}
+                  onBack={goBackOrHome}
                   onPlay={(id) => {
                     (window as any).moviePlayClickTime = performance.now();
                     console.log("%c[CHRONO LECTEUR] Clic sur le film : 0.000s (Début du flux via Détails)", "color: #a855f7; font-weight: bold; font-size: 13px;");

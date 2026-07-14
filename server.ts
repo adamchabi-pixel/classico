@@ -1206,14 +1206,6 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   const subtitleStreams = streams.filter((s: any) => s.Type === "Subtitle");
   const subtitles = subtitleStreams.map((s: any) => {
     const cleanedSourceId = source.Id ? source.Id.replace("-web-optimized", "") : activeId;
-    
-    // Use Jellyfin's exact DeliveryUrl if provided, otherwise fallback to our proxy search
-    let subUrl = `/api/jellyfin/subtitles/${activeId}/${cleanedSourceId}/${s.Index}.vtt`;
-    if (s.DeliveryUrl) {
-      subUrl = s.DeliveryUrl.startsWith("/") 
-        ? `/api/jellyfin/proxy${s.DeliveryUrl}` 
-        : `/api/jellyfin/proxy/${s.DeliveryUrl}`;
-    }
 
     return {
       index: s.Index,
@@ -1223,7 +1215,7 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
       isForced: s.IsForced === true,
       codec: s.Codec || "",
       deliveryMethod: s.DeliveryMethod || "External",
-      url: subUrl
+      url: `/api/jellyfin/subtitles/${activeId}/${cleanedSourceId}/${s.Index}.vtt`
     };
   });
 

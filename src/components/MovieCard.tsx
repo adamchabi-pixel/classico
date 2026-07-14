@@ -85,7 +85,7 @@ export default function MovieCard({ movie, onSelect, onPlay, progressPercent, tr
 
       {/* Trending Number Indicator - positioned ON TOP of the right edge */}
       {trendingIndex !== undefined && (
-        <div className={`absolute -bottom-1 sm:-bottom-2 ${trendingIndex === 1 ? "-right-6 sm:-right-10" : "-right-8 sm:-right-12"} z-50 font-cinzel font-black italic gold-metallic-text text-transparent bg-clip-text select-none pointer-events-none drop-shadow-[0_10px_20px_rgba(0,0,0,1)] group-hover:scale-105 transition-transform duration-300 origin-bottom-right pr-3 pb-2`}
+        <div className={`absolute -bottom-1 sm:-bottom-2 ${trendingIndex === 1 ? "-right-6 sm:-right-10" : "-right-8 sm:-right-12"} z-50 font-cinzel font-bold gold-metallic-text select-none pointer-events-none drop-shadow-[0_10px_20px_rgba(0,0,0,1)] group-hover:scale-105 transition-transform duration-300 origin-bottom-right pr-3 pb-2`}
              style={{ 
                fontSize: "clamp(5.5rem, 8vw, 9rem)", 
                lineHeight: "0.8"

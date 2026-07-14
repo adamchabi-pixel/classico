@@ -804,14 +804,23 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
       CodecProfiles: [],
       ResponseProfiles: [],
       SubtitleProfiles: [
-        {
-          Format: "vtt",
-          Method: "External"
-        },
-        {
-          Format: "srt",
-          Method: "External"
-        }
+        { Format: "vtt", Method: "External" },
+        { Format: "srt", Method: "External" },
+        { Format: "subrip", Method: "External" },
+        { Format: "subrip", Method: "Embed" },
+        { Format: "subrip", Method: "Encode" },
+        { Format: "ass", Method: "External" },
+        { Format: "ass", Method: "Embed" },
+        { Format: "ass", Method: "Encode" },
+        { Format: "pgs", Method: "Embed" },
+        { Format: "pgs", Method: "Encode" },
+        { Format: "dvdsub", Method: "Embed" },
+        { Format: "dvdsub", Method: "Encode" },
+        { Format: "vobsub", Method: "Embed" },
+        { Format: "vobsub", Method: "Encode" },
+        { Format: "ssa", Method: "External" },
+        { Format: "ssa", Method: "Embed" },
+        { Format: "ssa", Method: "Encode" }
       ]
     }
   };
@@ -1197,6 +1206,15 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   const subtitleStreams = streams.filter((s: any) => s.Type === "Subtitle");
   const subtitles = subtitleStreams.map((s: any) => {
     const cleanedSourceId = source.Id ? source.Id.replace("-web-optimized", "") : activeId;
+    
+    // Use Jellyfin's exact DeliveryUrl if provided, otherwise fallback to our proxy search
+    let subUrl = `/api/jellyfin/subtitles/${activeId}/${cleanedSourceId}/${s.Index}.vtt`;
+    if (s.DeliveryUrl) {
+      subUrl = s.DeliveryUrl.startsWith("/") 
+        ? `/api/jellyfin/proxy${s.DeliveryUrl}` 
+        : `/api/jellyfin/proxy/${s.DeliveryUrl}`;
+    }
+
     return {
       index: s.Index,
       language: s.Language || "",
@@ -1205,7 +1223,7 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
       isForced: s.IsForced === true,
       codec: s.Codec || "",
       deliveryMethod: s.DeliveryMethod || "External",
-      url: `/api/jellyfin/subtitles/${activeId}/${cleanedSourceId}/${s.Index}.vtt`
+      url: subUrl
     };
   });
 

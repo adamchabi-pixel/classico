@@ -26,7 +26,7 @@ const logChrono = (step: string) => {
 
 const isTextSubtitle = (codec: string) => {
   const c = (codec || "").toLowerCase();
-  return !["pgs", "hdmv_pgs_subtitle", "vobsub", "dvdsub", "dvd_subtitle"].includes(c);
+  return ["vtt", "srt", "subrip", "tx3g", "text"].includes(c);
 };
 
 export function formatHlsUrl(url: string, id: string, deviceId?: string, apiKey?: string): string {
@@ -455,7 +455,7 @@ export default function CinemaPlayerView({
     const cleanLines = text.split(/\r?\n/);
     
     const parseTime = (timeStr: string): number => {
-      const cleanTimeStr = timeStr.trim().split(/\s+/)[0].replace(",", ".");
+      const cleanTimeStr = timeStr.trim().split(/\s+/)[0].replace(/,/g, ".");
       const parts = cleanTimeStr.split(":");
       let h = 0, m = 0, s = 0;
       if (parts.length === 3) {
@@ -1827,7 +1827,7 @@ export default function CinemaPlayerView({
           {/* Custom React Subtitle Overlay */}
           {subtitlesOn && activeCinemaCue && (
             <div 
-              className="absolute bottom-[10%] left-1/2 -translate-x-1/2 z-40 text-center pointer-events-none w-[80%] max-w-2xl select-none"
+              className="absolute bottom-[10%] left-1/2 -translate-x-1/2 z-[60] text-center pointer-events-none w-[80%] max-w-2xl select-none"
               style={{ textShadow: "0 2px 4px rgba(0,0,0,0.8)" }}
             >
               <span className="inline-block bg-black/85 text-stone-100 px-4 py-2 rounded-lg text-sm sm:text-base md:text-lg lg:text-xl font-sans font-medium tracking-wide leading-relaxed shadow-2xl border border-white/5 whitespace-pre-line text-center">

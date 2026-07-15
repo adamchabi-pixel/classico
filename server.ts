@@ -14,7 +14,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 const app = express();
 app.use(compression());
 const PORT = 3000;
-const CONFIG_PATH = path.join(process.cwd(), "jellyfin-config.json");
+const CONFIG_PATH = path.join("/tmp", "jellyfin-config.json");
 
 app.use(express.json());
 
@@ -272,7 +272,7 @@ app.post("/api/jellyfin/config", async (req, res) => {
   try {
     // Attempt standard Jellyfin connection using System Info endpoint
     const testUrl = `${formattedUrl}/System/Info?api_key=${apiKey}`;
-    const testResponse = await fetch(testUrl, {
+    const testResponse = await fetchWithTimeout(testUrl, {
       signal: AbortSignal.timeout(6000) // 6s timeout so server doesn't hang
     });
 
@@ -308,8 +308,21 @@ interface CacheEntry {
   data: any;
   expiry: number;
 }
+
+async function fetchWithTimeout(url: string, options: any = {}, timeoutMs: number = 15000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(id);
+    return response;
+  } catch (err) {
+    clearTimeout(id);
+    throw err;
+  }
+}
 const apiCache = new Map<string, CacheEntry>();
-const CACHE_FILE = path.join(process.cwd(), ".json-cache.json");
+const CACHE_FILE = path.join("/tmp", ".json-cache.json");
 
 function loadDiskCache() {
   if (fs.existsSync(CACHE_FILE)) {
@@ -415,7 +428,7 @@ app.get("/api/jellyfin/movies", async (req, res) => {
 
   try {
     // Fetch users first to use the user's item list (fixes missing movies bug in global /Items)
-    const usersResp = await fetch(`${config.url}/Users?api_key=${config.apiKey}`);
+    const usersResp = await fetchWithTimeout(`${config.url}/Users?api_key=${config.apiKey}`);
     let userId = "";
     if (usersResp.ok) {
       const usersData = await usersResp.json();
@@ -425,10 +438,10 @@ app.get("/api/jellyfin/movies", async (req, res) => {
     }
 
     const libraryUrl = userId 
-      ? `${config.url}/Users/${userId}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=10000&api_key=${config.apiKey}`
-      : `${config.url}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=10000&api_key=${config.apiKey}`;
+      ? `${config.url}/Users/${userId}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=2000&api_key=${config.apiKey}`
+      : `${config.url}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=2000&api_key=${config.apiKey}`;
       
-    const response = await fetch(libraryUrl);
+    const response = await fetchWithTimeout(libraryUrl);
     if (!response.ok) {
       res.status(response.status).json({ success: false, error: "Impossible de lire la bibliothèque de médias." });
       return;
@@ -480,7 +493,7 @@ app.get("/api/jellyfin/hero", async (req, res) => {
     // 1. Get UserId dynamically
     let userId = "";
     const usersUrl = `${config.url}/Users`;
-    const usersResponse = await fetch(usersUrl, {
+    const usersResponse = await fetchWithTimeout(usersUrl, {
       headers: {
         "X-Emby-Token": config.apiKey,
         "Accept": "application/json"
@@ -500,7 +513,7 @@ app.get("/api/jellyfin/hero", async (req, res) => {
 
     // 2. Fetch the latest items and filter for Movie
     const latestUrl = `${config.url}/Users/${userId}/Items/Latest?IncludeItemTypes=Movie,Series&Language=en&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ImageTags&limit=25&api_key=${config.apiKey}`;
-    const latestResponse = await fetch(latestUrl);
+    const latestResponse = await fetchWithTimeout(latestUrl);
     
     if (!latestResponse.ok) {
       res.json({ success: false, error: "Impossible de récupérer les nouveautés de Jellyfin." });
@@ -607,7 +620,7 @@ app.get("/api/jellyfin/image/:id/:type", async (req, res) => {
 
     const jellyfinImageUrl = `${config.url}/Items/${id}/Images/${type}?maxWidth=${width}&quality=${quality}&format=webp&api_key=${config.apiKey}`;
     
-    const response = await fetch(jellyfinImageUrl, {
+    const response = await fetchWithTimeout(jellyfinImageUrl, {
       signal: AbortSignal.timeout(10000) // 10 seconds timeout
     });
 
@@ -663,7 +676,7 @@ app.get("/api/jellyfin/search", async (req, res) => {
 
   try {
     // Resolve user for consistent access
-    const usersResp = await fetch(`${config.url}/Users?api_key=${config.apiKey}`);
+    const usersResp = await fetchWithTimeout(`${config.url}/Users?api_key=${config.apiKey}`);
     let userId = "";
     if (usersResp.ok) {
       const usersData = await usersResp.json();
@@ -672,7 +685,7 @@ app.get("/api/jellyfin/search", async (req, res) => {
     const searchUrl = userId
       ? `${config.url}/Users/${userId}/Items?recursive=true&includeItemTypes=Movie,Series&searchTerm=${encodeURIComponent(String(title))}&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path&api_key=${config.apiKey}`
       : `${config.url}/Items?recursive=true&includeItemTypes=Movie,Series&searchTerm=${encodeURIComponent(String(title))}&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path&api_key=${config.apiKey}`;
-    const response = await fetch(searchUrl);
+    const response = await fetchWithTimeout(searchUrl);
     if (!response.ok) {
       res.status(response.status).json({ success: false, error: "Recherche de médias en échec." });
       return;
@@ -774,7 +787,7 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
 
   try {
     const usersUrl = `${config.url}/Users`;
-    const usersResponse = await fetch(usersUrl, {
+    const usersResponse = await fetchWithTimeout(usersUrl, {
       headers: {
         "X-Emby-Token": config.apiKey,
         "Accept": "application/json"
@@ -881,7 +894,7 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
 
   let pbResponse;
   try {
-    pbResponse = await fetch(pbUrl, {
+    pbResponse = await fetchWithTimeout(pbUrl, {
       method: "POST",
       headers: {
         "Accept": "application/json",
@@ -970,14 +983,14 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
     try {
       // Rechercher les métadonnées de l'ID actuel pour récupérer son titre exact
       const itemUrl = `${config.url}/Users/${userId}/Items/${activeId}?api_key=${config.apiKey}`;
-      const itemRes = await fetch(itemUrl);
+      const itemRes = await fetchWithTimeout(itemUrl);
       if (itemRes.ok) {
         const itemData: any = await itemRes.json();
         const movieTitle = itemData.Name;
         if (movieTitle) {
           console.log(`[PLAYBACK PIPELINE] Recherche de doublons sains pour "${movieTitle}"...`);
           const searchUrl = `${config.url}/Items?recursive=true&includeItemTypes=Movie,Series&Language=en&searchTerm=${encodeURIComponent(movieTitle)}&fields=Path&api_key=${config.apiKey}`;
-          const searchRes = await fetch(searchUrl);
+          const searchRes = await fetchWithTimeout(searchUrl);
           if (searchRes.ok) {
             const searchData: any = await searchRes.json();
             const alternateItems = searchData.Items || [];

@@ -409,13 +409,13 @@ function isMovieMatch(title1: string, title2: string): boolean {
   if (t1 === t2) return true;
 
   // Star Wars specific match
-  if (isStarWarsEpisodeMatch(title1, title2)) {
-    return true;
+  if (t1.includes("star") || t1.includes("wars") || t1.includes("jedi") || t1.includes("sith") || t1.includes("empire")) {
+    if (isStarWarsEpisodeMatch(title1, title2)) return true;
   }
 
   // James Bond specific match
-  if (isBondMovieMatch(title1, title2)) {
-    return true;
+  if (t1.includes("bond") || t1.includes("007") || t1.includes("casino") || t1.includes("no time")) {
+    if (isBondMovieMatch(title1, title2)) return true;
   }
 
   
@@ -1284,13 +1284,12 @@ export default function App() {
       
       const tryFetch = async () => {
         try {
-          const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
           const defaultUrl = "https://jellyfin-jacklumber00.siren.mygiga.cloud";
           const defaultApiKey = "a2aac09e434e4bcc897c1b181ca197eb";
           const localUrl = localStorage.getItem("classico_jellyfin_url");
           const localKey = localStorage.getItem("classico_jellyfin_apikey");
 
-          if (isNetlify || !localUrl || !localKey) {
+          if (!localUrl || !localKey) {
             localStorage.setItem("classico_jellyfin_url", defaultUrl);
             localStorage.setItem("classico_jellyfin_apikey", defaultApiKey);
           }
@@ -1318,6 +1317,8 @@ export default function App() {
                  } else {
                     setJellyfinConfig({ configured: true, url: targetUrl });
                  }
+              } else {
+                 setJellyfinConfig({ configured: true, url: targetUrl });
               }
             } else {
                setJellyfinConfig({ configured: true, url: statusData.url || targetUrl });
@@ -1335,10 +1336,13 @@ export default function App() {
               } else {
                 setIsJellyfinError(libData.error || "Unable to read movies.");
               }
+            } else {
+              setIsJellyfinError("Failed to communicate with media server.");
             }
           } catch (libErr) {
             console.warn("Failed to load library movies on check:", libErr);
             setIsJellyfinError("Unable to connect to Jellyfin.");
+            setJellyfinConfig({ configured: true, url: targetUrl });
           } finally {
             setIsJellyfinLoading(false);
           }

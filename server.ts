@@ -309,7 +309,7 @@ interface CacheEntry {
   expiry: number;
 }
 
-async function fetchWithTimeout(url: string, options: any = {}, timeoutMs: number = 15000) {
+async function fetchWithTimeout(url: string, options: any = {}, timeoutMs: number = 60000) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -362,7 +362,7 @@ function setCached(key: string, data: any, ttlMs: number) {
 }
 
 // Ensure local directory for poster images cache exists on disks
-const IMAGE_CACHE_DIR = path.join(process.cwd(), ".image-cache");
+const IMAGE_CACHE_DIR = path.join("/tmp", ".image-cache");
 if (!fs.existsSync(IMAGE_CACHE_DIR)) {
   fs.mkdirSync(IMAGE_CACHE_DIR, { recursive: true });
 }

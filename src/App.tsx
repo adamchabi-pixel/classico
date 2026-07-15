@@ -1337,6 +1337,8 @@ export default function App() {
                 setIsJellyfinError(libData.error || "Unable to read movies.");
               }
             } else {
+              const errText = await libRes.text().catch(()=>"");
+              console.error("libRes not ok:", libRes.status, errText);
               setIsJellyfinError("Failed to communicate with media server.");
             }
           } catch (libErr) {

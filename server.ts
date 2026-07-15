@@ -758,7 +758,14 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   // Étape 1 : POST /Items/{id}/PlaybackInfo avec le DeviceProfile du navigateur pour déterminer le support de Lecture Directe
   const pbUrl = `${config.url}/Items/${activeId}/PlaybackInfo?api_key=${config.apiKey}&userId=${userId}`;
   console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 4: Envoi de la requête PlaybackInfo vers Jellyfin. URL: ${pbUrl}`);
-  const deviceProfile = {
+  const pbBody = {
+    UserId: userId,
+    MaxStreamingBitrate: 15000000,
+    IsPlayback: true,
+    AutoOpenLiveStream: true,
+    EnableDirectPlay: true,
+    EnableDirectStream: true,
+    EnableTranscoding: true,
     DeviceProfile: {
       Name: "Modern Browser",
       MaxStreamingBitrate: 15000000,
@@ -837,7 +844,7 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
         "Accept": "application/json",
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(deviceProfile)
+      body: JSON.stringify(pbBody)
     });
     clearTimeout(pbFetchTimer);
     console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 5: Réponse PlaybackInfo reçue de Jellyfin. Status: ${pbResponse.status}`);

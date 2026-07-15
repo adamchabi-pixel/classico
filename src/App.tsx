@@ -47,10 +47,7 @@ const COLLECTION_BANNERS: Record<string, {url: string, style?: React.CSSProperti
   "mind-bending-mysteries": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSUcFo5K5UW4vpxO-BJv_o30ZHXzRLAk8amHHrfVQZxEtHQZbGAnhMtGlHX&s=10", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
   "franchise-matrix": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWBBqq5C8VYKAjz47Tr-3NiJm7y3qWdAOLboYZragONQ&s=10", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
   "matrix": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWBBqq5C8VYKAjz47Tr-3NiJm7y3qWdAOLboYZragONQ&s=10", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
-  "tarantino-collection": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWu6RRTNcMHTxff7uXa7H4Y8Qy8BKEHRovAvu3qr6byA&s=10", style: { backgroundPosition: "center 30%", backgroundSize: "cover" } },
-  "director-quentin-tarantino": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWu6RRTNcMHTxff7uXa7H4Y8Qy8BKEHRovAvu3qr6byA&s=10", style: { backgroundPosition: "center 30%", backgroundSize: "cover" } },
-  "comedy-gold": { url: "https://m.media-amazon.com/images/M/MV5BMTUyNDU0NzAwNl5BMl5BanBnXkFtZTcwMzQxMzIzNw@@._V1_FMjpg_UX1000_.jpg", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
-  "franchise-mission-impossible": { url: "https://cdn.artphotolimited.com/images/66c89286e2e42e7046294521/1000x1000/tom-cruise.jpg", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
+
 };
 
 // -------------------------------------------------------------
@@ -507,10 +504,7 @@ const GENRE_AESTHETICS: Record<string, { gradient: string; accentColor: string; 
     symbol: "🎨✨🦁",
     description: "Wonderful drawn universes, fantastic adventures for all ages."
   },
-  "tarantino-collection": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWu6RRTNcMHTxff7uXa7H4Y8Qy8BKEHRovAvu3qr6byA&s=10", style: { backgroundPosition: "center 30%", backgroundSize: "cover" } },
-  "director-quentin-tarantino": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWu6RRTNcMHTxff7uXa7H4Y8Qy8BKEHRovAvu3qr6byA&s=10", style: { backgroundPosition: "center 30%", backgroundSize: "cover" } },
-  "comedy-gold": { url: "https://m.media-amazon.com/images/M/MV5BMTUyNDU0NzAwNl5BMl5BanBnXkFtZTcwMzQxMzIzNw@@._V1_FMjpg_UX1000_.jpg", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
-  "franchise-mission-impossible": { url: "https://cdn.artphotolimited.com/images/66c89286e2e42e7046294521/1000x1000/tom-cruise.jpg", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
+
 };
 
 // -------------------------------------------------------------
@@ -1273,7 +1267,6 @@ export default function App() {
           const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
           const defaultUrl = "https://jellyfin-jacklumber00.siren.mygiga.cloud";
           const defaultApiKey = "a2aac09e434e4bcc897c1b181ca197eb";
-
           const localUrl = localStorage.getItem("classico_jellyfin_url");
           const localKey = localStorage.getItem("classico_jellyfin_apikey");
 
@@ -1281,44 +1274,47 @@ export default function App() {
             localStorage.setItem("classico_jellyfin_url", defaultUrl);
             localStorage.setItem("classico_jellyfin_apikey", defaultApiKey);
           }
-
+          
           const targetUrl = localStorage.getItem("classico_jellyfin_url") || defaultUrl;
           const targetKey = localStorage.getItem("classico_jellyfin_apikey") || defaultApiKey;
 
-          // Perform auto-configuration on server
-          const restoreRes = await fetch("/api/jellyfin/config", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ url: targetUrl, apiKey: targetKey })
-          });
+          setIsJellyfinLoading(true);
+          try {
+            let libRes = await fetch("/api/jellyfin/movies");
+            if (libRes.status === 401) {
+              const restoreRes = await fetch("/api/jellyfin/config", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url: targetUrl, apiKey: targetKey })
+              });
+              if (restoreRes.ok) {
+                 const restoreData = await restoreRes.json();
+                 if (restoreData.success) {
+                    setJellyfinConfig({ configured: true, url: restoreData.url });
+                    localStorage.setItem("classico_jellyfin_url", restoreData.url);
+                    localStorage.setItem("classico_jellyfin_apikey", targetKey);
+                    libRes = await fetch("/api/jellyfin/movies");
+                 } else {
+                    setJellyfinConfig({ configured: true, url: targetUrl });
+                    setIsJellyfinError("Unable to connect to Jellyfin during auto-config.");
+                 }
+              }
+            } else {
+               setJellyfinConfig({ configured: true, url: targetUrl });
+            }
 
-          if (!restoreRes.ok) throw new Error("Auto-configuration request failed");
-          const restoreData = await restoreRes.json();
-
-          if (restoreData.success) {
-            setJellyfinConfig({ configured: true, url: restoreData.url });
-            localStorage.setItem("classico_jellyfin_url", restoreData.url);
-            localStorage.setItem("classico_jellyfin_apikey", targetKey);
-
-            setIsJellyfinLoading(true);
-            try {
-              const libRes = await fetch("/api/jellyfin/movies");
-              if (!libRes.ok) throw new Error("Could not fetch movies");
+            if (libRes && libRes.ok) {
               const libData = await libRes.json();
               if (libData.success) {
                 setJellyfinMovies(libData.movies || []);
               } else {
                 setIsJellyfinError(libData.error || "Unable to read movies.");
               }
-            } catch (libErr) {
-              console.warn("Failed to load library movies on check:", libErr);
-              setIsJellyfinError("Unable to connect to Jellyfin.");
-            } finally {
-              setIsJellyfinLoading(false);
             }
-          } else {
-            // Fallback gracefully and set configured to true with targetUrl
-            setJellyfinConfig({ configured: true, url: targetUrl });
+          } catch (libErr) {
+            console.warn("Failed to load library movies on check:", libErr);
+            setIsJellyfinError("Unable to connect to Jellyfin.");
+          } finally {
             setIsJellyfinLoading(false);
           }
         } catch (err) {
@@ -1328,7 +1324,6 @@ export default function App() {
             setTimeout(tryFetch, 1500 * attempts);
           } else {
             console.warn("Jellyfin connection check error:", err);
-            // Bulletproof fallback: set configured to true to unblock the screen immediately
             const defaultUrl = "https://jellyfin-jacklumber00.siren.mygiga.cloud";
             setJellyfinConfig({ configured: true, url: defaultUrl });
             setIsJellyfinLoading(false);
@@ -1339,6 +1334,7 @@ export default function App() {
       
       tryFetch();
     };
+
     checkJellyfinSetup();
 
   }, []);

@@ -19,6 +19,7 @@
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "hls.js": "^1.6.16",
+    "idb-keyval": "^6.3.0",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
     "png-to-ico": "^3.0.2",

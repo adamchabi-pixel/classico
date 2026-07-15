@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { get, set } from "idb-keyval";
+
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Search, Play, Film, Info, Heart, Award, 
@@ -784,14 +786,15 @@ export default function App() {
     "christopher-nolan": true, // Start with Christopher Nolan collection unfolded so users see films immediately
   });
 
-  const [jellyfinMovies, setJellyfinMovies] = useState<Movie[]>(() => {
-    try {
-      const cached = localStorage.getItem("classico_movies_cache");
-      return cached ? JSON.parse(cached) : [];
-    } catch (e) {
-      return [];
-    }
-  });
+  const [jellyfinMovies, setJellyfinMovies] = useState<Movie[]>([]);
+
+  useEffect(() => {
+    get("classico_movies_cache").then((val) => {
+      if (val && Array.isArray(val) && val.length > 0) {
+        setJellyfinMovies((prev) => prev.length === 0 ? val : prev);
+      }
+    }).catch(e => console.warn("IDB cache load failed:", e));
+  }, []);
   const [jellyfinSearchQuery, setJellyfinSearchQuery] = useState("");
   const [isJellyfinLoading, setIsJellyfinLoading] = useState(false);
   const [isJellyfinError, setIsJellyfinError] = useState("");
@@ -934,16 +937,7 @@ export default function App() {
 
     // 4. Classify leftover unmatched movies into genre categories (shelf rows)
     const finalUnmatchedMovies = jellyfinMovies.filter((m) => {
-      if (matchedServersMovieIds.has(m.id)) return false;
-      const t = m.title.toLowerCase();
-      if (t.includes("john wick")) return false;
-      if (t.includes("batman begins")) return false;
-      if (t.includes("fast and furious") || t.includes("fast & furious") || t.includes("furious 7") || t.includes("fast 5") || t.includes("fast x")) return false;
-      if (t.includes("devil wears prada 2") || t.includes("le diable s'habille en prada 2")) return false;
-      if (t.includes("bronx tale") || t.includes("il était une fois dans le bronx")) return false;
-      if (t.includes("21 jump street") || t.includes("22 jump street") || t.includes("superbad") || t.includes("grown ups") || t.includes("white chicks")) return false;
-      if (t.includes("memories of murder")) return false;
-      return true;
+      return !matchedServersMovieIds.has(m.id);
     });
 
     const genreGroups: Record<string, Movie[]> = {};
@@ -1315,7 +1309,7 @@ export default function App() {
               const libData = await libRes.json();
               if (libData.success) {
                 setJellyfinMovies(libData.movies || []);
-                try { localStorage.setItem("classico_movies_cache", JSON.stringify(libData.movies || [])); } catch(e) {}
+                try { set("classico_movies_cache", libData.movies || []); } catch(e) {}
               } else {
                 setIsJellyfinError(libData.error || "Unable to read movies.");
               }
@@ -1962,6 +1956,21 @@ export default function App() {
               
 
                {/* Collections Segment block - Horizontal Carousels grouped by Collection */}
+              {isJellyfinLoading && mappedCollections.length === 0 ? (
+                <div className="max-w-[2000px] mx-auto px-4 sm:px-8 space-y-12 pb-16 pt-12">
+                   {[1,2,3].map(i => (
+                     <div key={i} className="space-y-4">
+                       <div className="h-8 w-48 bg-zinc-900 rounded-lg animate-pulse" />
+                       <div className="flex gap-4 overflow-hidden">
+                          {[1,2,3,4,5,6].map(j => (
+                             <div key={j} className="h-[200px] sm:h-[220px] min-w-[300px] sm:min-w-[400px] bg-neutral-900/60 rounded-2xl border border-zinc-800/80 animate-pulse shrink-0" />
+                          ))}
+                       </div>
+                     </div>
+                   ))}
+                </div>
+              ) : null}
+
               <div className="max-w-[2000px] mx-auto px-4 sm:px-8 space-y-12 pb-16">
                 
                 {/* Reprendre la lecture Section */}

@@ -784,7 +784,14 @@ export default function App() {
     "christopher-nolan": true, // Start with Christopher Nolan collection unfolded so users see films immediately
   });
 
-  const [jellyfinMovies, setJellyfinMovies] = useState<Movie[]>([]);
+  const [jellyfinMovies, setJellyfinMovies] = useState<Movie[]>(() => {
+    try {
+      const cached = localStorage.getItem("classico_movies_cache");
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      return [];
+    }
+  });
   const [jellyfinSearchQuery, setJellyfinSearchQuery] = useState("");
   const [isJellyfinLoading, setIsJellyfinLoading] = useState(false);
   const [isJellyfinError, setIsJellyfinError] = useState("");
@@ -977,7 +984,8 @@ export default function App() {
     const finalCollections = [
       ...curatedSagaCollections,
       ...dynamicFranchiseCollections,
-      ...dynamicDirectorCollections
+      ...dynamicDirectorCollections,
+      ...genreCollections
     ];
 
     return finalCollections.map((col) => {
@@ -1307,6 +1315,7 @@ export default function App() {
               const libData = await libRes.json();
               if (libData.success) {
                 setJellyfinMovies(libData.movies || []);
+                try { localStorage.setItem("classico_movies_cache", JSON.stringify(libData.movies || [])); } catch(e) {}
               } else {
                 setIsJellyfinError(libData.error || "Unable to read movies.");
               }

@@ -26,31 +26,18 @@ const CLASSICO_HERO_BACKDROP = "/src/assets/images/classico_hero_backdrop_178139
 const CLASSICO_ABSTRACT_BANNER = "/src/assets/images/classico_abstract_banner_1781395631739.jpg";
 
 // Hand-crafted high-fidelity collection backgrounds custom-generated
-const COLLECTION_BANNERS: Record<string, {url: string, style?: React.CSSProperties}> = {
-  "john-wick": { url: "https://m.media-amazon.com/images/M/MV5BNDEzOTdhNDUtY2EyMy00YTNmLWE5MjItZmRjMmQzYTRlMGRkXkEyXkFqcGc@._V1_.jpg", style: { backgroundPosition: "center 30%", backgroundSize: "cover" } },
-  "director-chad-stahelski": { url: "https://m.media-amazon.com/images/M/MV5BNDEzOTdhNDUtY2EyMy00YTNmLWE5MjItZmRjMmQzYTRlMGRkXkEyXkFqcGc@._V1_.jpg", style: { backgroundPosition: "center 30%", backgroundSize: "cover" } },
-  "indiana-jones": { url: "https://cdn.artphotolimited.com/images/5b9fc1ecac06024957be8806/1000x1000/harrison-ford-en-1993.jpg" },
-  "christopher-nolan": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRc5H0x-K46ZlLkDu716p_r0wF6YkbwUCDeYbdFyrbBY4rNGi8XGUHcRf4&s=10", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
-  "director-christopher-nolan": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRc5H0x-K46ZlLkDu716p_r0wF6YkbwUCDeYbdFyrbBY4rNGi8XGUHcRf4&s=10", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
-    "director-martin-scorsese": { url: "https://awardsradar.com/wp-content/uploads/2022/04/Scorsese.jpeg", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
-  "star-wars": { url: "https://i.pinimg.com/564x/02/47/3b/02473babb95b7c65b57988a18eaa4357.jpg" },
-  "james-bond": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQs6ZTjPYjnbZ3oAbtNW8u6_veJCxj-cbRLmsurOrowjQ&s=10", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
-  "rocky": { url: "https://preview.redd.it/my-first-attempt-at-rocky-balboa-might-edit-and-try-to-make-v0-5bykoynyb39b1.jpg?width=640&crop=smart&auto=webp&s=35b2c22ad2399c920878b54ded38a45b1502198d" },
-  "terminator": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKBqbea29sYZRGpKMKWWQuHIoFddVvc2Pc3T99QbeC8AtAdfSF3IgU4jB5&s=10" },
-  "director-frank-darabont": { url: "https://www.univision.com/_next/image?url=https%3A%2F%2Fuvn-brightspot.s3.amazonaws.com%2Fassets%2Fvixes%2Fg%2Fgettyimages-459214306.jpg&w=1280&q=75", style: { backgroundPosition: "right 20%", backgroundSize: "auto 100%" } },
-  "fast-and-furious": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRW2U6THysy36omQs5Fvgny4eYYv_DNx47m5v-2LcGSHmlu2oRPI3DDhsCf&s=10", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
-  "franchise-fast-and-furious": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRW2U6THysy36omQs5Fvgny4eYYv_DNx47m5v-2LcGSHmlu2oRPI3DDhsCf&s=10", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
-  "director-brett-ratner": { url: "https://image.tmdb.org/t/p/w500/nraZoTzwJQPHspAVsKfgl3RXKKa.jpg", style: { backgroundPosition: "center 40%", backgroundSize: "cover" } },
-  "the-batman": { url: "https://w0.peakpx.com/wallpaper/921/848/HD-wallpaper-christian-bale-batman-cool-movie-actor.jpg", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
-  
-  "mafia-movies": { url: "https://media.newyorker.com/photos/5e70fef11785a2000935d0eb/master/w_2560%2Cc_limit/ra722.jpg", style: { backgroundPosition: "center 25%", backgroundSize: "cover" } },
-  "mind-bending-mysteries": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSUcFo5K5UW4vpxO-BJv_o30ZHXzRLAk8amHHrfVQZxEtHQZbGAnhMtGlHX&s=10", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
-  "franchise-matrix": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWBBqq5C8VYKAjz47Tr-3NiJm7y3qWdAOLboYZragONQ&s=10", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
-  "matrix": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWBBqq5C8VYKAjz47Tr-3NiJm7y3qWdAOLboYZragONQ&s=10", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
-  "tarantino-collection": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWu6RRTNcMHTxff7uXa7H4Y8Qy8BKEHRovAvu3qr6byA&s=10", style: { backgroundPosition: "center 30%", backgroundSize: "cover" } },
-  "director-quentin-tarantino": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWu6RRTNcMHTxff7uXa7H4Y8Qy8BKEHRovAvu3qr6byA&s=10", style: { backgroundPosition: "center 30%", backgroundSize: "cover" } },
-  "comedy-gold": { url: "https://m.media-amazon.com/images/M/MV5BMTUyNDU0NzAwNl5BMl5BanBnXkFtZTcwMzQxMzIzNw@@._V1_FMjpg_UX1000_.jpg", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
-  "franchise-mission-impossible": { url: "https://cdn.artphotolimited.com/images/66c89286e2e42e7046294521/1000x1000/tom-cruise.jpg", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
+const COLLECTION_BANNERS: Record<string, string> = {
+  "john-wick": "/src/assets/images/john_wick_banner_1781396452240.jpg",
+  "indiana-jones": "/src/assets/images/indiana_jones_banner_1781396466470.jpg",
+  "christopher-nolan": "/src/assets/images/nolan_banner_1781396487471.jpg",
+  "tarantino-collection": "/src/assets/images/tarantino_banner_1781396514352.jpg",
+  "star-wars": "/src/assets/images/star_wars_banner_fixed_1781396525726.jpg",
+  "james-bond": "/src/assets/images/bond_banner_1781396536406.jpg",
+  "rocky": "/src/assets/images/rocky_banner_1781396548528.jpg",
+  "terminator": "/src/assets/images/terminator_banner_1781396559445.jpg",
+  "fast-and-furious": "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=80&w=1200&auto=format&fit=crop",
+  "mafia-movies": "https://images.unsplash.com/photo-1574676101235-97e3cefa1212?q=80&w=1200&auto=format&fit=crop",
+  "mind-bending-mysteries": "https://images.unsplash.com/photo-1517765371796-58eb241caa36?q=80&w=1200&auto=format&fit=crop"
 };
 
 // -------------------------------------------------------------
@@ -506,11 +493,7 @@ const GENRE_AESTHETICS: Record<string, { gradient: string; accentColor: string; 
     accentHex: "#60a5fa",
     symbol: "🎨✨🦁",
     description: "Wonderful drawn universes, fantastic adventures for all ages."
-  },
-  "tarantino-collection": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWu6RRTNcMHTxff7uXa7H4Y8Qy8BKEHRovAvu3qr6byA&s=10", style: { backgroundPosition: "center 30%", backgroundSize: "cover" } },
-  "director-quentin-tarantino": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWu6RRTNcMHTxff7uXa7H4Y8Qy8BKEHRovAvu3qr6byA&s=10", style: { backgroundPosition: "center 30%", backgroundSize: "cover" } },
-  "comedy-gold": { url: "https://m.media-amazon.com/images/M/MV5BMTUyNDU0NzAwNl5BMl5BanBnXkFtZTcwMzQxMzIzNw@@._V1_FMjpg_UX1000_.jpg", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
-  "franchise-mission-impossible": { url: "https://cdn.artphotolimited.com/images/66c89286e2e42e7046294521/1000x1000/tom-cruise.jpg", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
+  }
 };
 
 // -------------------------------------------------------------
@@ -814,7 +797,6 @@ export default function App() {
       const enrichedMovies = collection.movies
         .map((movie) => {
           const match = jellyfinMovies.find((jf) => isMovieMatch(movie.title, jf.title));
-          if (movie.title.includes("Prada")) { console.log("Prada match:", match ? match.title : "Not found", "isMovieMatch returned", match ? true : false); }
           if (match) {
             matchedServersMovieIds.add(match.id);
             return {
@@ -835,7 +817,9 @@ export default function App() {
               rating: movie.rating && movie.rating !== "N/A" ? movie.rating : match.rating
             } as Movie;
           }
-
+          if (collection.id === "trending-now" || collection.id === "comedy-gold" || collection.id === "mind-bending-mysteries" || collection.id === "mafia-movies") {
+            return movie;
+          }
           return null;
         })
         .filter((m): m is Movie => m !== null);
@@ -915,13 +899,9 @@ export default function App() {
         });
 
         const slug = directorName.toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, "-");
-                let displayTitle = directorName;
-        if (directorName.toLowerCase() === "chad stahelski") displayTitle = "John Wick";
-        if (directorName.toLowerCase() === "brett ratner") displayTitle = "Rush Hour";
-        
         dynamicDirectorCollections.push({
           id: `director-${slug}`,
-          title: displayTitle,
+          title: directorName,
           description: `Retrospective dedicated to the exceptional work of director: ${directorName}.`,
           movies: enrichedMovies,
         });
@@ -1703,7 +1683,7 @@ export default function App() {
               </div>
 
               {searchedMovies.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-8 pt-2 justify-items-center">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-8 pt-2 justify-items-center">
                   {searchedMovies.map((movie, idx) => (
                     <LazyVirtualCard key={`${movie.id}-search-${idx}`}>
                       <MovieCard
@@ -2136,7 +2116,7 @@ export default function App() {
                           ref={(el) => {
                             carouselRefs.current[collection.id] = el;
                           }}
-                          className={`flex overflow-x-auto no-scrollbar pt-4 px-1 pb-6 sm:pb-10 ${collection.id === "trending-now" ? "gap-6 sm:gap-10" : "gap-4 sm:gap-8"}`}
+                          className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar pt-4 px-1 pb-6 sm:pb-10"
                         >
                           {collection.movies.map((movie, idx) => (
                             <LazyVirtualCard 
@@ -2243,14 +2223,14 @@ export default function App() {
               </div>
 
               {/* Collections Grid Layout cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-8 pt-2">
-                {mappedCollections.filter(c => c.id !== "trending-now").map((c, i) => {
+              <div className="grid grid-cols-2 gap-3 sm:gap-8 pt-2">
+                {mappedCollections.map((c, i) => {
                   const representative = c.movies[0];
                   return (
                     <div 
                       id={`collection-folder-${c.id}`}
                       key={c.id}
-                      className="relative overflow-hidden group bg-neutral-900/60 rounded-2xl border border-zinc-800/80 p-4 sm:p-8 flex flex-col justify-between gap-4 sm:gap-6 hover:border-amber-400/40 transition-all duration-300 text-left cursor-pointer min-h-[200px] sm:min-h-[220px]"
+                      className="relative overflow-hidden group bg-neutral-900/60 rounded-2xl border border-zinc-800/80 p-4 sm:p-8 flex flex-col justify-between gap-4 sm:gap-6 hover:border-amber-400/40 transition-all duration-300 text-left cursor-pointer"
                       onClick={() => {
                         navigateTo("/collection-detail/" + c.id);
                         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -2259,20 +2239,6 @@ export default function App() {
                       {/* background gradient matching representative movie */}
                       <div className={`absolute right-0 top-0 w-2/3 h-full bg-gradient-to-l ${representative.gradient} opacity-20 group-hover:opacity-40 blur-lg rounded-r-2xl transition-all duration-500 pointer-events-none`} />
 
-                      
-                                            {COLLECTION_BANNERS[c.id] && (
-                        <div 
-                          className="absolute right-0 bottom-0 top-0 w-[80%] sm:w-[60%] opacity-30 group-hover:opacity-70 transition-opacity duration-700 pointer-events-none bg-no-repeat bg-[center_top_10%] bg-cover" 
-                          style={{ 
-                            backgroundImage: `url('${COLLECTION_BANNERS[c.id].url}')`,
-                             
-                            mixBlendMode: 'lighten',
-                            WebkitMaskImage: 'linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 100%)',
-                            maskImage: 'linear-gradient(to left, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 100%)',
-                            ...(COLLECTION_BANNERS[c.id].style || {})
-                          }}
-                        />
-                      )}
                       <div className="space-y-2 sm:space-y-3 relative z-10">
                         <div className="flex items-center justify-between">
                           <span className="text-[9px] sm:text-[10px] font-mono font-medium tracking-widest text-amber-400 uppercase bg-black/40 border border-amber-500/20 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md">
@@ -2379,7 +2345,7 @@ export default function App() {
                       </h2>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-8 justify-items-center">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-8 justify-items-center">
                       {selectedCollection.movies.map((movie, idx) => (
                         <LazyVirtualCard key={`${movie.id}-detail-${idx}`}>
                           <MovieCard
@@ -2459,7 +2425,7 @@ export default function App() {
                     </h3>
 
                     {watchlist.length > 0 ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-8 justify-items-center">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-8 justify-items-center">
                         {allMovies
                           .filter(m => watchlist.includes(m.id))
                           .map((movie, idx) => (
@@ -2497,7 +2463,7 @@ export default function App() {
                     </h3>
 
                     {history.length > 0 ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-8 justify-items-center">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-8 justify-items-center">
                         {allMovies
                           .filter(m => history.includes(m.id))
                           .map((movie, idx) => (

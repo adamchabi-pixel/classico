@@ -19,7 +19,6 @@ export default function MovieDetailView({
   onToggleBookmark,
 }: MovieDetailViewProps) {
   const [expandedSection, setExpandedSection] = useState<"synopsis" | "casting" | "trailer" | null>("synopsis");
-  const isComingSoon = ["obsession", "devil-wears-prada-2", "backrooms", "michael", "the-matrix"].includes(movie.id);
 
   const toggleSection = (section: "synopsis" | "casting" | "trailer") => {
     if (expandedSection === section) {
@@ -107,10 +106,6 @@ export default function MovieDetailView({
                 <Play className="w-4 h-4 fill-current" />
                 Play
               </button>
-            ) : isComingSoon ? (
-              <div className="inline-flex items-center gap-2.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 px-6 py-3 sm:px-8 sm:py-3.5 rounded-full text-[13px] tracking-widest uppercase font-bold">
-                <span className="whitespace-nowrap">Coming Soon</span>
-              </div>
             ) : (
               <div className="inline-flex items-center gap-2.5 bg-neutral-900/60 border border-zinc-800 text-zinc-500 px-6 py-3 sm:px-8 sm:py-3.5 rounded-full text-[13px] tracking-widest uppercase font-bold cursor-not-allowed">
                 <span className="whitespace-nowrap">Non dispo sur Jellyfin</span>

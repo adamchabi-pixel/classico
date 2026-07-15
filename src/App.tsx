@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { get, set } from "idb-keyval";
-
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Search, Play, Film, Info, Heart, Award, 
@@ -49,16 +47,17 @@ const COLLECTION_BANNERS: Record<string, {url: string, style?: React.CSSProperti
   "mind-bending-mysteries": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSUcFo5K5UW4vpxO-BJv_o30ZHXzRLAk8amHHrfVQZxEtHQZbGAnhMtGlHX&s=10", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
   "franchise-matrix": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWBBqq5C8VYKAjz47Tr-3NiJm7y3qWdAOLboYZragONQ&s=10", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
   "matrix": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWBBqq5C8VYKAjz47Tr-3NiJm7y3qWdAOLboYZragONQ&s=10", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
-
+  "tarantino-collection": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWu6RRTNcMHTxff7uXa7H4Y8Qy8BKEHRovAvu3qr6byA&s=10", style: { backgroundPosition: "center 30%", backgroundSize: "cover" } },
+  "director-quentin-tarantino": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWu6RRTNcMHTxff7uXa7H4Y8Qy8BKEHRovAvu3qr6byA&s=10", style: { backgroundPosition: "center 30%", backgroundSize: "cover" } },
+  "comedy-gold": { url: "https://m.media-amazon.com/images/M/MV5BMTUyNDU0NzAwNl5BMl5BanBnXkFtZTcwMzQxMzIzNw@@._V1_FMjpg_UX1000_.jpg", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
+  "franchise-mission-impossible": { url: "https://cdn.artphotolimited.com/images/66c89286e2e42e7046294521/1000x1000/tom-cruise.jpg", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
 };
 
 // -------------------------------------------------------------
 // INTELLIGENT MATCHING UTILITIES BETWEEN JELLYFIN & HAND-CRAFTED COLLECTIONS
 // -------------------------------------------------------------
-const _cleanTitleCache = new Map<string, string>();
 function cleanTitle(title: string): string {
   if (!title) return "";
-  if (_cleanTitleCache.has(title)) return _cleanTitleCache.get(title)!;
   let t = title.toLowerCase();
   // Remove parenthesized or bracketed years e.g. (2014), [2017]
   t = t.replace(/\(\d{4}\)/g, " ");
@@ -72,8 +71,6 @@ function cleanTitle(title: string): string {
     .replace(/[^a-z0-9]/g, " ")     // replace punctuation with space
     .replace(/\s+/g, " ")           // collapse spaces
     .trim();
-  _cleanTitleCache.set(title, t);
-  return t;
 }
 
 // -------------------------------------------------------------
@@ -350,7 +347,26 @@ function isBondMovieMatch(title1: string, title2: string): boolean {
   return false;
 }
 
-const aliasGroups = [
+function isMovieMatch(title1: string, title2: string): boolean {
+  const t1 = cleanTitle(title1);
+  const t2 = cleanTitle(title2);
+  
+  if (!t1 || !t2) return false;
+  
+  // Exact match after cleaning
+  if (t1 === t2) return true;
+
+  // Star Wars specific match
+  if (isStarWarsEpisodeMatch(title1, title2)) {
+    return true;
+  }
+
+  // James Bond specific match
+  if (isBondMovieMatch(title1, title2)) {
+    return true;
+  }
+
+  const aliasGroups = [
     ["the godfather", "le parrain", "godfather 1", "godfather part 1", "le parrain 1"],
     ["the godfather part ii", "le parrain 2", "godfather 2", "le parrain 2e partie", "le parrain 2e partie", "the godfather part 2"],
     ["the godfather part iii", "le parrain 3", "godfather 3", "le parrain 3e partie", "the godfather part 3"],
@@ -397,32 +413,9 @@ const aliasGroups = [
     ["fast x", "fast and furious 10", "fast & furious 10", "fast 10"]
   ];
 
-const _cleanedAliasGroups = aliasGroups.map(group => group.map(a => cleanTitle(a)));
-
-function isMovieMatch(title1: string, title2: string): boolean {
-  const t1 = cleanTitle(title1);
-  const t2 = cleanTitle(title2);
-  
-  if (!t1 || !t2) return false;
-  
-  // Exact match after cleaning
-  if (t1 === t2) return true;
-
-  // Star Wars specific match
-  if (t1.includes("star") || t1.includes("wars") || t1.includes("jedi") || t1.includes("sith") || t1.includes("empire")) {
-    if (isStarWarsEpisodeMatch(title1, title2)) return true;
-  }
-
-  // James Bond specific match
-  if (t1.includes("bond") || t1.includes("007") || t1.includes("casino") || t1.includes("no time")) {
-    if (isBondMovieMatch(title1, title2)) return true;
-  }
-
-  
-
-  for (const group of _cleanedAliasGroups) {
-    const hasT1 = group.includes(t1);
-    const hasT2 = group.includes(t2);
+  for (const group of aliasGroups) {
+    const hasT1 = group.some(alias => t1 === alias || cleanTitle(alias) === t1);
+    const hasT2 = group.some(alias => t2 === alias || cleanTitle(alias) === t2);
     if (hasT1 && hasT2) return true;
   }
 
@@ -514,7 +507,10 @@ const GENRE_AESTHETICS: Record<string, { gradient: string; accentColor: string; 
     symbol: "🎨✨🦁",
     description: "Wonderful drawn universes, fantastic adventures for all ages."
   },
-
+  "tarantino-collection": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWu6RRTNcMHTxff7uXa7H4Y8Qy8BKEHRovAvu3qr6byA&s=10", style: { backgroundPosition: "center 30%", backgroundSize: "cover" } },
+  "director-quentin-tarantino": { url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSWu6RRTNcMHTxff7uXa7H4Y8Qy8BKEHRovAvu3qr6byA&s=10", style: { backgroundPosition: "center 30%", backgroundSize: "cover" } },
+  "comedy-gold": { url: "https://m.media-amazon.com/images/M/MV5BMTUyNDU0NzAwNl5BMl5BanBnXkFtZTcwMzQxMzIzNw@@._V1_FMjpg_UX1000_.jpg", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
+  "franchise-mission-impossible": { url: "https://cdn.artphotolimited.com/images/66c89286e2e42e7046294521/1000x1000/tom-cruise.jpg", style: { backgroundPosition: "center 20%", backgroundSize: "cover" } },
 };
 
 // -------------------------------------------------------------
@@ -777,14 +773,6 @@ export default function App() {
   const [progressData, setProgressData] = useState<Record<string, number>>({});
   const [startAsPlaying, setStartAsPlaying] = useState(false);
   const [jellyfinHeroMovies, setJellyfinHeroMovies] = useState<any[]>([]);
-
-  useEffect(() => {
-    get("classico_hero_cache").then((val) => {
-      if (val && Array.isArray(val) && val.length > 0) {
-        setJellyfinHeroMovies((prev) => prev.length === 0 ? val : prev);
-      }
-    }).catch(e => console.warn("IDB hero cache load failed:", e));
-  }, []);
   const [currentHeroIndex, setCurrentHeroIndex] = useState<number>(0);
   const [direction, setDirection] = useState<number>(1);
   const jellyfinHeroMovie = jellyfinHeroMovies[currentHeroIndex] || null;
@@ -803,14 +791,6 @@ export default function App() {
   });
 
   const [jellyfinMovies, setJellyfinMovies] = useState<Movie[]>([]);
-
-  useEffect(() => {
-    get("classico_movies_cache").then((val) => {
-      if (val && Array.isArray(val) && val.length > 0) {
-        setJellyfinMovies((prev) => prev.length === 0 ? val : prev);
-      }
-    }).catch(e => console.warn("IDB cache load failed:", e));
-  }, []);
   const [jellyfinSearchQuery, setJellyfinSearchQuery] = useState("");
   const [isJellyfinLoading, setIsJellyfinLoading] = useState(false);
   const [isJellyfinError, setIsJellyfinError] = useState("");
@@ -953,7 +933,16 @@ export default function App() {
 
     // 4. Classify leftover unmatched movies into genre categories (shelf rows)
     const finalUnmatchedMovies = jellyfinMovies.filter((m) => {
-      return !matchedServersMovieIds.has(m.id);
+      if (matchedServersMovieIds.has(m.id)) return false;
+      const t = m.title.toLowerCase();
+      if (t.includes("john wick")) return false;
+      if (t.includes("batman begins")) return false;
+      if (t.includes("fast and furious") || t.includes("fast & furious") || t.includes("furious 7") || t.includes("fast 5") || t.includes("fast x")) return false;
+      if (t.includes("devil wears prada 2") || t.includes("le diable s'habille en prada 2")) return false;
+      if (t.includes("bronx tale") || t.includes("il était une fois dans le bronx")) return false;
+      if (t.includes("21 jump street") || t.includes("22 jump street") || t.includes("superbad") || t.includes("grown ups") || t.includes("white chicks")) return false;
+      if (t.includes("memories of murder")) return false;
+      return true;
     });
 
     const genreGroups: Record<string, Movie[]> = {};
@@ -994,8 +983,7 @@ export default function App() {
     const finalCollections = [
       ...curatedSagaCollections,
       ...dynamicFranchiseCollections,
-      ...dynamicDirectorCollections,
-      ...genreCollections
+      ...dynamicDirectorCollections
     ];
 
     return finalCollections.map((col) => {
@@ -1126,10 +1114,8 @@ export default function App() {
         if (data.success) {
           if (data.heroes && data.heroes.length > 0) {
             setJellyfinHeroMovies(data.heroes);
-            try { set("classico_hero_cache", data.heroes); } catch(e) {}
           } else if (data.hero) {
             setJellyfinHeroMovies([data.hero]);
-            try { set("classico_hero_cache", [data.hero]); } catch(e) {}
           } else {
             setJellyfinHeroMovies([]);
           }
@@ -1284,68 +1270,55 @@ export default function App() {
       
       const tryFetch = async () => {
         try {
+          const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
           const defaultUrl = "https://jellyfin-jacklumber00.siren.mygiga.cloud";
           const defaultApiKey = "a2aac09e434e4bcc897c1b181ca197eb";
+
           const localUrl = localStorage.getItem("classico_jellyfin_url");
           const localKey = localStorage.getItem("classico_jellyfin_apikey");
 
-          if (!localUrl || !localKey) {
+          if (isNetlify || !localUrl || !localKey) {
             localStorage.setItem("classico_jellyfin_url", defaultUrl);
             localStorage.setItem("classico_jellyfin_apikey", defaultApiKey);
           }
-          
+
           const targetUrl = localStorage.getItem("classico_jellyfin_url") || defaultUrl;
           const targetKey = localStorage.getItem("classico_jellyfin_apikey") || defaultApiKey;
 
-          setIsJellyfinLoading(true);
-          try {
-            const statusRes = await fetch("/api/jellyfin/status");
-            const statusData = await statusRes.json();
-            
-            if (!statusData.configured) {
-              const restoreRes = await fetch("/api/jellyfin/config", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ url: targetUrl, apiKey: targetKey })
-              });
-              if (restoreRes.ok) {
-                 const restoreData = await restoreRes.json();
-                 if (restoreData.success) {
-                    setJellyfinConfig({ configured: true, url: restoreData.url });
-                    localStorage.setItem("classico_jellyfin_url", restoreData.url);
-                    localStorage.setItem("classico_jellyfin_apikey", targetKey);
-                 } else {
-                    setJellyfinConfig({ configured: true, url: targetUrl });
-                 }
-              } else {
-                 setJellyfinConfig({ configured: true, url: targetUrl });
-              }
-            } else {
-               setJellyfinConfig({ configured: true, url: statusData.url || targetUrl });
-               if (statusData.url && statusData.url !== targetUrl) {
-                 localStorage.setItem("classico_jellyfin_url", statusData.url);
-               }
-            }
+          // Perform auto-configuration on server
+          const restoreRes = await fetch("/api/jellyfin/config", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: targetUrl, apiKey: targetKey })
+          });
 
-            let libRes = await fetch("/api/jellyfin/movies");
-            if (libRes && libRes.ok) {
+          if (!restoreRes.ok) throw new Error("Auto-configuration request failed");
+          const restoreData = await restoreRes.json();
+
+          if (restoreData.success) {
+            setJellyfinConfig({ configured: true, url: restoreData.url });
+            localStorage.setItem("classico_jellyfin_url", restoreData.url);
+            localStorage.setItem("classico_jellyfin_apikey", targetKey);
+
+            setIsJellyfinLoading(true);
+            try {
+              const libRes = await fetch("/api/jellyfin/movies");
+              if (!libRes.ok) throw new Error("Could not fetch movies");
               const libData = await libRes.json();
               if (libData.success) {
                 setJellyfinMovies(libData.movies || []);
-                try { set("classico_movies_cache", libData.movies || []); } catch(e) {}
               } else {
                 setIsJellyfinError(libData.error || "Unable to read movies.");
               }
-            } else {
-              const errText = await libRes.text().catch(()=>"");
-              console.error("libRes not ok:", libRes.status, errText);
-              setIsJellyfinError("Failed to communicate with media server.");
+            } catch (libErr) {
+              console.warn("Failed to load library movies on check:", libErr);
+              setIsJellyfinError("Unable to connect to Jellyfin.");
+            } finally {
+              setIsJellyfinLoading(false);
             }
-          } catch (libErr) {
-            console.warn("Failed to load library movies on check:", libErr);
-            setIsJellyfinError("Unable to connect to Jellyfin.");
+          } else {
+            // Fallback gracefully and set configured to true with targetUrl
             setJellyfinConfig({ configured: true, url: targetUrl });
-          } finally {
             setIsJellyfinLoading(false);
           }
         } catch (err) {
@@ -1355,6 +1328,7 @@ export default function App() {
             setTimeout(tryFetch, 1500 * attempts);
           } else {
             console.warn("Jellyfin connection check error:", err);
+            // Bulletproof fallback: set configured to true to unblock the screen immediately
             const defaultUrl = "https://jellyfin-jacklumber00.siren.mygiga.cloud";
             setJellyfinConfig({ configured: true, url: defaultUrl });
             setIsJellyfinLoading(false);
@@ -1365,7 +1339,6 @@ export default function App() {
       
       tryFetch();
     };
-
     checkJellyfinSetup();
 
   }, []);
@@ -1984,21 +1957,6 @@ export default function App() {
               
 
                {/* Collections Segment block - Horizontal Carousels grouped by Collection */}
-              {isJellyfinLoading && mappedCollections.length === 0 ? (
-                <div className="max-w-[2000px] mx-auto px-4 sm:px-8 space-y-12 pb-16 pt-12">
-                   {[1,2,3].map(i => (
-                     <div key={i} className="space-y-4">
-                       <div className="h-8 w-48 bg-zinc-900 rounded-lg animate-pulse" />
-                       <div className="flex gap-4 overflow-hidden">
-                          {[1,2,3,4,5,6].map(j => (
-                             <div key={j} className="h-[200px] sm:h-[220px] min-w-[300px] sm:min-w-[400px] bg-neutral-900/60 rounded-2xl border border-zinc-800/80 animate-pulse shrink-0" />
-                          ))}
-                       </div>
-                     </div>
-                   ))}
-                </div>
-              ) : null}
-
               <div className="max-w-[2000px] mx-auto px-4 sm:px-8 space-y-12 pb-16">
                 
                 {/* Reprendre la lecture Section */}

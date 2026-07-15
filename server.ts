@@ -1,4 +1,6 @@
 import express from "express";
+import compression from "compression";
+
 import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
@@ -10,6 +12,7 @@ import { Transform } from "stream";
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 const app = express();
+app.use(compression());
 const PORT = 3000;
 const CONFIG_PATH = path.join(process.cwd(), "jellyfin-config.json");
 
@@ -386,6 +389,12 @@ function formatJellyfinItem(item: any, serverUrl: string, apiKey: string) {
   };
 }
 
+// Check config status
+app.get("/api/jellyfin/status", (req, res) => {
+  const config = getJellyfinConfig();
+  res.json({ configured: !!config, url: config ? config.url : null });
+});
+
 // 4. List library movies from connected Jellyfin with 5-minute cache
 app.get("/api/jellyfin/movies", async (req, res) => {
   const config = getJellyfinConfig();
@@ -453,6 +462,17 @@ app.get("/api/jellyfin/hero", async (req, res) => {
   const config = getJellyfinConfig();
   if (!config) {
     res.json({ success: false, error: "Serveur non configuré." });
+    return;
+  }
+
+  const cacheKey = "hero-data";
+  const cachedData = getCached(cacheKey);
+  if (cachedData) {
+    res.json({
+      success: true,
+      heroes: cachedData,
+      hero: cachedData[0]
+    });
     return;
   }
 
@@ -530,6 +550,7 @@ app.get("/api/jellyfin/hero", async (req, res) => {
       };
     });
 
+    setCached("hero-data", formattedHeroes, 300000);
     res.json({
       success: true,
       heroes: formattedHeroes,

@@ -55,8 +55,10 @@ const COLLECTION_BANNERS: Record<string, {url: string, style?: React.CSSProperti
 // -------------------------------------------------------------
 // INTELLIGENT MATCHING UTILITIES BETWEEN JELLYFIN & HAND-CRAFTED COLLECTIONS
 // -------------------------------------------------------------
+const _cleanTitleCache = new Map<string, string>();
 function cleanTitle(title: string): string {
   if (!title) return "";
+  if (_cleanTitleCache.has(title)) return _cleanTitleCache.get(title)!;
   let t = title.toLowerCase();
   // Remove parenthesized or bracketed years e.g. (2014), [2017]
   t = t.replace(/\(\d{4}\)/g, " ");
@@ -70,6 +72,8 @@ function cleanTitle(title: string): string {
     .replace(/[^a-z0-9]/g, " ")     // replace punctuation with space
     .replace(/\s+/g, " ")           // collapse spaces
     .trim();
+  _cleanTitleCache.set(title, t);
+  return t;
 }
 
 // -------------------------------------------------------------
@@ -346,26 +350,7 @@ function isBondMovieMatch(title1: string, title2: string): boolean {
   return false;
 }
 
-function isMovieMatch(title1: string, title2: string): boolean {
-  const t1 = cleanTitle(title1);
-  const t2 = cleanTitle(title2);
-  
-  if (!t1 || !t2) return false;
-  
-  // Exact match after cleaning
-  if (t1 === t2) return true;
-
-  // Star Wars specific match
-  if (isStarWarsEpisodeMatch(title1, title2)) {
-    return true;
-  }
-
-  // James Bond specific match
-  if (isBondMovieMatch(title1, title2)) {
-    return true;
-  }
-
-  const aliasGroups = [
+const aliasGroups = [
     ["the godfather", "le parrain", "godfather 1", "godfather part 1", "le parrain 1"],
     ["the godfather part ii", "le parrain 2", "godfather 2", "le parrain 2e partie", "le parrain 2e partie", "the godfather part 2"],
     ["the godfather part iii", "le parrain 3", "godfather 3", "le parrain 3e partie", "the godfather part 3"],
@@ -412,9 +397,32 @@ function isMovieMatch(title1: string, title2: string): boolean {
     ["fast x", "fast and furious 10", "fast & furious 10", "fast 10"]
   ];
 
-  for (const group of aliasGroups) {
-    const hasT1 = group.some(alias => t1 === alias || cleanTitle(alias) === t1);
-    const hasT2 = group.some(alias => t2 === alias || cleanTitle(alias) === t2);
+const _cleanedAliasGroups = aliasGroups.map(group => group.map(a => cleanTitle(a)));
+
+function isMovieMatch(title1: string, title2: string): boolean {
+  const t1 = cleanTitle(title1);
+  const t2 = cleanTitle(title2);
+  
+  if (!t1 || !t2) return false;
+  
+  // Exact match after cleaning
+  if (t1 === t2) return true;
+
+  // Star Wars specific match
+  if (isStarWarsEpisodeMatch(title1, title2)) {
+    return true;
+  }
+
+  // James Bond specific match
+  if (isBondMovieMatch(title1, title2)) {
+    return true;
+  }
+
+  
+
+  for (const group of _cleanedAliasGroups) {
+    const hasT1 = group.includes(t1);
+    const hasT2 = group.includes(t2);
     if (hasT1 && hasT2) return true;
   }
 
@@ -769,6 +777,14 @@ export default function App() {
   const [progressData, setProgressData] = useState<Record<string, number>>({});
   const [startAsPlaying, setStartAsPlaying] = useState(false);
   const [jellyfinHeroMovies, setJellyfinHeroMovies] = useState<any[]>([]);
+
+  useEffect(() => {
+    get("classico_hero_cache").then((val) => {
+      if (val && Array.isArray(val) && val.length > 0) {
+        setJellyfinHeroMovies((prev) => prev.length === 0 ? val : prev);
+      }
+    }).catch(e => console.warn("IDB hero cache load failed:", e));
+  }, []);
   const [currentHeroIndex, setCurrentHeroIndex] = useState<number>(0);
   const [direction, setDirection] = useState<number>(1);
   const jellyfinHeroMovie = jellyfinHeroMovies[currentHeroIndex] || null;
@@ -1110,8 +1126,10 @@ export default function App() {
         if (data.success) {
           if (data.heroes && data.heroes.length > 0) {
             setJellyfinHeroMovies(data.heroes);
+            try { set("classico_hero_cache", data.heroes); } catch(e) {}
           } else if (data.hero) {
             setJellyfinHeroMovies([data.hero]);
+            try { set("classico_hero_cache", [data.hero]); } catch(e) {}
           } else {
             setJellyfinHeroMovies([]);
           }
@@ -1282,8 +1300,10 @@ export default function App() {
 
           setIsJellyfinLoading(true);
           try {
-            let libRes = await fetch("/api/jellyfin/movies");
-            if (libRes.status === 401) {
+            const statusRes = await fetch("/api/jellyfin/status");
+            const statusData = await statusRes.json();
+            
+            if (!statusData.configured) {
               const restoreRes = await fetch("/api/jellyfin/config", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -1295,16 +1315,18 @@ export default function App() {
                     setJellyfinConfig({ configured: true, url: restoreData.url });
                     localStorage.setItem("classico_jellyfin_url", restoreData.url);
                     localStorage.setItem("classico_jellyfin_apikey", targetKey);
-                    libRes = await fetch("/api/jellyfin/movies");
                  } else {
                     setJellyfinConfig({ configured: true, url: targetUrl });
-                    setIsJellyfinError("Unable to connect to Jellyfin during auto-config.");
                  }
               }
             } else {
-               setJellyfinConfig({ configured: true, url: targetUrl });
+               setJellyfinConfig({ configured: true, url: statusData.url || targetUrl });
+               if (statusData.url && statusData.url !== targetUrl) {
+                 localStorage.setItem("classico_jellyfin_url", statusData.url);
+               }
             }
 
+            let libRes = await fetch("/api/jellyfin/movies");
             if (libRes && libRes.ok) {
               const libData = await libRes.json();
               if (libData.success) {

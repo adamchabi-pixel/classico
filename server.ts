@@ -438,8 +438,8 @@ app.get("/api/jellyfin/movies", async (req, res) => {
     }
 
     const libraryUrl = userId 
-      ? `${config.url}/Users/${userId}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=2000&api_key=${config.apiKey}`
-      : `${config.url}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=2000&api_key=${config.apiKey}`;
+      ? `${config.url}/Users/${userId}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=2000&api_key=${config.apiKey}`
+      : `${config.url}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=2000&api_key=${config.apiKey}`;
       
     const response = await fetchWithTimeout(libraryUrl);
     if (!response.ok) {

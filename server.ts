@@ -1020,8 +1020,8 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   const deviceProfile = {
     DeviceProfile: {
       Name: "Modern Browser",
-      MaxStreamingBitrate: 15000000,
-      MaxStaticBitrate: 15000000,
+      MaxStreamingBitrate: 4000000,
+      MaxStaticBitrate: 4000000,
       MusicStreamingBitrate: 320000,
       DirectPlayProfiles: [
         {
@@ -1372,8 +1372,8 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   const cleanedSourceId = source.Id ? source.Id.replace("-web-optimized", "") : activeId;
 
   // Calcul du bitrate en fonction de la qualité demandée
-  const videoBitrate = lowQuality ? 600000 : 15000000;
-  const maxVideoBitrate = lowQuality ? 600000 : 15000000;
+  const videoBitrate = lowQuality ? 600000 : 4000000;
+  const maxVideoBitrate = lowQuality ? 600000 : 4000000;
   const maxWidth = lowQuality ? 854 : 3840;
   const maxHeight = lowQuality ? 480 : 2160;
   const audioBitrate = lowQuality ? 96000 : 320000;

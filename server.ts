@@ -244,6 +244,12 @@ app.post("/api/jellyfin/disconnect", (req, res) => {
 app.post("/api/jellyfin/recalculate", (req, res) => {
   try {
     apiCache.clear();
+    if (fs.existsSync(MOVIES_CACHE_PATH)) {
+      try { fs.unlinkSync(MOVIES_CACHE_PATH); } catch (e) {}
+    }
+    if (fs.existsSync(HERO_CACHE_PATH)) {
+      try { fs.unlinkSync(HERO_CACHE_PATH); } catch (e) {}
+    }
     console.log("[RECALCULATE] Server Cache successfully cleared by user demand.");
     res.json({ success: true });
   } catch (err: any) {
@@ -266,6 +272,25 @@ app.post("/api/jellyfin/config", async (req, res) => {
     formattedUrl = formattedUrl.substring(0, formattedUrl.length - 1);
   }
 
+  // Check if configuration is identical to avoid wiping caches and re-testing
+  let isSameConfig = false;
+  if (fs.existsSync(CONFIG_PATH)) {
+    try {
+      const oldConfig = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf-8"));
+      if (oldConfig.url === formattedUrl && oldConfig.apiKey === apiKey) {
+        isSameConfig = true;
+      }
+    } catch (e) {}
+  }
+
+  if (isSameConfig) {
+    res.json({
+      success: true,
+      url: formattedUrl
+    });
+    return;
+  }
+
   try {
     // Attempt standard Jellyfin connection using System Info endpoint
     const testUrl = `${formattedUrl}/System/Info?api_key=${apiKey}`;
@@ -277,7 +302,7 @@ app.post("/api/jellyfin/config", async (req, res) => {
       res.status(400).json({ 
         success: false, 
         error: `Connexion refusée par le serveur (Code ${testResponse.status}). Vérifiez vos informations.` 
-      });
+        });
       return;
     }
 
@@ -286,6 +311,12 @@ app.post("/api/jellyfin/config", async (req, res) => {
 
     // Reset all old server caches immediately
     apiCache.clear();
+    if (fs.existsSync(MOVIES_CACHE_PATH)) {
+      try { fs.unlinkSync(MOVIES_CACHE_PATH); } catch (e) {}
+    }
+    if (fs.existsSync(HERO_CACHE_PATH)) {
+      try { fs.unlinkSync(HERO_CACHE_PATH); } catch (e) {}
+    }
 
     res.json({
       success: true,
@@ -364,7 +395,152 @@ function formatJellyfinItem(item: any, serverUrl: string, apiKey: string) {
   };
 }
 
-// 4. List library movies from connected Jellyfin with 5-minute cache
+// Persistent JSON file cache paths for immediate loading upon startup
+const MOVIES_CACHE_PATH = path.join(process.cwd(), "jellyfin-movies-cache.json");
+const HERO_CACHE_PATH = path.join(process.cwd(), "jellyfin-hero-cache.json");
+
+// Background fetch lock variables to avoid duplicate API requests
+let isFetchingMovies = false;
+let isFetchingHero = false;
+
+// Background fetch for movies library
+async function backgroundFetchMovies(config: any) {
+  if (isFetchingMovies) return;
+  isFetchingMovies = true;
+  console.log("[BG FETCH] Starting background fetch for movies library...");
+  try {
+    const formattedMovies = await fetchAndCacheMovies(config);
+    // Update in-memory cache
+    setCached("movies-list", formattedMovies, 3600000); // 1 hour fresh
+    // Write to persistent disk cache
+    fs.writeFileSync(MOVIES_CACHE_PATH, JSON.stringify(formattedMovies, null, 2), "utf-8");
+    console.log("[BG FETCH] Background fetch for movies complete.");
+  } catch (err: any) {
+    console.error("[BG FETCH] Background fetch for movies failed:", err);
+  } finally {
+    isFetchingMovies = false;
+  }
+}
+
+// Background fetch for hero banner collection
+async function backgroundFetchHero(config: any) {
+  if (isFetchingHero) return;
+  isFetchingHero = true;
+  console.log("[BG FETCH] Starting background fetch for hero banner collection...");
+  try {
+    const formattedHeroes = await fetchAndCacheHero(config);
+    // Update in-memory cache
+    setCached("hero-list", formattedHeroes, 3600000); // 1 hour fresh
+    // Write to persistent disk cache
+    fs.writeFileSync(HERO_CACHE_PATH, JSON.stringify(formattedHeroes, null, 2), "utf-8");
+    console.log("[BG FETCH] Background fetch for hero complete.");
+  } catch (err: any) {
+    console.error("[BG FETCH] Background fetch for hero failed:", err);
+  } finally {
+    isFetchingHero = false;
+  }
+}
+
+// Helper to fetch and format movie library items
+async function fetchAndCacheMovies(config: any): Promise<any[]> {
+  const usersResp = await fetch(`${config.url}/Users?api_key=${config.apiKey}`);
+  let userId = "";
+  if (usersResp.ok) {
+    const usersData = await usersResp.json();
+    if (usersData && usersData.length > 0) {
+      userId = usersData[0].Id;
+    }
+  }
+
+  const libraryUrl = userId 
+    ? `${config.url}/Users/${userId}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=3000&api_key=${config.apiKey}`
+    : `${config.url}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=3000&api_key=${config.apiKey}`;
+    
+  const response = await fetch(libraryUrl);
+  if (!response.ok) {
+    throw new Error("Impossible de lire la bibliothèque de médias.");
+  }
+
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.toLowerCase().includes("application/json")) {
+    throw new Error("Le serveur Jellyfin a renvoyé une réponse invalide (HTML au lieu de JSON).");
+  }
+
+  const data: any = await response.json();
+  const rawMovies = data.Items || [];
+
+  return rawMovies.map((item: any) => formatJellyfinItem(item, config.url, config.apiKey));
+}
+
+// Helper to fetch and format hero banner items
+async function fetchAndCacheHero(config: any): Promise<any[]> {
+  let userId = "";
+  const usersUrl = `${config.url}/Users`;
+  const usersResponse = await fetch(usersUrl, {
+    headers: {
+      "X-Emby-Token": config.apiKey,
+      "Accept": "application/json"
+    }
+  });
+  if (usersResponse.ok) {
+    const usersData: any = await usersResponse.json();
+    if (Array.isArray(usersData) && usersData.length > 0) {
+      userId = usersData[0].Id || "";
+    }
+  }
+
+  if (!userId) {
+    throw new Error("Impossible de récupérer l'ID utilisateur auprès de Jellyfin.");
+  }
+
+  const latestUrl = `${config.url}/Users/${userId}/Items/Latest?IncludeItemTypes=Movie,Series&Language=en&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ImageTags&limit=25&api_key=${config.apiKey}`;
+  const latestResponse = await fetch(latestUrl);
+  
+  if (!latestResponse.ok) {
+    throw new Error("Impossible de récupérer les nouveautés de Jellyfin.");
+  }
+
+  const latestData: any = await latestResponse.json();
+  const items = latestData || [];
+  if (items.length === 0) {
+    throw new Error("Aucun film valide trouvé dans vos nouveautés.");
+  }
+
+  const ticksToMinutes = (ticks: number) => {
+    if (!ticks) return "0 min";
+    const minutes = Math.round(ticks / 10000000 / 60);
+    return `${minutes} min`;
+  };
+
+  const topItems = items.slice(0, 6);
+  return topItems.map((heroItem: any) => {
+    const hasLogo = !!(heroItem.ImageTags && heroItem.ImageTags.Logo);
+    return {
+      id: heroItem.Id,
+      title: heroItem.Name || "Untitled Movie",
+      year: heroItem.ProductionYear || new Date().getFullYear(),
+      duration: ticksToMinutes(heroItem.RunTimeTicks),
+      rating: heroItem.CommunityRating ? heroItem.CommunityRating.toFixed(1) : "N/A",
+      genre: heroItem.Genres || [],
+      description: heroItem.Overview || "No synopsis available for this title on Jellyfin.",
+      director: heroItem.People?.find((p: any) => p.Type === "Director")?.Name || "Unknown Director",
+      cast: heroItem.People?.filter((p: any) => p.Type === "Actor").slice(0, 4).map((p: any) => p.Name) || [],
+      posterUrl: `${config.url}/Items/${heroItem.Id}/Images/Primary?fillHeight=600&fillWidth=400&quality=80`,
+      backdropUrl: `${config.url}/Items/${heroItem.Id}/Images/Backdrop?fillHeight=1080&fillWidth=1920&quality=90`,
+      streamUrl: `${config.url}/Videos/${heroItem.Id}/stream.mp4?Static=true&api_key=${config.apiKey}`,
+      tagline: heroItem.Taglines && heroItem.Taglines.length > 0 ? heroItem.Taglines[0] : "Available on your server",
+      hasLogo,
+      logoUrl: hasLogo ? `${config.url}/Items/${heroItem.Id}/Images/Logo?fillWidth=600&quality=90` : null,
+      symbol: "📡🎬",
+      accentColor: "text-[#ca8a04] border-[#ca8a04]/30 bg-[#ca8a04]/5",
+      accentHex: "#ca8a04",
+      gradient: "from-zinc-950 via-neutral-900 to-[#ca8a04]/20",
+      isJellyfin: true
+    };
+  });
+}
+
+// 4. List library movies from connected Jellyfin with persistent file and memory cache (SWR model)
 app.get("/api/jellyfin/movies", async (req, res) => {
   const config = getJellyfinConfig();
   if (!config) {
@@ -373,49 +549,51 @@ app.get("/api/jellyfin/movies", async (req, res) => {
   }
 
   const cacheKey = "movies-list";
-  const cachedData = getCached(cacheKey);
-  if (cachedData) {
+  
+  // 1. Check in-memory cache
+  let cachedMovies = getCached(cacheKey);
+  
+  // 2. If memory cache empty, try persistent disk cache
+  if (!cachedMovies && fs.existsSync(MOVIES_CACHE_PATH)) {
+    try {
+      const fileContent = fs.readFileSync(MOVIES_CACHE_PATH, "utf-8");
+      cachedMovies = JSON.parse(fileContent);
+      // Populate memory cache
+      setCached(cacheKey, cachedMovies, 3600000); // 1 hour
+      console.log("[CACHE LOG] Loaded movies from persistent disk cache.");
+    } catch (e) {
+      console.error("Error reading movies disk cache:", e);
+    }
+  }
+
+  // 3. If we have cached movies (memory or disk)
+  if (cachedMovies) {
+    // Send response immediately! (Extremely fast, <10ms)
     res.json({
       success: true,
-      movies: cachedData
+      movies: cachedMovies
     });
+
+    // Check if the cache is stale (older than 1 hour) and trigger background revalidation
+    let mtime = 0;
+    if (fs.existsSync(MOVIES_CACHE_PATH)) {
+      mtime = fs.statSync(MOVIES_CACHE_PATH).mtimeMs;
+    }
+    const age = Date.now() - mtime;
+    if (age > 3600000) { // 1 hour
+      console.log(`[CACHE LOG] Movies cache is stale (age: ${Math.round(age/1000)}s), triggering background revalidation...`);
+      backgroundFetchMovies(config);
+    }
     return;
   }
 
+  // 4. If no cache exists at all, fetch synchronously (first-time setup)
+  console.log("[CACHE LOG] No movies cache found, fetching synchronously...");
   try {
-    // Fetch users first to use the user's item list (fixes missing movies bug in global /Items)
-    const usersResp = await fetch(`${config.url}/Users?api_key=${config.apiKey}`);
-    let userId = "";
-    if (usersResp.ok) {
-      const usersData = await usersResp.json();
-      if (usersData && usersData.length > 0) {
-        userId = usersData[0].Id;
-      }
-    }
-
-    const libraryUrl = userId 
-      ? `${config.url}/Users/${userId}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=3000&api_key=${config.apiKey}`
-      : `${config.url}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=3000&api_key=${config.apiKey}`;
-      
-    const response = await fetch(libraryUrl);
-    if (!response.ok) {
-      res.status(response.status).json({ success: false, error: "Impossible de lire la bibliothèque de médias." });
-      return;
-    }
-
-    const contentType = response.headers.get("content-type") || "";
-    if (!contentType.toLowerCase().includes("application/json")) {
-      res.status(502).json({ success: false, error: "Le serveur Jellyfin a renvoyé une réponse invalide (HTML au lieu de JSON)." });
-      return;
-    }
-
-    const data: any = await response.json();
-    const rawMovies = data.Items || [];
-
-    const formattedMovies = rawMovies.map((item: any) => formatJellyfinItem(item, config.url, config.apiKey));
-
-    // Cache results for 5 minutes (300000 ms)
-    setCached(cacheKey, formattedMovies, 300000);
+    const formattedMovies = await fetchAndCacheMovies(config);
+    // Save to memory & disk
+    setCached(cacheKey, formattedMovies, 3600000);
+    fs.writeFileSync(MOVIES_CACHE_PATH, JSON.stringify(formattedMovies, null, 2), "utf-8");
 
     res.json({
       success: true,
@@ -426,7 +604,7 @@ app.get("/api/jellyfin/movies", async (req, res) => {
   }
 });
 
-// 4ab. Fetch dynamic Jellyfin Hero banner data from /Users/{UserId}/Items/Latest (filtered to Movies)
+// 4ab. Fetch dynamic Jellyfin Hero banner data with SWR caching model
 app.get("/api/jellyfin/hero", async (req, res) => {
   const config = getJellyfinConfig();
   if (!config) {
@@ -434,79 +612,52 @@ app.get("/api/jellyfin/hero", async (req, res) => {
     return;
   }
 
+  const cacheKey = "hero-list";
+
+  // 1. Check in-memory cache
+  let cachedHeroes = getCached(cacheKey);
+
+  // 2. If memory cache empty, try disk cache
+  if (!cachedHeroes && fs.existsSync(HERO_CACHE_PATH)) {
+    try {
+      const fileContent = fs.readFileSync(HERO_CACHE_PATH, "utf-8");
+      cachedHeroes = JSON.parse(fileContent);
+      // Populate memory cache
+      setCached(cacheKey, cachedHeroes, 3600000);
+      console.log("[CACHE LOG] Loaded hero items from persistent disk cache.");
+    } catch (e) {
+      console.error("Error reading hero disk cache:", e);
+    }
+  }
+
+  // 3. If we have cached hero items
+  if (cachedHeroes) {
+    res.json({
+      success: true,
+      heroes: cachedHeroes,
+      hero: cachedHeroes[0]
+    });
+
+    // Check if stale (older than 1 hour) and trigger background revalidation
+    let mtime = 0;
+    if (fs.existsSync(HERO_CACHE_PATH)) {
+      mtime = fs.statSync(HERO_CACHE_PATH).mtimeMs;
+    }
+    const age = Date.now() - mtime;
+    if (age > 3600000) { // 1 hour
+      console.log(`[CACHE LOG] Hero cache is stale (age: ${Math.round(age/1000)}s), triggering background revalidation...`);
+      backgroundFetchHero(config);
+    }
+    return;
+  }
+
+  // 4. If no cache exists at all, fetch synchronously
+  console.log("[CACHE LOG] No hero cache found, fetching synchronously...");
   try {
-    // 1. Get UserId dynamically
-    let userId = "";
-    const usersUrl = `${config.url}/Users`;
-    const usersResponse = await fetch(usersUrl, {
-      headers: {
-        "X-Emby-Token": config.apiKey,
-        "Accept": "application/json"
-      }
-    });
-    if (usersResponse.ok) {
-      const usersData: any = await usersResponse.json();
-      if (Array.isArray(usersData) && usersData.length > 0) {
-        userId = usersData[0].Id || "";
-      }
-    }
-
-    if (!userId) {
-      res.json({ success: false, error: "Impossible de récupérer l'ID utilisateur auprès de Jellyfin." });
-      return;
-    }
-
-    // 2. Fetch the latest items and filter for Movie
-    const latestUrl = `${config.url}/Users/${userId}/Items/Latest?IncludeItemTypes=Movie,Series&Language=en&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ImageTags&limit=25&api_key=${config.apiKey}`;
-    const latestResponse = await fetch(latestUrl);
-    
-    if (!latestResponse.ok) {
-      res.json({ success: false, error: "Impossible de récupérer les nouveautés de Jellyfin." });
-      return;
-    }
-
-    const latestData: any = await latestResponse.json();
-    const items = latestData || [];
-
-    const healthyItems = items;
-    if (healthyItems.length === 0) {
-      res.json({ success: false, error: "Aucun film valide trouvé dans vos nouveautés." });
-      return;
-    }
-
-    // Select the first 6 items
-    const ticksToMinutes = (ticks: number) => {
-      if (!ticks) return "0 min";
-      const minutes = Math.round(ticks / 10000000 / 60);
-      return `${minutes} min`;
-    };
-
-    const topItems = healthyItems.slice(0, 6);
-    const formattedHeroes = topItems.map((heroItem: any) => {
-      const hasLogo = !!(heroItem.ImageTags && heroItem.ImageTags.Logo);
-      return {
-        id: heroItem.Id,
-        title: heroItem.Name || "Untitled Movie",
-        year: heroItem.ProductionYear || new Date().getFullYear(),
-        duration: ticksToMinutes(heroItem.RunTimeTicks),
-        rating: heroItem.CommunityRating ? heroItem.CommunityRating.toFixed(1) : "N/A",
-        genre: heroItem.Genres || [],
-        description: heroItem.Overview || "No synopsis available for this title on Jellyfin.",
-        director: heroItem.People?.find((p: any) => p.Type === "Director")?.Name || "Unknown Director",
-        cast: heroItem.People?.filter((p: any) => p.Type === "Actor").slice(0, 4).map((p: any) => p.Name) || [],
-        posterUrl: `${config.url}/Items/${heroItem.Id}/Images/Primary?fillHeight=600&fillWidth=400&quality=80`,
-        backdropUrl: `${config.url}/Items/${heroItem.Id}/Images/Backdrop?fillHeight=1080&fillWidth=1920&quality=90`,
-        streamUrl: `${config.url}/Videos/${heroItem.Id}/stream.mp4?Static=true&api_key=${config.apiKey}`,
-        tagline: heroItem.Taglines && heroItem.Taglines.length > 0 ? heroItem.Taglines[0] : "Available on your server",
-        hasLogo,
-        logoUrl: hasLogo ? `${config.url}/Items/${heroItem.Id}/Images/Logo?fillWidth=600&quality=90` : null,
-        symbol: "📡🎬",
-        accentColor: "text-[#ca8a04] border-[#ca8a04]/30 bg-[#ca8a04]/5",
-        accentHex: "#ca8a04",
-        gradient: "from-zinc-950 via-neutral-900 to-[#ca8a04]/20",
-        isJellyfin: true
-      };
-    });
+    const formattedHeroes = await fetchAndCacheHero(config);
+    // Save to memory & disk
+    setCached(cacheKey, formattedHeroes, 3600000);
+    fs.writeFileSync(HERO_CACHE_PATH, JSON.stringify(formattedHeroes, null, 2), "utf-8");
 
     res.json({
       success: true,
@@ -521,6 +672,14 @@ app.get("/api/jellyfin/hero", async (req, res) => {
 // 4b. Clear Jellyfin cache on demand when config is saved or manually triggered
 app.post("/api/jellyfin/cache/clear", (req, res) => {
   apiCache.clear();
+  
+  if (fs.existsSync(MOVIES_CACHE_PATH)) {
+    try { fs.unlinkSync(MOVIES_CACHE_PATH); } catch (e) {}
+  }
+  if (fs.existsSync(HERO_CACHE_PATH)) {
+    try { fs.unlinkSync(HERO_CACHE_PATH); } catch (e) {}
+  }
+
   // Clear file-system images cache
   try {
     const files = fs.readdirSync(IMAGE_CACHE_DIR);
@@ -1923,6 +2082,13 @@ async function startServer() {
 
   serverInstance.listen(PORT, "0.0.0.0", () => {
     console.log(`[CLASSICO SERVER] Back-end listening on port ${PORT} (${process.env.NODE_ENV !== "production" ? "Development with WebSockets" : "Production"})`);
+    // Pre-warm caches immediately on server boot
+    const startupConfig = getJellyfinConfig();
+    if (startupConfig) {
+      console.log("[STARTUP] Warming up Jellyfin movies and hero cache in the background...");
+      backgroundFetchMovies(startupConfig);
+      backgroundFetchHero(startupConfig);
+    }
   });
 }
 

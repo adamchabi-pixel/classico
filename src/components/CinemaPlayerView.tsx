@@ -805,29 +805,37 @@ export default function CinemaPlayerView({
             setDuration(data.duration);
           }
           if (data && data.audios && data.audios.length > 0) {
-            const enAudioTrack = data.audios.find((t: any) => {
+            // Chercher une piste audio en anglais par défaut, sinon celle par défaut du serveur, sinon la première
+            const englishAudio = data.audios.find((t: any) => {
               const lang = (t.language || "").toLowerCase();
               const lbl = (t.label || "").toLowerCase();
               return lang.includes("en") || lang.includes("eng") || lbl.includes("english") || lbl.includes("eng");
             });
-            const defaultAudioTrack = enAudioTrack || data.audios.find((t: any) => t.isDefault) || data.audios[0];
+            const defaultAudioTrack = englishAudio || data.audios.find((t: any) => t.isDefault) || data.audios[0];
             if (defaultAudioTrack) {
               setActiveAudioIndex(defaultAudioTrack.index);
+              console.log(`[CINEMA AUDIO] Sélection de la piste audio : Index ${defaultAudioTrack.index} (${defaultAudioTrack.label})`);
             }
           }
           if (data && data.subtitles && data.subtitles.length > 0) {
-            const enSubtitleTrack = data.subtitles.find((t: any) => {
+            // Chercher une piste de sous-titres en anglais par défaut (uniquement texte), sinon celle par défaut du serveur, sinon la première textuelle, sinon la première tout court
+            const englishSub = data.subtitles.find((t: any) => {
               const lang = (t.language || "").toLowerCase();
               const lbl = (t.label || "").toLowerCase();
               return (lang.includes("en") || lang.includes("eng") || lbl.includes("english") || lbl.includes("eng")) && isTextSubtitle(t.codec);
             });
-            const defaultTrack = enSubtitleTrack 
-              || data.subtitles.find((t: any) => (t.isDefault || t.isForced) && isTextSubtitle(t.codec)) 
-              || data.subtitles.find((t: any) => isTextSubtitle(t.codec));
-            if (defaultTrack) {
-              setActiveSubtitleIndex(defaultTrack.index);
-              setSubtitlesOn(true);
-              console.log(`[CINEMA SUBTITLE] Auto-selected default/english subtitle: Index ${defaultTrack.index} (${defaultTrack.label})`);
+            
+            const serverDefaultTrack = data.subtitles.find((t: any) => (t.isDefault || t.isForced) && isTextSubtitle(t.codec));
+            const firstTextTrack = data.subtitles.find((t: any) => isTextSubtitle(t.codec));
+            const firstTrack = data.subtitles[0];
+            
+            const selectedTrack = englishSub || serverDefaultTrack || firstTextTrack || firstTrack;
+            if (selectedTrack) {
+              setActiveSubtitleIndex(selectedTrack.index);
+              // Activer automatiquement les sous-titres si c'est la piste en anglais préférée ou marquée par défaut/forcée par le serveur
+              const shouldBeOn = englishSub ? true : (serverDefaultTrack ? true : false);
+              setSubtitlesOn(shouldBeOn);
+              console.log(`[CINEMA SUBTITLE] Sélection de la piste : Index ${selectedTrack.index} (${selectedTrack.label}), Activé automatiquement : ${shouldBeOn}`);
             } else {
               setActiveSubtitleIndex(null);
               setSubtitlesOn(false);

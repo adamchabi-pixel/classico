@@ -778,6 +778,16 @@ export default function App() {
   const [isJellyfinLoading, setIsJellyfinLoading] = useState(true);
   const [isJellyfinError, setIsJellyfinError] = useState("");
 
+  // Force scroll to top when initial page loading completes to prevent browser layout-shift scroll drops
+  useEffect(() => {
+    if (!isJellyfinLoading) {
+      const timer = setTimeout(() => {
+        window.scrollTo(0, 0);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isJellyfinLoading]);
+
   // Connection form states
   const [jellyfinInputUrl, setJellyfinInputUrl] = useState("");
   const [jellyfinInputApiKey, setJellyfinInputApiKey] = useState("");
@@ -2033,48 +2043,48 @@ export default function App() {
                   </div>
                 )}
 
-                {/* Premium Discord Community Banner */}
-                <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-r from-zinc-900 via-[#1e1f24] to-zinc-900 border border-white/5 shadow-[0_8px_32px_rgba(0,0,0,0.4)] group">
-                  {/* Subtle Background Glow */}
-                  <div className="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-[#5865F2]/10 to-transparent opacity-50 pointer-events-none blur-3xl"></div>
-                  <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-[#5865F2]/20 rounded-full blur-[80px] pointer-events-none group-hover:bg-[#5865F2]/30 transition-colors duration-700"></div>
-
-                  <div className="relative px-4 py-4 sm:px-8 sm:py-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6">
-                    <div className="flex flex-row items-center gap-4 sm:gap-6 w-full">
-                      {/* Discord Logo Container */}
-                      <div className="flex-shrink-0 flex items-center justify-center w-11 h-11 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-[#5865F2]/10 border border-[#5865F2]/20 shadow-[0_0_20px_rgba(88,101,242,0.15)] group-hover:scale-105 group-hover:bg-[#5865F2]/20 group-hover:border-[#5865F2]/40 transition-all duration-300">
-                        <svg className="w-6 h-6 sm:w-9 sm:h-9 text-[#5865F2]" fill="currentColor" viewBox="0 0 127.14 96.36">
-                          <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.31,60,73.31,53s5-12.74,11.43-12.74S96.1,46,96,53,91,65.69,84.69,65.69Z"/>
-                        </svg>
-                      </div>
-
-                      {/* Text Content */}
-                      <div className="space-y-0.5 sm:space-y-2">
-                        <h3 className="text-[15px] leading-tight sm:text-xl font-sans font-bold tracking-tight text-white flex items-center gap-2">
-                          Join Classico's community!
-                        </h3>
-                        <p className="text-[11px] sm:text-[15px] text-zinc-400 font-sans leading-snug sm:leading-relaxed max-w-2xl">
-                          Connect with other movie lovers, report bugs, get updates, suggest movies, and be part of the Classico community.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* CTA Button */}
-                    <div className="flex-shrink-0 w-full md:w-auto mt-2 md:mt-0">
-                      <a
-                        href="https://discord.gg/DZwkAVbqf"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center w-full md:w-auto gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white font-sans font-bold px-4 py-2.5 sm:px-8 sm:py-4 rounded-lg sm:rounded-xl text-[13px] sm:text-[14px] tracking-wide transition-all duration-300 shadow-[0_0_15px_rgba(88,101,242,0.3)] hover:shadow-[0_0_25px_rgba(88,101,242,0.5)] hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
-                      >
-                        Join Discord
-                      </a>
-                    </div>
-                  </div>
-                </div>
-
                 {!isJellyfinLoading && (
                   <>
+                    {/* Premium Discord Community Banner */}
+                    <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-r from-zinc-900 via-[#1e1f24] to-zinc-900 border border-white/5 shadow-[0_8px_32px_rgba(0,0,0,0.4)] group">
+                      {/* Subtle Background Glow */}
+                      <div className="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-[#5865F2]/10 to-transparent opacity-50 pointer-events-none blur-3xl"></div>
+                      <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-[#5865F2]/20 rounded-full blur-[80px] pointer-events-none group-hover:bg-[#5865F2]/30 transition-colors duration-700"></div>
+
+                      <div className="relative px-4 py-4 sm:px-8 sm:py-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6">
+                        <div className="flex flex-row items-center gap-4 sm:gap-6 w-full">
+                          {/* Discord Logo Container */}
+                          <div className="flex-shrink-0 flex items-center justify-center w-11 h-11 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-[#5865F2]/10 border border-[#5865F2]/20 shadow-[0_0_20px_rgba(88,101,242,0.15)] group-hover:scale-105 group-hover:bg-[#5865F2]/20 group-hover:border-[#5865F2]/40 transition-all duration-300">
+                            <svg className="w-6 h-6 sm:w-9 sm:h-9 text-[#5865F2]" fill="currentColor" viewBox="0 0 127.14 96.36">
+                              <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.31,60,73.31,53s5-12.74,11.43-12.74S96.1,46,96,53,91,65.69,84.69,65.69Z"/>
+                            </svg>
+                          </div>
+
+                          {/* Text Content */}
+                          <div className="space-y-0.5 sm:space-y-2">
+                            <h3 className="text-[15px] leading-tight sm:text-xl font-sans font-bold tracking-tight text-white flex items-center gap-2">
+                              Join Classico's community!
+                            </h3>
+                            <p className="text-[11px] sm:text-[15px] text-zinc-400 font-sans leading-snug sm:leading-relaxed max-w-2xl">
+                              Connect with other movie lovers, report bugs, get updates, suggest movies, and be part of the Classico community.
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* CTA Button */}
+                        <div className="flex-shrink-0 w-full md:w-auto mt-2 md:mt-0">
+                          <a
+                            href="https://discord.gg/DZwkAVbqf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center w-full md:w-auto gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white font-sans font-bold px-4 py-2.5 sm:px-8 sm:py-4 rounded-lg sm:rounded-xl text-[13px] sm:text-[14px] tracking-wide transition-all duration-300 shadow-[0_0_15px_rgba(88,101,242,0.3)] hover:shadow-[0_0_25px_rgba(88,101,242,0.5)] hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+                          >
+                            Join Discord
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="text-left py-1 select-none">
                       <h2 className="font-cinzel font-bold text-[17px] sm:text-2xl tracking-[0.1em] sm:tracking-[0.22em] gold-metallic-text uppercase leading-none whitespace-nowrap">
                         THEMATIC LIBRARY

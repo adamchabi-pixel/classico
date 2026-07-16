@@ -1088,37 +1088,72 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
     console.warn(`[ISOLATION DIAGNOSTIC] [${Date.now()}] ALERTE PENDING / TIMEOUT: L'appel PlaybackInfo vers Jellyfin est toujours en attente (Pending) après 5 secondes.`);
   }, 5000);
 
+  let mediaSources: any[] = [];
   let pbResponse;
   try {
     pbResponse = await fetch(pbUrl, {
       method: "POST",
       headers: {
         "Accept": "application/json",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-Emby-Token": config.apiKey,
+        "Authorization": `MediaBrowser Client="ClassicoClient", Device="ModernBrowser", DeviceId="ModernBrowser", Version="1.0.0", Token="${config.apiKey}"`
       },
       body: JSON.stringify(deviceProfile)
     });
     clearTimeout(pbFetchTimer);
-    console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 5: Réponse PlaybackInfo reçue de Jellyfin. Status: ${pbResponse.status}`);
+    console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 5: Réponse PlaybackInfo reçue de Jellyfin. Status: ${pbResponse?.status}`);
+    
+    if (pbResponse && pbResponse.ok) {
+      const pbContentType = pbResponse.headers.get("content-type") || "";
+      if (pbContentType.toLowerCase().includes("application/json")) {
+        console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 5: Parsing du JSON PlaybackInfo...`);
+        const pbData = await pbResponse.json();
+        console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 5: JSON PlaybackInfo parsé avec succès.`);
+        mediaSources = pbData.MediaSources || [];
+      }
+    }
   } catch (err: any) {
     clearTimeout(pbFetchTimer);
     console.error(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 5: Échec de la requête PlaybackInfo:`, err.message);
-    throw err;
   }
 
-  if (!pbResponse.ok) {
-    throw new Error(`Erreur PlaybackInfo (Status ${pbResponse.status})`);
+  // Fallback robuste en cas d'échec de PlaybackInfo ou si aucune source média n'a été renvoyée
+  if (mediaSources.length === 0) {
+    console.log(`[PLAYBACK FALLBACK] Tentative de récupération directe des sources média depuis l'API Items pour l'ID ${activeId}...`);
+    try {
+      const itemUrl = `${config.url}/Users/${userId}/Items/${activeId}?api_key=${config.apiKey}`;
+      const itemRes = await fetch(itemUrl, {
+        headers: {
+          "Accept": "application/json",
+          "X-Emby-Token": config.apiKey,
+          "Authorization": `MediaBrowser Client="ClassicoClient", Device="ModernBrowser", DeviceId="ModernBrowser", Version="1.0.0", Token="${config.apiKey}"`
+        }
+      });
+      if (itemRes.ok) {
+        const itemData: any = await itemRes.json();
+        mediaSources = itemData.MediaSources || [];
+        console.log(`[PLAYBACK FALLBACK] Récupération réussie de ${mediaSources.length} sources média via l'utilisateur.`);
+      } else {
+        const itemUrl2 = `${config.url}/Items/${activeId}?api_key=${config.apiKey}`;
+        const itemRes2 = await fetch(itemUrl2, {
+          headers: {
+            "Accept": "application/json",
+            "X-Emby-Token": config.apiKey,
+            "Authorization": `MediaBrowser Client="ClassicoClient", Device="ModernBrowser", DeviceId="ModernBrowser", Version="1.0.0", Token="${config.apiKey}"`
+          }
+        });
+        if (itemRes2.ok) {
+          const itemData: any = await itemRes2.json();
+          mediaSources = itemData.MediaSources || [];
+          console.log(`[PLAYBACK FALLBACK] Récupération réussie de ${mediaSources.length} sources média via l'API publique (No UserId).`);
+        }
+      }
+    } catch (e: any) {
+      console.error(`[PLAYBACK FALLBACK ERROR] Échec de la récupération directe de secours pour l'ID ${activeId}:`, e.message);
+    }
   }
 
-  const pbContentType = pbResponse.headers.get("content-type") || "";
-  if (!pbContentType.toLowerCase().includes("application/json")) {
-    throw new Error("Le serveur Jellyfin a renvoyé des métadonnées de lecture invalides (Format non-JSON).");
-  }
-
-  console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 5: Parsing du JSON PlaybackInfo...`);
-  const pbData = await pbResponse.json();
-  console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 5: JSON PlaybackInfo parsé avec succès.`);
-  let mediaSources = pbData.MediaSources || [];
   if (mediaSources.length === 0) {
     throw new Error("Aucune source média trouvée pour ce film.");
   }

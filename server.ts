@@ -9,6 +9,22 @@ import { Transform } from "stream";
 // Bypass strict SSL verification for personal Jellyfin connections
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
+// Persistent Keep-Alive agents to drastically speed up video chunk loading and prevent buffering
+const keepAliveHttpAgent = new http.Agent({
+  keepAlive: true,
+  keepAliveMsecs: 15000,
+  maxSockets: 256,
+  maxFreeSockets: 256,
+});
+
+const keepAliveHttpsAgent = new https.Agent({
+  keepAlive: true,
+  keepAliveMsecs: 15000,
+  maxSockets: 256,
+  maxFreeSockets: 256,
+  rejectUnauthorized: false,
+});
+
 const app = express();
 const PORT = 3000;
 const CONFIG_PATH = path.join(process.cwd(), "jellyfin-config.json");
@@ -311,6 +327,8 @@ app.post("/api/jellyfin/config", async (req, res) => {
 
     // Reset all old server caches immediately
     apiCache.clear();
+    playbackCache.clear();
+    cachedUserId = null;
     if (fs.existsSync(MOVIES_CACHE_PATH)) {
       try { fs.unlinkSync(MOVIES_CACHE_PATH); } catch (e) {}
     }
@@ -771,6 +789,8 @@ app.get("/api/jellyfin/hero", async (req, res) => {
 // 4b. Clear Jellyfin cache on demand when config is saved or manually triggered
 app.post("/api/jellyfin/cache/clear", (req, res) => {
   apiCache.clear();
+  playbackCache.clear();
+  cachedUserId = null;
   
   if (fs.existsSync(MOVIES_CACHE_PATH)) {
     try { fs.unlinkSync(MOVIES_CACHE_PATH); } catch (e) {}
@@ -923,6 +943,7 @@ function getWithRedirects(
   const client = targetUrl.startsWith("https") ? https : http;
   const currentOptions = { ...requestOptions };
   
+  currentOptions.agent = targetUrl.startsWith("https") ? keepAliveHttpsAgent : keepAliveHttpAgent;
   if (targetUrl.startsWith("https")) {
     currentOptions.rejectUnauthorized = false;
   }
@@ -960,8 +981,19 @@ function getWithRedirects(
   return req;
 }
 
+let cachedUserId: string | null = null;
+const playbackCache = new Map<string, { data: any; timestamp: number }>();
+const PLAYBACK_CACHE_TTL = 30 * 60 * 1000; // 30 minutes cache
+
 // 6. Secure proxy stream to circumvent CORS and force browser-playable AAC stereo audio + H264 video
 async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?: boolean) {
+  const cacheKey = `${id}-${forceTranscode || false}-${lowQuality || false}`;
+  const cached = playbackCache.get(cacheKey);
+  if (cached && (Date.now() - cached.timestamp < PLAYBACK_CACHE_TTL)) {
+    console.log(`[PLAYBACK CACHE] Servir les données de lecture depuis le cache pour la clé: ${cacheKey}`);
+    return cached.data;
+  }
+
   console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] getPlaybackData appelé pour l'ID: ${id}`);
   const config = getJellyfinConfig();
   if (!config) {
@@ -982,32 +1014,37 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   };
 
   // 1. Get UserId dynamically
-  console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 3: Début de la récupération de l'utilisateur Jellyfin (User)`);
-  let userId = "";
-  const userFetchTimer = setTimeout(() => {
-    console.warn(`[ISOLATION DIAGNOSTIC] [${Date.now()}] ALERTE PENDING / TIMEOUT: La récupération de l'utilisateur Jellyfin (/Users) est toujours en attente (Pending) après 5 secondes.`);
-  }, 5000);
+  let userId = cachedUserId || "";
+  if (!userId) {
+    console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 3: Début de la récupération de l'utilisateur Jellyfin (User)`);
+    const userFetchTimer = setTimeout(() => {
+      console.warn(`[ISOLATION DIAGNOSTIC] [${Date.now()}] ALERTE PENDING / TIMEOUT: La récupération de l'utilisateur Jellyfin (/Users) est toujours en attente (Pending) après 5 secondes.`);
+    }, 5000);
 
-  try {
-    const usersUrl = `${config.url}/Users`;
-    const usersResponse = await fetch(usersUrl, {
-      headers: {
-        "X-Emby-Token": config.apiKey,
-        "Accept": "application/json"
+    try {
+      const usersUrl = `${config.url}/Users`;
+      const usersResponse = await fetch(usersUrl, {
+        headers: {
+          "X-Emby-Token": config.apiKey,
+          "Accept": "application/json"
+        }
+      });
+      clearTimeout(userFetchTimer);
+      console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 3: Réponse reçue de /Users. Status: ${usersResponse.status}`);
+      if (usersResponse.ok) {
+        const usersData: any = await usersResponse.json();
+        if (Array.isArray(usersData) && usersData.length > 0) {
+          userId = usersData[0].Id || "";
+          cachedUserId = userId; // Cache globally
+          console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 3: ID utilisateur Jellyfin obtenu: ${userId}`);
+        }
       }
-    });
-    clearTimeout(userFetchTimer);
-    console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 3: Réponse reçue de /Users. Status: ${usersResponse.status}`);
-    if (usersResponse.ok) {
-      const usersData: any = await usersResponse.json();
-      if (Array.isArray(usersData) && usersData.length > 0) {
-        userId = usersData[0].Id || "";
-        console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 3: ID utilisateur Jellyfin obtenu: ${userId}`);
-      }
+    } catch (err: any) {
+      clearTimeout(userFetchTimer);
+      console.error(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 3: Échec récupération utilisateur Jellyfin:`, err.message);
     }
-  } catch (err: any) {
-    clearTimeout(userFetchTimer);
-    console.error(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 3: Échec récupération utilisateur Jellyfin:`, err.message);
+  } else {
+    console.log(`[PLAYBACK CACHE] Utilisation de l'ID utilisateur Jellyfin en cache: ${userId}`);
   }
 
   if (!userId) {
@@ -1020,8 +1057,8 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   const deviceProfile = {
     DeviceProfile: {
       Name: "Modern Browser",
-      MaxStreamingBitrate: 4000000,
-      MaxStaticBitrate: 4000000,
+      MaxStreamingBitrate: lowQuality ? 600000 : 4000000,
+      MaxStaticBitrate: lowQuality ? 600000 : 4000000,
       MusicStreamingBitrate: 320000,
       DirectPlayProfiles: [
         {
@@ -1277,7 +1314,7 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
             Codec: "h264",
             Width: 1920,
             Height: 1080,
-            Bitrate: 2500000
+            Bitrate: 1500000
           };
         }
         if (stream.Type === "Audio") {
@@ -1361,21 +1398,29 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   // ou si les codecs et conteneurs de la source sont parfaitement compatibles avec les décodeurs natifs HTML5 du navigateur.
   const supportsDirect = source.SupportsDirectPlay === true || (isBrowserFriendlyContainer && isBrowserFriendlyVideo && isBrowserFriendlyAudio);
   
-  // 1. FORCE HLS DYNAMIQUE : Le mode DirectPlay statique/brut est banni pour compatibilité et stabilité totales
-  const canDirectPlay = false;
+  // 1. FORCE HLS DYNAMIQUE : Le mode DirectPlay statique/brut est utilisé uniquement si conteneur/codecs 100% compatibles nativement.
+  // Les sources virtuelles "Optimisées Web" n'existent pas sur le disque de Jellyfin sous cette forme, donc elles doivent toujours être transcodées en HLS.
+  const isWebOptimizedVirtual = !!(source.Id && source.Id.endsWith("-web-optimized"));
+  const canDirectPlay = isBrowserFriendlyContainer && isBrowserFriendlyVideo && isBrowserFriendlyAudio && !isDolbyVision && !isWebOptimizedVirtual;
 
-  console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 6: Décision DirectPlay vs HLS prise. supportsDirect: ${supportsDirect}, canDirectPlay: ${canDirectPlay} (Banni/Force HLS), isBrowserFriendlyContainer: ${isBrowserFriendlyContainer}, isBrowserFriendlyVideo: ${isBrowserFriendlyVideo}, isBrowserFriendlyAudio: ${isBrowserFriendlyAudio}`);
+  console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 6: Décision DirectPlay vs HLS prise. supportsDirect: ${supportsDirect}, canDirectPlay: ${canDirectPlay}, isBrowserFriendlyContainer: ${isBrowserFriendlyContainer}, isBrowserFriendlyVideo: ${isBrowserFriendlyVideo}, isBrowserFriendlyAudio: ${isBrowserFriendlyAudio}`);
 
   let chosenPath = "";
   let isDirect = false;
 
   const cleanedSourceId = source.Id ? source.Id.replace("-web-optimized", "") : activeId;
 
-  // Calcul du bitrate en fonction de la qualité demandée
-  const videoBitrate = lowQuality ? 600000 : 4000000;
-  const maxVideoBitrate = lowQuality ? 600000 : 4000000;
-  const maxWidth = lowQuality ? 854 : 3840;
-  const maxHeight = lowQuality ? 480 : 2160;
+  if (canDirectPlay && !forceTranscode) {
+    isDirect = true;
+    chosenPath = `/Videos/${activeId}/stream?Static=true&MediaSourceId=${cleanedSourceId}`;
+    console.log(`[PLAYBACK LOG] DIRECT PLAY SELECTIONNE : Le fichier est 100% compatible nativement (Container: ${container}, Video: ${videoCodec}, Audio: ${audioCodec})`);
+  }
+
+  // Calcul du bitrate et de la résolution optimisés pour un chargement en moins de 2 secondes
+  const videoBitrate = lowQuality ? 600000 : 1500000;
+  const maxVideoBitrate = lowQuality ? 600000 : 1500000;
+  const maxWidth = lowQuality ? 854 : 1280; // Résolution 720p par défaut pour éviter de surcharger le processeur
+  const maxHeight = lowQuality ? 480 : 720;
   const audioBitrate = lowQuality ? 96000 : 320000;
 
   // Configuration des paramètres optimisés pour le flux HLS dynamique
@@ -1396,12 +1441,14 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
     MediaSourceId: cleanedSourceId,
     SegmentContainer: "ts",
     BreakOnNonKeyFrames: "true",
-    SegmentLength: "3",
+    SegmentLength: "2", // Segments de 2 secondes pour minimiser le cold start du transcodage
     MinSegments: "1",
     DeviceId: "ModernBrowser"
   });
 
-  if (source.TranscodingUrl) {
+  if (isDirect) {
+    // DirectPlay already configured
+  } else if (source.TranscodingUrl) {
     try {
       const isRelative = !source.TranscodingUrl.startsWith("http");
       const baseUrl = isRelative ? "http://dummy.com" : "";
@@ -1416,10 +1463,13 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
       urlObj.searchParams.set("VideoBitrate", videoBitrate.toString());
       urlObj.searchParams.set("MaxVideoBitrate", maxVideoBitrate.toString());
 
-      // Assurer les codecs H264 et AAC
+      // Assurer les codecs H264 et AAC avec Preset=ultrafast pour minimiser le délai de cold start
       urlObj.searchParams.set("VideoCodec", "h264");
       urlObj.searchParams.set("AudioCodec", "aac");
+      urlObj.searchParams.set("AudioBitrate", audioBitrate.toString());
+      urlObj.searchParams.set("AudioSampleRate", "44100");
       urlObj.searchParams.set("TranscodingMaxAudioChannels", "2");
+      urlObj.searchParams.set("Preset", "ultrafast");
 
       // Nettoyer les codecs alternatifs non supportés par la conversion HLS cible
       urlObj.searchParams.delete("hevc");
@@ -1429,7 +1479,7 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
       urlObj.searchParams.set("MediaSourceId", cleanedSourceId);
 
       // Règle 4: Forcer la configuration rapide des segments
-      urlObj.searchParams.set("SegmentLength", "3");
+      urlObj.searchParams.set("SegmentLength", "2");
       urlObj.searchParams.set("MinSegments", "1");
       urlObj.searchParams.set("BreakOnNonKeyFrames", "true");
       urlObj.searchParams.set("SegmentContainer", "ts");
@@ -1471,10 +1521,10 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
     }
   }
 
-  // Injecter dynamiquement SegmentLength=3 et MinSegments=1 pour optimiser tout flux HLS (transcodage)
+  // Injecter dynamiquement SegmentLength=2 et MinSegments=1 pour optimiser tout flux HLS (transcodage)
   if (chosenPath.includes(".m3u8") || chosenPath.includes("hls")) {
     if (!chosenPath.includes("SegmentLength=")) {
-      chosenPath += `${chosenPath.includes("?") ? "&" : "?"}SegmentLength=3`;
+      chosenPath += `${chosenPath.includes("?") ? "&" : "?"}SegmentLength=2`;
     }
     if (!chosenPath.includes("MinSegments=")) {
       chosenPath += `${chosenPath.includes("?") ? "&" : "?"}MinSegments=1`;
@@ -1494,7 +1544,7 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
 
   // Générer l'URL de proxy transparente : proxy classique par paramètre pour Direct Play, wildcard propre pour HLS
   const streamUrl = isDirect 
-    ? `/api/jellyfin/proxy/stream?path=${encodeURIComponent(chosenPath)}`
+    ? `/api/jellyfin/proxy/stream?path=${encodeURIComponent(chosenPath)}&id=${activeId}`
     : `/api/jellyfin/proxy${chosenPath}`;
 
   const subtitleStreams = streams.filter((s: any) => s.Type === "Subtitle");
@@ -1523,8 +1573,8 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   }));
 
   console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] getPlaybackData complété avec succès. streamUrl: ${streamUrl}, chosenPath: ${chosenPath}`);
-
-  return {
+  
+  const result = {
     id: activeId,
     streamUrl,
     duration: source.RunTimeTicks ? Math.round(source.RunTimeTicks / 10000000) : 0,
@@ -1537,6 +1587,9 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
     subtitles,
     audios
   };
+
+  playbackCache.set(cacheKey, { data: result, timestamp: Date.now() });
+  return result;
 }
 
 // Single central playback route
@@ -1640,7 +1693,7 @@ app.get(["/api/jellyfin/proxy/stream", "/api/jellyfin/proxy/*", "/stream", "/mas
       } catch (e: any) {
         clearTimeout(timerPlayback);
         console.error(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Échec de getPlaybackData: ${e.message}. Fallback manuel.`);
-        targetPath = `/Videos/${id}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1`;
+        targetPath = `/Videos/${id}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=2&MinSegments=1`;
       }
     }
   } else if (wildcardPath && wildcardPath !== "stream") {
@@ -1661,7 +1714,7 @@ app.get(["/api/jellyfin/proxy/stream", "/api/jellyfin/proxy/*", "/stream", "/mas
       } catch (e: any) {
         clearTimeout(timerPlayback);
         console.error(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Échec de getPlaybackData (else branch): ${e.message}. Fallback manuel.`);
-        targetPath = `/Videos/${id}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1`;
+        targetPath = `/Videos/${id}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=2&MinSegments=1`;
       }
     }
   }

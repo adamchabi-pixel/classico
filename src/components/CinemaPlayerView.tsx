@@ -32,6 +32,24 @@ const isTextSubtitle = (codec: string) => {
 export function formatHlsUrl(url: string, id: string, deviceId?: string, apiKey?: string): string {
   if (!url) return url;
   
+  if (url.includes("Static=true") || url.includes("static=true")) {
+    try {
+      const finalDeviceId = deviceId || "CinemaAppClient";
+      const finalApiKey = apiKey || localStorage.getItem("classico_jellyfin_apikey") || "";
+      const urlParts = url.split("?");
+      const params = new URLSearchParams(urlParts[1] || "");
+      if (!params.has("api_key") && finalApiKey) {
+        params.set("api_key", finalApiKey);
+      }
+      if (!params.has("DeviceId")) {
+        params.set("DeviceId", finalDeviceId);
+      }
+      return urlParts[0] + "?" + params.toString();
+    } catch (e) {
+      return url;
+    }
+  }
+  
   // 3. Vérifie la présence des tokens : Assure-toi que les variables deviceId et apiKey transmises à la fonction ne sont pas undefined.
   const finalDeviceId = deviceId || "CinemaAppClient";
   const finalApiKey = apiKey || localStorage.getItem("classico_jellyfin_apikey") || "";
@@ -78,10 +96,12 @@ export function formatHlsUrl(url: string, id: string, deviceId?: string, apiKey?
     params.set("DeviceId", finalDeviceId);
     params.set("MediaSourceId", id);
     
-    // 2. Optimize bitrates to 4 Mbps to ensure fast load times and no buffering on mobile
-    params.set("VideoBitrate", "4000000");
-    params.set("MaxVideoBitrate", "4000000");
-    params.set("SegmentLength", "3");
+    // 2. Optimize bitrates to 1.5 Mbps and resolution to 720p to ensure fast 2s load times and no buffering on mobile/web
+    params.set("VideoBitrate", "1500000");
+    params.set("MaxVideoBitrate", "1500000");
+    params.set("MaxWidth", "1280");
+    params.set("MaxHeight", "720");
+    params.set("SegmentLength", "2");
     params.set("MinSegments", "1");
     params.set("Static", "false");
     
@@ -208,7 +228,7 @@ export default function CinemaPlayerView({
   const [videoError, setVideoError] = useState<string | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
   
-  const [playing, setPlaying] = useState(false);
+  const [playing, setPlaying] = useState(true);
   const [isMetadataLoaded, setIsMetadataLoaded] = useState(false);
   const [isAutoplayBlocked, setIsAutoplayBlocked] = useState(false);
   const isInitialAutoplayRef = useRef<boolean>(true);
@@ -225,7 +245,7 @@ export default function CinemaPlayerView({
     return 0;
   });
   const [volume, setVolume] = useState(85);
-  const [muted, setMuted] = useState(true); // Commencer muet pour garantir l'autoplay instantané
+  const [muted, setMuted] = useState(false); // Commencer non-muet par défaut
   const [fullscreen, setFullscreen] = useState(false);
   const [objectFit, setObjectFit] = useState<"contain" | "cover">("contain");
 
@@ -245,7 +265,7 @@ export default function CinemaPlayerView({
   // Mobile player initialization & on-screen logs states
   const [isInitialized, setIsInitialized] = useState(true);
   const [playerLogs, setPlayerLogs] = useState<string[]>([]);
-  const [adClicks, setAdClicks] = useState(0);
+  const [adClicks, setAdClicks] = useState(2);
 
   const addLog = (msg: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -692,7 +712,7 @@ export default function CinemaPlayerView({
             const currentApiKey = localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb";
             
             // Bypass google proxy entirely
-            const streamUrl = `${serverUrl}/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1&VideoBitrate=4000000&MaxVideoBitrate=4000000&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}`;
+            const streamUrl = `${serverUrl}/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=2&MinSegments=1&VideoBitrate=1500000&MaxVideoBitrate=1500000&MaxWidth=1280&MaxHeight=720&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}`;
             
             data = {
               id: movieId,
@@ -867,7 +887,7 @@ export default function CinemaPlayerView({
             const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
             const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
             
-            const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1&VideoBitrate=4000000&MaxVideoBitrate=4000000`;
+            const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=2&MinSegments=1&VideoBitrate=1500000&MaxVideoBitrate=1500000&MaxWidth=1280&MaxHeight=720`;
             const fallbackData = {
               id: movieId,
               streamUrl: isNetlify 
@@ -959,7 +979,7 @@ export default function CinemaPlayerView({
         const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
         const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : "";
         const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
-        const hlsParams = `Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1&VideoBitrate=4000000&MaxVideoBitrate=4000000`;
+        const hlsParams = `Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=2&MinSegments=1&VideoBitrate=1500000&MaxVideoBitrate=1500000&MaxWidth=1280&MaxHeight=720`;
         
         let transcodeUrl = "";
         if (isNetlify) {
@@ -1146,17 +1166,24 @@ export default function CinemaPlayerView({
           if (!hls) {
             hls = new Hls({
               enableWorker: true,
-              lowLatencyMode: true,
-              backBufferLength: 60,
-              manifestLoadingTimeOut: 15000,
-              manifestLoadingMaxRetry: 2,
-              manifestLoadingRetryDelay: 1000,
-              levelLoadingTimeOut: 15000,
-              levelLoadingMaxRetry: 2,
-              levelLoadingRetryDelay: 1000,
-              fragLoadingTimeOut: 15000,
-              fragLoadingMaxRetry: 2,
-              fragLoadingRetryDelay: 1000,
+              lowLatencyMode: false,
+              backBufferLength: 30,
+              maxBufferLength: 30,
+              maxMaxBufferLength: 60,
+              maxBufferSize: 30 * 1024 * 1024,
+              maxBufferHole: 2,
+              highBufferWatchdogPeriod: 1,
+              nudgeMaxRetry: 15,
+              maxStarvationDelay: 2,
+              manifestLoadingTimeOut: 10000,
+              manifestLoadingMaxRetry: 5,
+              manifestLoadingRetryDelay: 500,
+              levelLoadingTimeOut: 10000,
+              levelLoadingMaxRetry: 5,
+              levelLoadingRetryDelay: 500,
+              fragLoadingTimeOut: 10000,
+              fragLoadingMaxRetry: 5,
+              fragLoadingRetryDelay: 500,
             });
             hlsRef.current = hls;
 
@@ -1190,7 +1217,7 @@ export default function CinemaPlayerView({
                 const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
                 const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
                 const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
-                const fallbackUrl = isNetlify ? `${serverUrl}/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1&VideoBitrate=4000000&MaxVideoBitrate=4000000&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}` : formatHlsUrl(`/api/jellyfin/proxy/videos/${movieId}/master.m3u8`, movieId, deviceId, apiKey);
+                const fallbackUrl = isNetlify ? `${serverUrl}/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=2&MinSegments=1&VideoBitrate=1500000&MaxVideoBitrate=1500000&MaxWidth=1280&MaxHeight=720&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}` : formatHlsUrl(`/api/jellyfin/proxy/videos/${movieId}/master.m3u8`, movieId, deviceId, apiKey);
                 setPlaybackInfo({
                   id: movieId,
                   streamUrl: fallbackUrl,
@@ -1198,7 +1225,7 @@ export default function CinemaPlayerView({
                   container: "m3u8",
                   title: playbackInfo?.title || "Film",
                   isDirect: false,
-                  chosenPath: `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1`,
+                  chosenPath: `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=2&MinSegments=1`,
                   videoCodec: "h264",
                   audioCodec: "aac",
                   subtitles: [],
@@ -1299,15 +1326,15 @@ export default function CinemaPlayerView({
 
     setIsMetadataLoaded(false);
     setIsAutoplayBlocked(false);
-    setPlaying(false);
+    setPlaying(true);
     setIsActuallyPlaying(false);
     setSeekOffset(0);
     isInitialAutoplayRef.current = true;
 
-    // Force secure properties in the HTML5 backend ref
-    video.muted = true;
-    video.autoplay = false;
-    setMuted(true);
+    // Set properties for unmuted autoplay in the HTML5 backend ref
+    video.muted = false;
+    video.autoplay = true;
+    setMuted(false);
 
     const handleLoadedMetadata = () => {
       trackEventFired("loadedmetadata", "Événement loadedmetadata");
@@ -1437,17 +1464,24 @@ export default function CinemaPlayerView({
         });
         const hls = new Hls({
           enableWorker: true,
-          lowLatencyMode: true,
-          backBufferLength: 60,
-          manifestLoadingTimeOut: 15000,
-          manifestLoadingMaxRetry: 2,
-          manifestLoadingRetryDelay: 1000,
-          levelLoadingTimeOut: 15000,
-          levelLoadingMaxRetry: 2,
-          levelLoadingRetryDelay: 1000,
-          fragLoadingTimeOut: 15000,
-          fragLoadingMaxRetry: 2,
-          fragLoadingRetryDelay: 1000,
+          lowLatencyMode: false,
+          backBufferLength: 30,
+          maxBufferLength: 30,
+          maxMaxBufferLength: 60,
+          maxBufferSize: 30 * 1024 * 1024,
+          maxBufferHole: 2,
+          highBufferWatchdogPeriod: 1,
+          nudgeMaxRetry: 15,
+          maxStarvationDelay: 2,
+          manifestLoadingTimeOut: 10000,
+          manifestLoadingMaxRetry: 5,
+          manifestLoadingRetryDelay: 500,
+          levelLoadingTimeOut: 10000,
+          levelLoadingMaxRetry: 5,
+          levelLoadingRetryDelay: 500,
+          fragLoadingTimeOut: 10000,
+          fragLoadingMaxRetry: 5,
+          fragLoadingRetryDelay: 500,
         });
 
         logChrono("Attribution du src vidéo");
@@ -1471,15 +1505,8 @@ export default function CinemaPlayerView({
           const liveDur = video.duration;
           const jellyfinDur = playbackInfo?.duration || 0;
           validateAndSetDuration(liveDur, jellyfinDur);
-          // Auto-play the HLS stream
+          // Auto-play HLS stream gracefully managed by React effect sync and HTML5 autoplay
           setPlaying(true);
-          if (video.paused && !isAutoplayBlocked) {
-             video.play().catch((err) => {
-                 console.warn("Autoplay prevented:", err);
-                 setIsAutoplayBlocked(true);
-                 setPlaying(false);
-             });
-          }
         });
 
         hls.on(Hls.Events.ERROR, (event, data) => {
@@ -1497,7 +1524,7 @@ export default function CinemaPlayerView({
             if (progress > 0) {
               savedRestoreTimeRef.current = progress;
             }
-            const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1&VideoBitrate=4000000&MaxVideoBitrate=4000000`;
+            const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=2&MinSegments=1&VideoBitrate=1500000&MaxVideoBitrate=1500000&MaxWidth=1280&MaxHeight=720`;
             const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
             const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
             const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
@@ -1566,20 +1593,8 @@ export default function CinemaPlayerView({
             console.log("[AUTOPLAY/PLAY] Playback execution successful.");
             console.log(`[SEEK LOGS] currentTime après play resolved : ${video.currentTime}s`);
 
-            // Handle unmuting after initial load if permitted by user/browser environment
             if (isInitialAutoplayRef.current) {
               isInitialAutoplayRef.current = false;
-              setTimeout(() => {
-                if (videoRef.current) {
-                  try {
-                    videoRef.current.muted = false;
-                    setMuted(false);
-                    console.log("[AUTOPLAY] Unmuted successfully post-safety delay");
-                  } catch (unmuteErr) {
-                    console.warn("[AUTOPLAY] Unmute bypass prevented (browser restriction)");
-                  }
-                }
-              }, 1500);
             }
           })
           .catch((err) => {
@@ -1602,12 +1617,6 @@ export default function CinemaPlayerView({
         setIsAutoplayBlocked(false);
         if (isInitialAutoplayRef.current) {
           isInitialAutoplayRef.current = false;
-          setTimeout(() => {
-            if (videoRef.current) {
-              videoRef.current.muted = false;
-              setMuted(false);
-            }
-          }, 1500);
         }
       }
     } else {
@@ -1715,8 +1724,16 @@ export default function CinemaPlayerView({
         
         {/* Unified High-End Loader Overlay */}
         {(isLoading || isStreamLoading || isBuffering) && !videoError && adClicks >= 2 && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black z-50">
+          <div className="fixed inset-0 flex flex-col items-center justify-center bg-black z-50 space-y-4">
             <Loader2 className="w-12 h-12 text-amber-500 animate-spin" />
+            <div className="flex flex-col items-center text-center space-y-2">
+              <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest animate-pulse">
+                Loading in progress...
+              </span>
+              <span className="text-[11px] text-zinc-500 font-sans tracking-wide">
+                Please wait at least 30 seconds before reporting any issues
+              </span>
+            </div>
           </div>
         )}
 
@@ -1750,9 +1767,10 @@ export default function CinemaPlayerView({
             muted={muted}
             preload="auto"
             crossOrigin="anonymous"
-            className="w-full h-full bg-black object-contain "
+                        className="w-full h-full bg-black object-contain "
             onPlay={() => {
               trackEventFired("play", "Événement play");
+              setPlaying(true);
             }}
             onTimeUpdate={(e) => {
               const curTime = e.currentTarget.currentTime;
@@ -1824,17 +1842,8 @@ export default function CinemaPlayerView({
             onPlaying={(e) => {
               setIsBuffering(false);
               setIsActuallyPlaying(true);
+              setPlaying(true);
               addLog("Playback started");
-              const video = e.currentTarget;
-              if (video && video.muted) {
-                setTimeout(() => {
-                  if (videoRef.current) {
-                    videoRef.current.muted = false;
-                    setMuted(false);
-                    addLog("Unmuted after stream started");
-                  }
-                }, 800);
-              }
             }}
             onSeeked={(e) => {
               const video = e.currentTarget;
@@ -1863,7 +1872,7 @@ export default function CinemaPlayerView({
               if (progress > 0) {
                 savedRestoreTimeRef.current = progress;
               }
-              const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=3&MinSegments=1&VideoBitrate=4000000&MaxVideoBitrate=4000000`;
+              const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=2&MinSegments=1&VideoBitrate=1500000&MaxVideoBitrate=1500000&MaxWidth=1280&MaxHeight=720`;
               const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
               const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
               const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";

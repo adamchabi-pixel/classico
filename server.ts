@@ -384,8 +384,8 @@ function formatJellyfinItem(item: any, serverUrl: string, apiKey: string) {
     director: item.People?.find((p: any) => p.Type === "Director")?.Name || "Unknown Director",
     cast: item.People?.filter((p: any) => p.Type === "Actor").slice(0, 4).map((p: any) => p.Name) || [],
     // Secure proxy routes with automatic size optimization and browser long-term cache headers
-    posterUrl: `${serverUrl}/Items/${item.Id}/Images/Primary?fillHeight=600&fillWidth=400&quality=80`,
-    backdropUrl: `${serverUrl}/Items/${item.Id}/Images/Backdrop?fillHeight=1080&fillWidth=1920&quality=90`,
+    posterUrl: `/api/jellyfin/image/${item.Id}/Primary`,
+    backdropUrl: `/api/jellyfin/image/${item.Id}/Backdrop`,
     // Proxy stream route
     streamUrl: `${serverUrl}/Videos/${item.Id}/stream.mp4?Static=true&api_key=${apiKey}`,
     tagline: item.Taglines && item.Taglines.length > 0 ? item.Taglines[0] : "Available on your server",
@@ -393,6 +393,80 @@ function formatJellyfinItem(item: any, serverUrl: string, apiKey: string) {
     accentColor: "text-[#ca8a04] border-[#ca8a04]/30 bg-[#ca8a04]/5",
     accentHex: "#ca8a04"
   };
+}
+
+// Background image pre-warmer to populate .image-cache with WebP posters and backdrops asynchronously
+async function prewarmImageCache(movies: any[]) {
+  if (!movies || movies.length === 0) return;
+  console.log(`[PREWARM] Queueing image cache pre-warming for ${movies.length} movies...`);
+  
+  const config = getJellyfinConfig();
+  if (!config) return;
+
+  // Use a tiny pool to fetch images concurrently in the background without blocking the node event loop
+  const limit = 3;
+  let index = 0;
+
+  async function worker() {
+    while (index < movies.length) {
+      const movie = movies[index++];
+      if (!movie || !movie.id) continue;
+
+      // 1. Primary Poster
+      const primaryKey = `${movie.id}-Primary.webp`;
+      const primaryPath = path.join(IMAGE_CACHE_DIR, primaryKey);
+      if (!fs.existsSync(primaryPath)) {
+        try {
+          const url = `${config.url}/Items/${movie.id}/Images/Primary?maxWidth=340&quality=80&format=webp&api_key=${config.apiKey}`;
+          const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+          if (res.ok) {
+            const buffer = Buffer.from(await res.arrayBuffer());
+            await fs.promises.writeFile(primaryPath, buffer);
+          }
+        } catch (e: any) {
+          // silent ignore
+        }
+      }
+
+      // 2. Backdrop Image
+      const backdropKey = `${movie.id}-Backdrop.webp`;
+      const backdropPath = path.join(IMAGE_CACHE_DIR, backdropKey);
+      if (!fs.existsSync(backdropPath)) {
+        try {
+          const url = `${config.url}/Items/${movie.id}/Images/Backdrop?maxWidth=1280&quality=80&format=webp&api_key=${config.apiKey}`;
+          const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+          if (res.ok) {
+            const buffer = Buffer.from(await res.arrayBuffer());
+            await fs.promises.writeFile(backdropPath, buffer);
+          }
+        } catch (e: any) {
+          // silent ignore
+        }
+      }
+
+      // 3. Optional Logo Image (if it exists)
+      if (movie.hasLogo || movie.logoUrl) {
+        const logoKey = `${movie.id}-Logo.webp`;
+        const logoPath = path.join(IMAGE_CACHE_DIR, logoKey);
+        if (!fs.existsSync(logoPath)) {
+          try {
+            const url = `${config.url}/Items/${movie.id}/Images/Logo?maxWidth=600&quality=90&format=webp&api_key=${config.apiKey}`;
+            const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+            if (res.ok) {
+              const buffer = Buffer.from(await res.arrayBuffer());
+              await fs.promises.writeFile(logoPath, buffer);
+            }
+          } catch (e: any) {
+            // silent ignore
+          }
+        }
+      }
+    }
+  }
+
+  for (let i = 0; i < limit; i++) {
+    worker();
+  }
 }
 
 // Persistent JSON file cache paths for immediate loading upon startup
@@ -415,6 +489,9 @@ async function backgroundFetchMovies(config: any) {
     // Write to persistent disk cache
     fs.writeFileSync(MOVIES_CACHE_PATH, JSON.stringify(formattedMovies, null, 2), "utf-8");
     console.log("[BG FETCH] Background fetch for movies complete.");
+    
+    // Start asynchronous image cache pre-warming
+    prewarmImageCache(formattedMovies);
   } catch (err: any) {
     console.error("[BG FETCH] Background fetch for movies failed:", err);
   } finally {
@@ -434,6 +511,9 @@ async function backgroundFetchHero(config: any) {
     // Write to persistent disk cache
     fs.writeFileSync(HERO_CACHE_PATH, JSON.stringify(formattedHeroes, null, 2), "utf-8");
     console.log("[BG FETCH] Background fetch for hero complete.");
+    
+    // Start asynchronous image cache pre-warming
+    prewarmImageCache(formattedHeroes);
   } catch (err: any) {
     console.error("[BG FETCH] Background fetch for hero failed:", err);
   } finally {
@@ -529,12 +609,12 @@ async function fetchAndCacheHero(config: any): Promise<any[]> {
       description: heroItem.Overview || "No synopsis available for this title on Jellyfin.",
       director: heroItem.People?.find((p: any) => p.Type === "Director")?.Name || "Unknown Director",
       cast: heroItem.People?.filter((p: any) => p.Type === "Actor").slice(0, 4).map((p: any) => p.Name) || [],
-      posterUrl: `${config.url}/Items/${heroItem.Id}/Images/Primary?fillHeight=600&fillWidth=400&quality=80`,
-      backdropUrl: `${config.url}/Items/${heroItem.Id}/Images/Backdrop?fillHeight=1080&fillWidth=1920&quality=90`,
+      posterUrl: `/api/jellyfin/image/${heroItem.Id}/Primary`,
+      backdropUrl: `/api/jellyfin/image/${heroItem.Id}/Backdrop`,
       streamUrl: `${config.url}/Videos/${heroItem.Id}/stream.mp4?Static=true&api_key=${config.apiKey}`,
       tagline: heroItem.Taglines && heroItem.Taglines.length > 0 ? heroItem.Taglines[0] : "Available on your server",
       hasLogo,
-      logoUrl: hasLogo ? `${config.url}/Items/${heroItem.Id}/Images/Logo?fillWidth=600&quality=90` : null,
+      logoUrl: hasLogo ? `/api/jellyfin/image/${heroItem.Id}/Logo` : null,
       symbol: "📡🎬",
       accentColor: "text-[#ca8a04] border-[#ca8a04]/30 bg-[#ca8a04]/5",
       accentHex: "#ca8a04",
@@ -565,6 +645,9 @@ app.get("/api/jellyfin/movies", async (req, res) => {
       // Populate memory cache
       setCached(cacheKey, cachedMovies, 3600000); // 1 hour
       console.log("[CACHE LOG] Loaded movies from persistent disk cache.");
+      
+      // Async pre-warm images in background
+      prewarmImageCache(cachedMovies);
     } catch (e) {
       console.error("Error reading movies disk cache:", e);
     }
@@ -587,6 +670,9 @@ app.get("/api/jellyfin/movies", async (req, res) => {
     if (age > 3600000) { // 1 hour
       console.log(`[CACHE LOG] Movies cache is stale (age: ${Math.round(age/1000)}s), triggering background revalidation...`);
       backgroundFetchMovies(config);
+    } else {
+      // If fresh, make sure images are pre-warmed anyway
+      prewarmImageCache(cachedMovies);
     }
     return;
   }
@@ -599,6 +685,9 @@ app.get("/api/jellyfin/movies", async (req, res) => {
     // Save the fast version to memory & disk immediately so the client can render the UI instantly
     setCached(cacheKey, fastMovies, 3600000);
     fs.writeFileSync(MOVIES_CACHE_PATH, JSON.stringify(fastMovies, null, 2), "utf-8");
+
+    // Async pre-warm images in background
+    prewarmImageCache(fastMovies);
 
     // Send response to client immediately! (< 2 seconds!)
     res.json({
@@ -726,9 +815,10 @@ app.get("/api/jellyfin/image/:id/:type", async (req, res) => {
 
   try {
     const isPrimary = type === "Primary";
+    const isLogo = type === "Logo";
     // Scale on Jellyfin level before fetching to reduce network overhead and processing latency!
-    // 340px width is perfect for display cards, 1280px is perfect for background banners
-    const width = isPrimary ? 340 : 1280;
+    // 340px width is perfect for display cards, 600px for logos, 1280px is perfect for background banners
+    const width = isPrimary ? 340 : (isLogo ? 600 : 1280);
     const quality = 80;
 
     const jellyfinImageUrl = `${config.url}/Items/${id}/Images/${type}?maxWidth=${width}&quality=${quality}&format=webp&api_key=${config.apiKey}`;

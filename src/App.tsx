@@ -775,7 +775,7 @@ export default function App() {
 
   const [jellyfinMovies, setJellyfinMovies] = useState<Movie[]>([]);
   const [jellyfinSearchQuery, setJellyfinSearchQuery] = useState("");
-  const [isJellyfinLoading, setIsJellyfinLoading] = useState(false);
+  const [isJellyfinLoading, setIsJellyfinLoading] = useState(true);
   const [isJellyfinError, setIsJellyfinError] = useState("");
 
   // Connection form states
@@ -1971,7 +1971,7 @@ export default function App() {
               <div className="max-w-[2000px] mx-auto px-4 sm:px-8 space-y-12 pb-16">
                 
                 {/* Reprendre la lecture Section */}
-                {history.some(id => progressData[id] > 0 && progressData[id] < 0.95) && (
+                {!isJellyfinLoading && history.some(id => progressData[id] > 0 && progressData[id] < 0.95) && (
                   <div className="space-y-4 text-left pt-6 sm:pt-8">
                     <div className="flex flex-row items-center sm:items-end justify-between gap-2 sm:gap-3 border-b border-zinc-900 pb-2 sm:pb-3">
                       <div className="space-y-0.5 max-w-[80%]">
@@ -2073,14 +2073,16 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="text-left py-1 select-none">
-                  <h2 className="font-cinzel font-bold text-[17px] sm:text-2xl tracking-[0.1em] sm:tracking-[0.22em] gold-metallic-text uppercase leading-none whitespace-nowrap">
-                    THEMATIC LIBRARY
-                  </h2>
-                  <span className="block font-signature text-[18px] sm:text-[23px] text-[#f4ecd8] leading-none mt-1 filter drop-shadow-[0_0_4px_rgba(244,236,216,0.2)]">
-                    Cinematic Selections
-                  </span>
-                </div>
+                {!isJellyfinLoading && (
+                  <>
+                    <div className="text-left py-1 select-none">
+                      <h2 className="font-cinzel font-bold text-[17px] sm:text-2xl tracking-[0.1em] sm:tracking-[0.22em] gold-metallic-text uppercase leading-none whitespace-nowrap">
+                        THEMATIC LIBRARY
+                      </h2>
+                      <span className="block font-signature text-[18px] sm:text-[23px] text-[#f4ecd8] leading-none mt-1 filter drop-shadow-[0_0_4px_rgba(244,236,216,0.2)]">
+                        Cinematic Selections
+                      </span>
+                    </div>
 
                 <div className="flex flex-col gap-6 sm:gap-8 divide-y divide-zinc-700/60">
                   {mappedCollections.map((collection, idx) => (
@@ -2229,6 +2231,8 @@ export default function App() {
                       </div>
                     </div>
                   </div>
+                )}
+                  </>
                 )}
               </div>
             </motion.div>

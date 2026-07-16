@@ -26,7 +26,7 @@ const logChrono = (step: string) => {
 
 const isTextSubtitle = (codec: string) => {
   const c = (codec || "").toLowerCase();
-  return ["vtt", "srt", "subrip", "tx3g", "text"].includes(c);
+  return ["vtt", "srt", "subrip", "tx3g", "text", "ass", "ssa", "mov_text", "microdvd"].includes(c);
 };
 
 export function formatHlsUrl(url: string, id: string, deviceId?: string, apiKey?: string): string {
@@ -709,16 +709,65 @@ export default function CinemaPlayerView({
             };
             
             try {
-              // Try to get real duration if possible
-              const itemRes = await fetch(`${serverUrl}/Users/me/Items/${movieId}?api_key=${currentApiKey}`);
+              let itemData: any = null;
+              // Try direct Items endpoint first (does not require a userId)
+              const itemRes = await fetch(`${serverUrl}/Items/${movieId}?api_key=${currentApiKey}`);
               if (itemRes.ok) {
-                const itemData = await itemRes.json();
-                if (itemData && itemData.RunTimeTicks) {
+                itemData = await itemRes.json();
+              } else {
+                // Try fetching users first to resolve userId, then query the item
+                const usersRes = await fetch(`${serverUrl}/Users?api_key=${currentApiKey}`);
+                if (usersRes.ok) {
+                  const users = await usersRes.json();
+                  if (users && users.length > 0) {
+                    const userId = users[0].Id;
+                    const userItemRes = await fetch(`${serverUrl}/Users/${userId}/Items/${movieId}?api_key=${currentApiKey}`);
+                    if (userItemRes.ok) {
+                      itemData = await userItemRes.json();
+                    }
+                  }
+                }
+              }
+
+              if (itemData) {
+                if (itemData.RunTimeTicks) {
                   data.duration = Math.round(itemData.RunTimeTicks / 10000000);
+                }
+                
+                const mediaSources = itemData.MediaSources || [];
+                if (mediaSources.length > 0) {
+                  const source = mediaSources[0];
+                  const streams = source.MediaStreams || [];
+                  
+                  // Extract subtitle streams with direct external VTT urls
+                  const subtitleStreams = streams.filter((s: any) => s.Type === "Subtitle");
+                  data.subtitles = subtitleStreams.map((s: any) => {
+                    const subtitleUrl = `${serverUrl}/Videos/${movieId}/${source.Id}/Subtitles/${s.Index}/Stream.vtt?api_key=${currentApiKey}`;
+                    return {
+                      index: s.Index,
+                      language: s.Language || "",
+                      label: s.DisplayTitle || s.Title || s.Language || `Piste ${s.Index}`,
+                      isDefault: s.IsDefault === true || s.DeliveryKey === "Default",
+                      isForced: s.IsForced === true,
+                      codec: s.Codec || "",
+                      deliveryMethod: s.DeliveryMethod || "External",
+                      url: subtitleUrl
+                    };
+                  });
+                  
+                  // Extract audio streams
+                  const audioStreams = streams.filter((s: any) => s.Type === "Audio");
+                  data.audios = audioStreams.map((s: any) => ({
+                    index: s.Index,
+                    language: s.Language || "",
+                    label: s.DisplayTitle || s.Title || s.Language || `Audio ${s.Index}`,
+                    isDefault: s.IsDefault === true,
+                    codec: s.Codec || ""
+                  }));
                 }
               }
             } catch (e) {
-              console.warn("Could not get exact duration from direct bypass:", e);
+              console.warn("Could not get exact duration or streams from direct bypass:", e);
             }
           } else {
             let url = `/api/playback/${encodeURIComponent(movieId)}?`;
@@ -767,12 +816,18 @@ export default function CinemaPlayerView({
             }
           }
           if (data && data.subtitles && data.subtitles.length > 0) {
-            const defaultTrack = data.subtitles.find((t: any) => (t.isDefault || t.isForced) && isTextSubtitle(t.codec)) 
+            const enSubtitleTrack = data.subtitles.find((t: any) => {
+              const lang = (t.language || "").toLowerCase();
+              const lbl = (t.label || "").toLowerCase();
+              return (lang.includes("en") || lang.includes("eng") || lbl.includes("english") || lbl.includes("eng")) && isTextSubtitle(t.codec);
+            });
+            const defaultTrack = enSubtitleTrack 
+              || data.subtitles.find((t: any) => (t.isDefault || t.isForced) && isTextSubtitle(t.codec)) 
               || data.subtitles.find((t: any) => isTextSubtitle(t.codec));
             if (defaultTrack) {
               setActiveSubtitleIndex(defaultTrack.index);
               setSubtitlesOn(true);
-              console.log(`[CINEMA SUBTITLE] Auto-selected default subtitle: Index ${defaultTrack.index} (${defaultTrack.label})`);
+              console.log(`[CINEMA SUBTITLE] Auto-selected default/english subtitle: Index ${defaultTrack.index} (${defaultTrack.label})`);
             } else {
               setActiveSubtitleIndex(null);
               setSubtitlesOn(false);

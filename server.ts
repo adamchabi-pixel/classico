@@ -442,7 +442,7 @@ async function backgroundFetchHero(config: any) {
 }
 
 // Helper to fetch and format movie library items
-async function fetchAndCacheMovies(config: any): Promise<any[]> {
+async function fetchAndCacheMovies(config: any, isFastMode: boolean = false): Promise<any[]> {
   const usersResp = await fetch(`${config.url}/Users?api_key=${config.apiKey}`);
   let userId = "";
   if (usersResp.ok) {
@@ -452,9 +452,13 @@ async function fetchAndCacheMovies(config: any): Promise<any[]> {
     }
   }
 
+  const fields = isFastMode
+    ? "Overview,Genres,CommunityRating,ProductionYear,RunTimeTicks,OriginalTitle,Studios"
+    : "Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios";
+
   const libraryUrl = userId 
-    ? `${config.url}/Users/${userId}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=3000&api_key=${config.apiKey}`
-    : `${config.url}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=3000&api_key=${config.apiKey}`;
+    ? `${config.url}/Users/${userId}/Items?recursive=true&includeItemTypes=Movie,Series&fields=${fields}&limit=3000&api_key=${config.apiKey}`
+    : `${config.url}/Items?recursive=true&includeItemTypes=Movie,Series&fields=${fields}&limit=3000&api_key=${config.apiKey}`;
     
   const response = await fetch(libraryUrl);
   if (!response.ok) {
@@ -587,18 +591,24 @@ app.get("/api/jellyfin/movies", async (req, res) => {
     return;
   }
 
-  // 4. If no cache exists at all, fetch synchronously (first-time setup)
-  console.log("[CACHE LOG] No movies cache found, fetching synchronously...");
+  // 4. If no cache exists at all, perform a FAST fetch synchronously to respond in under 2 seconds!
+  console.log("[CACHE LOG] No movies cache found. Performing ultra-fast first-time sync fetch...");
   try {
-    const formattedMovies = await fetchAndCacheMovies(config);
-    // Save to memory & disk
-    setCached(cacheKey, formattedMovies, 3600000);
-    fs.writeFileSync(MOVIES_CACHE_PATH, JSON.stringify(formattedMovies, null, 2), "utf-8");
+    const fastMovies = await fetchAndCacheMovies(config, true);
+    
+    // Save the fast version to memory & disk immediately so the client can render the UI instantly
+    setCached(cacheKey, fastMovies, 3600000);
+    fs.writeFileSync(MOVIES_CACHE_PATH, JSON.stringify(fastMovies, null, 2), "utf-8");
 
+    // Send response to client immediately! (< 2 seconds!)
     res.json({
       success: true,
-      movies: formattedMovies
+      movies: fastMovies
     });
+
+    // Quietly fire a background full revalidation fetch to get complete metadata (actors, taglines, directors)
+    console.log("[CACHE LOG] Fast sync response sent. Booting background revalidation for full details (directors, casts)...");
+    backgroundFetchMovies(config);
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }

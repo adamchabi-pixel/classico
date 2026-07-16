@@ -1069,6 +1069,22 @@ export default function App() {
       const data = await res.json();
       if (data.success) {
         setJellyfinMovies(data.movies || []);
+
+        // SWR (Stale-While-Revalidate): Schedule a quiet, non-blocking background revalidation
+        // to retrieve full details (directors, actors) after the initial fast UI paint is complete.
+        setTimeout(async () => {
+          try {
+            const revalidateRes = await fetch("/api/jellyfin/movies?revalidate=true");
+            if (revalidateRes.ok) {
+              const revalidateData = await revalidateRes.json();
+              if (revalidateData.success && Array.isArray(revalidateData.movies) && revalidateData.movies.length > 0) {
+                setJellyfinMovies(revalidateData.movies);
+              }
+            }
+          } catch (bgErr) {
+            console.log("Background revalidation skipped or failed.");
+          }
+        }, 3000);
       } else {
         setIsJellyfinError(data.error || "Unable to retrieve your movies.");
       }
@@ -1144,6 +1160,21 @@ export default function App() {
       setJellyfinHeroMovies([]);
     }
   }, [jellyfinConfig?.configured]);
+
+  // Listen for background full library updates (especially useful on deployed/Netlify environments)
+  useEffect(() => {
+    const handleMoviesUpdated = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail && Array.isArray(customEvent.detail.movies)) {
+        console.log("[CLIENT EVENT] Received updated movies list via event listener");
+        setJellyfinMovies(customEvent.detail.movies);
+      }
+    };
+    window.addEventListener("classico-movies-updated", handleMoviesUpdated);
+    return () => {
+      window.removeEventListener("classico-movies-updated", handleMoviesUpdated);
+    };
+  }, []);
 
   const handleConnectJellyfin = async (e: React.FormEvent) => {
     e.preventDefault();

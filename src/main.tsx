@@ -68,6 +68,81 @@ if (typeof window !== "undefined") {
       if (url.includes("/api/jellyfin/movies")) {
         return (async () => {
           try {
+            // Define background full refresh inside closure to inherit formatting & fetching helpers
+            const triggerBackgroundRefresh = async () => {
+              if ((window as any)._classico_is_refreshing) return;
+              (window as any)._classico_is_refreshing = true;
+              console.log("[CLIENT CACHE] Starting background fetch for full details (directors, actors)...");
+              try {
+                const userRes = await originalFetch(`${serverUrl}/Users?api_key=${apiKey}`);
+                let uId = "";
+                if (userRes.ok) {
+                  const users = await userRes.json();
+                  if (users && users.length > 0) {
+                    uId = users[0].Id;
+                  }
+                }
+
+                const fullFields = "Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios";
+                const libUrl = uId
+                  ? `${serverUrl}/Users/${uId}/Items?recursive=true&includeItemTypes=Movie,Series&fields=${fullFields}&limit=3000&api_key=${apiKey}`
+                  : `${serverUrl}/Items?recursive=true&includeItemTypes=Movie,Series&fields=${fullFields}&limit=3000&api_key=${apiKey}`;
+
+                const response = await originalFetch(libUrl);
+                if (response.ok) {
+                  const rData = await response.json();
+                  const healthy = (rData.Items || []).filter((item: any) => {
+                    const p = (item.Path || "").toLowerCase();
+                    return !p.includes("movies_jellyfin_web");
+                  });
+                  const fullFormatted = healthy.map(formatItem);
+
+                  // Update global cache
+                  (window as any)._classico_movies_cache = fullFormatted;
+                  try {
+                    localStorage.setItem("classico_movies_cache_data", JSON.stringify(fullFormatted));
+                  } catch (storageErr) {
+                    console.warn("Storage quota exceeded, caching in memory only.");
+                  }
+
+                  console.log("[CLIENT CACHE] Background full fetch complete. Dispatching update event.");
+                  // Notify App.tsx to update state seamlessly
+                  window.dispatchEvent(new CustomEvent("classico-movies-updated", {
+                    detail: { movies: fullFormatted }
+                  }));
+                }
+              } catch (bgErr) {
+                console.error("[CLIENT CACHE] Background full refresh failed:", bgErr);
+              } finally {
+                (window as any)._classico_is_refreshing = false;
+              }
+            };
+
+            // 1. Check if we have an existing cache (memory or localStorage) for instantaneous load
+            let cachedList = (window as any)._classico_movies_cache;
+            if (!cachedList) {
+              try {
+                const stored = localStorage.getItem("classico_movies_cache_data");
+                if (stored) {
+                  cachedList = JSON.parse(stored);
+                  (window as any)._classico_movies_cache = cachedList;
+                }
+              } catch (err) {
+                console.warn("Failed to parse cached movies:", err);
+              }
+            }
+
+            // 2. If cache exists, return it instantly and trigger background revalidation
+            if (cachedList && cachedList.length > 0) {
+              console.log("[CLIENT CACHE] Instant load from cache. Triggering revalidation...");
+              setTimeout(() => {
+                triggerBackgroundRefresh();
+              }, 100);
+              return new Response(JSON.stringify({ success: true, movies: cachedList }), { status: 200 });
+            }
+
+            // 3. Otherwise, perform an ultra-fast first-time sync fetch (excluding People/Taglines fields)
+            console.log("[CLIENT CACHE] First-time load. Running fast sync fetch...");
             const userRes = await originalFetch(`${serverUrl}/Users?api_key=${apiKey}`);
             let userId = "";
             if (userRes.ok) {
@@ -77,9 +152,10 @@ if (typeof window !== "undefined") {
               }
             }
 
+            const fastFields = "Overview,Genres,CommunityRating,ProductionYear,RunTimeTicks,OriginalTitle,Studios";
             const libraryUrl = userId
-              ? `${serverUrl}/Users/${userId}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=3000&api_key=${apiKey}`
-              : `${serverUrl}/Items?recursive=true&includeItemTypes=Movie,Series&fields=Overview,Genres,People,CommunityRating,Taglines,ProductionYear,RunTimeTicks,Path,ProviderIds,OriginalTitle,Studios&limit=3000&api_key=${apiKey}`;
+              ? `${serverUrl}/Users/${userId}/Items?recursive=true&includeItemTypes=Movie,Series&fields=${fastFields}&limit=3000&api_key=${apiKey}`
+              : `${serverUrl}/Items?recursive=true&includeItemTypes=Movie,Series&fields=${fastFields}&limit=3000&api_key=${apiKey}`;
             
             const res = await originalFetch(libraryUrl);
             const data = await res.json();
@@ -87,8 +163,22 @@ if (typeof window !== "undefined") {
               const p = (item.Path || "").toLowerCase();
               return !p.includes("movies_jellyfin_web");
             });
-            const formatted = healthyMovies.map(formatItem);
-            return new Response(JSON.stringify({ success: true, movies: formatted }), { status: 200 });
+            const fastFormatted = healthyMovies.map(formatItem);
+
+            // Cache the fast version
+            (window as any)._classico_movies_cache = fastFormatted;
+            try {
+              localStorage.setItem("classico_movies_cache_data", JSON.stringify(fastFormatted));
+            } catch (storageErr) {
+              console.warn("Storage quota exceeded, caching in memory only.");
+            }
+
+            // Fire the background full refresh
+            setTimeout(() => {
+              triggerBackgroundRefresh();
+            }, 500);
+
+            return new Response(JSON.stringify({ success: true, movies: fastFormatted }), { status: 200 });
           } catch (e: any) {
             return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500 });
           }

@@ -96,14 +96,9 @@ export function formatHlsUrl(url: string, id: string, deviceId?: string, apiKey?
     params.set("DeviceId", finalDeviceId);
     params.set("MediaSourceId", id);
     
-    // 2. Optimize bitrates to 1.5 Mbps and resolution to 720p to ensure fast 2s load times and no buffering on mobile/web
-    params.set("VideoBitrate", "1500000");
-    params.set("MaxVideoBitrate", "1500000");
-    params.set("MaxWidth", "1280");
-    params.set("MaxHeight", "720");
-    params.set("SegmentLength", "2");
-    params.set("MinSegments", "1");
-    params.set("Static", "false");
+    // 2. Ne pas imposer de débits ou limites de résolution arbitraires sur le client pour laisser le serveur Jellyfin diffuser le flux natif
+    // Nous définissons uniquement le mode HLS dynamique par défaut s'il n'est pas déjà spécifié.
+    if (!params.has("Static")) params.set("Static", "false");
     
     formatted = urlParts[0] + "?" + params.toString();
   } catch (err) {
@@ -232,6 +227,9 @@ export default function CinemaPlayerView({
   const [isMetadataLoaded, setIsMetadataLoaded] = useState(false);
   const [isAutoplayBlocked, setIsAutoplayBlocked] = useState(false);
   const isInitialAutoplayRef = useRef<boolean>(true);
+  const rebufferStartTimeRef = useRef<number>(0);
+  const fragLoadStartTimeRef = useRef<number>(0);
+  const ttfbTimeRef = useRef<number>(0);
   
   const [progress, setProgress] = useState(0);
   const [seekOffset, setSeekOffset] = useState(0);
@@ -262,7 +260,7 @@ export default function CinemaPlayerView({
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [playTimeoutMessage, setPlayTimeoutMessage] = useState<string | null>(null);
 
-  // Mobile player initialization & on-screen logs states
+  // Mobile player initialization && on-screen logs states
   const [isInitialized, setIsInitialized] = useState(true);
   const [playerLogs, setPlayerLogs] = useState<string[]>([]);
   const [adClicks, setAdClicks] = useState(2);
@@ -296,24 +294,67 @@ export default function CinemaPlayerView({
     isLowQuality: boolean;
   }>({ movieId: null, forceTranscode: false, playbackAttempts: 0, isLowQuality: false });
 
+  const isResettingRef = useRef<boolean>(false);
+
   const eventsTrackerRef = useRef<{
+    metadataStart: { fired: boolean; time: number | null };
+    metadataEnd: { fired: boolean; time: number | null };
+    streamUrlStart: { fired: boolean; time: number | null };
+    serverResponse: { fired: boolean; time: number | null };
+    ttfb: { fired: boolean; time: number | null };
     loadedmetadata: { fired: boolean; time: number | null };
     loadeddata: { fired: boolean; time: number | null };
     canplay: { fired: boolean; time: number | null };
     play: { fired: boolean; time: number | null };
+    playing: { fired: boolean; time: number | null };
     firstFrame: { fired: boolean; time: number | null };
   }>({
+    metadataStart: { fired: false, time: null },
+    metadataEnd: { fired: false, time: null },
+    streamUrlStart: { fired: false, time: null },
+    serverResponse: { fired: false, time: null },
+    ttfb: { fired: false, time: null },
     loadedmetadata: { fired: false, time: null },
     loadeddata: { fired: false, time: null },
     canplay: { fired: false, time: null },
     play: { fired: false, time: null },
+    playing: { fired: false, time: null },
     firstFrame: { fired: false, time: null },
   });
 
-  const trackEventFired = (key: "loadedmetadata" | "loadeddata" | "canplay" | "play" | "firstFrame", stepName: string) => {
+  const trackEventFired = (key: keyof typeof eventsTrackerRef.current, stepName: string) => {
     if (!eventsTrackerRef.current[key].fired) {
-      eventsTrackerRef.current[key] = { fired: true, time: performance.now() };
+      const now = performance.now();
+      eventsTrackerRef.current[key] = { fired: true, time: now };
       logChrono(stepName);
+
+      if (key === "playing") {
+        const clickTime = (window as any).moviePlayClickTime || now;
+        const formatTimeDiff = (t: number | null) => t !== null ? `${((t - clickTime) / 1000).toFixed(3)}s` : "N/A";
+        const formatDuration = (start: number | null, end: number | null) => {
+          if (start !== null && end !== null) {
+            return `${((end - start) / 1000).toFixed(3)}s`;
+          }
+          return "N/A";
+        };
+
+        console.log(`%c
+===================================================================
+🎥 DIAGNOSTIC PIPELINE DE LECTURE VIDÉO : TIMELINE COMPLÈTE
+===================================================================
+1. Clic sur le film : 0.000s
+2. Début de récupération des métadonnées : ${formatTimeDiff(eventsTrackerRef.current.metadataStart.time)}
+3. Réponse du serveur (métadonnées) : ${formatTimeDiff(eventsTrackerRef.current.serverResponse.time)} (TTFB: ${formatDuration(eventsTrackerRef.current.metadataStart.time, eventsTrackerRef.current.serverResponse.time)})
+4. Fin de récupération des métadonnées : ${formatTimeDiff(eventsTrackerRef.current.metadataEnd.time)} (Durée: ${formatDuration(eventsTrackerRef.current.metadataStart.time, eventsTrackerRef.current.metadataEnd.time)})
+5. Début de récupération de l'URL de streaming : ${formatTimeDiff(eventsTrackerRef.current.streamUrlStart.time)}
+6. Réception du premier octet du stream (TTFB) : ${formatTimeDiff(eventsTrackerRef.current.ttfb.time)} (Délai d'établissement: ${formatDuration(eventsTrackerRef.current.streamUrlStart.time, eventsTrackerRef.current.ttfb.time)})
+7. Événement loadedmetadata : ${formatTimeDiff(eventsTrackerRef.current.loadedmetadata.time)}
+8. Événement canplay : ${formatTimeDiff(eventsTrackerRef.current.canplay.time)}
+9. Événement playing (Lecture active) : ${formatTimeDiff(eventsTrackerRef.current.playing.time)}
+-------------------------------------------------------------------
+⏱️ TEMPS TOTAL CLIC -> LECTURE ACTIVE (playing) : ${((now - clickTime) / 1000).toFixed(3)}s
+===================================================================`, "color: #10b981; font-weight: bold; font-family: monospace;");
+      }
     }
   };
 
@@ -323,10 +364,16 @@ export default function CinemaPlayerView({
     const elapsed = clickTime ? ((now - clickTime) / 1000).toFixed(3) : "N/A";
     
     const events = [
+      { key: "metadataStart" as const, name: "Début de récupération des métadonnées" },
+      { key: "serverResponse" as const, name: "Réponse du serveur" },
+      { key: "metadataEnd" as const, name: "Fin de récupération des métadonnées" },
+      { key: "streamUrlStart" as const, name: "Début de récupération de l'URL de streaming" },
+      { key: "ttfb" as const, name: "Réception du premier octet (TTFB)" },
       { key: "loadedmetadata" as const, name: "loadedmetadata" },
       { key: "loadeddata" as const, name: "loadeddata" },
       { key: "canplay" as const, name: "canplay" },
       { key: "play" as const, name: "play" },
+      { key: "playing" as const, name: "playing" },
       { key: "firstFrame" as const, name: "première frame affichée" },
     ];
 
@@ -377,10 +424,16 @@ export default function CinemaPlayerView({
       logMissingEvents("Source vidéo remplacée ou nouvelle tentative de lecture");
     }
     eventsTrackerRef.current = {
+      metadataStart: { fired: false, time: null },
+      metadataEnd: { fired: false, time: null },
+      streamUrlStart: { fired: false, time: null },
+      serverResponse: { fired: false, time: null },
+      ttfb: { fired: false, time: null },
       loadedmetadata: { fired: false, time: null },
       loadeddata: { fired: false, time: null },
       canplay: { fired: false, time: null },
       play: { fired: false, time: null },
+      playing: { fired: false, time: null },
       firstFrame: { fired: false, time: null },
     };
   }, [movieId, playbackAttempts]);
@@ -390,8 +443,8 @@ export default function CinemaPlayerView({
     let totalSecs = 0;
 
     // 1. Source de vérité Jellyfin metadata (après chargement de l'API de lecture)
-    if (playbackInfo && playbackInfo.duration > 0) {
-      totalSecs = playbackInfo.duration;
+    if (playbackInfo && playbackInfo?.duration || 0 > 0) {
+      totalSecs = playbackInfo?.duration || 0;
     }
     // 2. Initialisation immédiate via la prop movieDuration ("169 min")
     else if (movieDuration) {
@@ -417,7 +470,7 @@ export default function CinemaPlayerView({
     return "chargement...";
   };
 
-  // LOGIQUE DE VALIDATION ET SYNC DE LA DURÉE AUDIOVISUELLE (NAVIGATEUR & JELLYFIN METADATA)
+  // LOGIQUE DE VALIDATION ET SYNC DE LA DURÉE AUDIOVISUELLE (NAVIGATEUR && JELLYFIN METADATA)
   const validateAndSetDuration = (liveDur: number, jellyfinDurRaw: number) => {
     // Conversion RunTimeTicks si Jellyfin envoie des Ticks (ex: plus de 100 millions pour quelques secondes)
     let jellyfinDuration = jellyfinDurRaw || (playbackInfo?.duration || 0);
@@ -620,7 +673,7 @@ export default function CinemaPlayerView({
     };
   }, [showSubtitleMenu]);
 
-  // Robust seek mechanism supporting native seeking for both Direct Play & HLS transcode (m3u8)
+  // Robust seek mechanism supporting native seeking for both Direct Play && HLS transcode (m3u8)
   const seekTo = (newTime: number) => {
     const video = videoRef.current;
     if (!video || !playbackInfo) return;
@@ -665,11 +718,7 @@ export default function CinemaPlayerView({
   useEffect(() => {
     const lastOpts = lastFetchedParamsRef.current;
     if (
-      playbackInfo &&
-      lastOpts.movieId === movieId &&
-      lastOpts.forceTranscode === forceTranscode &&
-      lastOpts.playbackAttempts === playbackAttempts &&
-      lastOpts.isLowQuality === isLowQuality
+      playbackInfo &&       lastOpts.movieId === movieId &&       lastOpts.forceTranscode === forceTranscode &&       lastOpts.playbackAttempts === playbackAttempts &&       lastOpts.isLowQuality === isLowQuality
     ) {
       console.log("[CINEMA METADATA BLOCK] Playback metadata already loaded with same parameters. Preventing re-fetch.");
       return;
@@ -686,7 +735,7 @@ export default function CinemaPlayerView({
       setIsLoading(true);
       setIsStreamLoading(true);
       setIsActuallyPlaying(false);
-      logChrono("Récupération des métadonnées (Début)");
+      trackEventFired("metadataStart", "Début de récupération des métadonnées");
       setVideoError(null);
       setIsTimeoutReached(false);
       try {
@@ -712,7 +761,7 @@ export default function CinemaPlayerView({
             const currentApiKey = localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb";
             
             // Bypass google proxy entirely
-            const streamUrl = `${serverUrl}/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=2&MinSegments=1&VideoBitrate=1500000&MaxVideoBitrate=1500000&MaxWidth=1280&MaxHeight=720&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}`;
+            const streamUrl = `${serverUrl}/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&VideoBitrate=1500000&MaxVideoBitrate=1500000&MaxWidth=1280&MaxHeight=720&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}`;
             
             data = {
               id: movieId,
@@ -751,7 +800,7 @@ export default function CinemaPlayerView({
 
               if (itemData) {
                 if (itemData.RunTimeTicks) {
-                  data.duration = Math.round(itemData.RunTimeTicks / 10000000);
+                  data.duration = Math.round(itemData?.RunTimeTicks / 10000000);
                 }
                 
                 const mediaSources = itemData.MediaSources || [];
@@ -796,16 +845,18 @@ export default function CinemaPlayerView({
             if (isLowQuality) params.set("lowQuality", "true");
             url += params.toString();
 
+            trackEventFired("metadataStart", "Début de récupération des métadonnées");
             const res = await fetch(url);
+            trackEventFired("serverResponse", "Réponse du serveur (métadonnées reçues)");
             if (!res.ok) {
               throw new Error(`Erreur de lecture (Code ${res.status})`);
             }
             data = await res.json();
+            trackEventFired("metadataEnd", "Fin de récupération des métadonnées");
           }
         }
 
         if (active) {
-          logChrono("Récupération des métadonnées terminée");
           if (data && data.streamUrl) {
             const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
             if (!isNetlify) {
@@ -814,15 +865,15 @@ export default function CinemaPlayerView({
                 streamUrl: formatHlsUrl(data.streamUrl, movieId, deviceId, apiKey)
               };
             }
-            logChrono("Récupération de l'URL de stream : " + data.streamUrl);
+            trackEventFired("streamUrlStart", "Début de récupération de l'URL de streaming");
           }
           setPlaybackInfo(data);
           setIsLoading(false);
           lastFetchedMovieIdRef.current = movieId;
           lastFetchedParamsRef.current = { movieId, forceTranscode, playbackAttempts, isLowQuality };
           // Initialisation immédiate et stable avec la métadonnée Jellyfin
-          if (data && data.duration && data.duration > 0) {
-            setDuration(data.duration);
+          if (data && data?.duration || 0 && data?.duration || 0 > 0) {
+            setDuration(data?.duration || 0);
           }
           if (data && data.audios && data.audios.length > 0) {
             // Chercher une piste audio en anglais par défaut, sinon celle par défaut du serveur, sinon la première
@@ -887,7 +938,7 @@ export default function CinemaPlayerView({
             const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
             const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
             
-            const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=2&MinSegments=1&VideoBitrate=1500000&MaxVideoBitrate=1500000&MaxWidth=1280&MaxHeight=720`;
+            const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&VideoBitrate=1500000&MaxVideoBitrate=1500000&MaxWidth=1280&MaxHeight=720`;
             const fallbackData = {
               id: movieId,
               streamUrl: isNetlify 
@@ -923,7 +974,7 @@ export default function CinemaPlayerView({
     };
   }, [movieId, forceTranscode, playbackAttempts, isLowQuality]);
 
-  // Handle Audio & non-text Subtitle Track changes by reloading stream
+  // Handle Audio && non-text Subtitle Track changes by reloading stream
   useEffect(() => {
     if (!playbackInfo) return;
     
@@ -944,11 +995,21 @@ export default function CinemaPlayerView({
       
       let changed = false;
 
+      const defaultAudio = playbackInfo.audios.find((a: any) => a.isDefault) || playbackInfo.audios[0];
+      const defaultAudioIndex = defaultAudio ? defaultAudio.index : null;
+
       if (activeAudioIndex !== null) {
         const currentAudioIndex = urlObj.searchParams.get("AudioStreamIndex");
         if (currentAudioIndex !== activeAudioIndex.toString()) {
-          urlObj.searchParams.set("AudioStreamIndex", activeAudioIndex.toString());
-          changed = true;
+          // Si le paramètre d'URL est absent, le serveur lit la piste par défaut.
+          // On évite un rechargement inutile si l'index demandé correspond à la piste par défaut.
+          const isUrlDefault = currentAudioIndex === null;
+          const isRequestingDefault = activeAudioIndex === defaultAudioIndex;
+          
+          if (!(isUrlDefault && isRequestingDefault)) {
+            urlObj.searchParams.set("AudioStreamIndex", activeAudioIndex.toString());
+            changed = true;
+          }
         }
       }
 
@@ -960,7 +1021,10 @@ export default function CinemaPlayerView({
           changed = true;
         }
       } else {
-        if (currentSubIndex !== null) {
+        // Si aucun burn-in n'est nécessaire (ex: pas de sous-titres, ou sous-titres textuels),
+        // l'absence de paramètre ou "-1" signifient tous deux "pas de burn-in".
+        // On n'effectue de changement destructeur que si l'URL contient un véritable ID de sous-titre actif.
+        if (currentSubIndex !== null && currentSubIndex !== "-1") {
           urlObj.searchParams.delete("SubtitleStreamIndex");
           urlObj.searchParams.delete("SubtitleMethod");
           changed = true;
@@ -970,7 +1034,6 @@ export default function CinemaPlayerView({
       
       // If we are DirectPlay but we NEED to change audio or burn-in subtitle, we must switch to Transcoding
       
-      const defaultAudio = playbackInfo.audios.find((a: any) => a.isDefault) || playbackInfo.audios[0];
       const isChangingAudio = activeAudioIndex !== null && (!defaultAudio || activeAudioIndex !== defaultAudio.index);
       
       // Only convert to transcoding if we ACTUALLY need a non-default audio or burned in subtitles
@@ -979,7 +1042,7 @@ export default function CinemaPlayerView({
         const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
         const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : "";
         const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
-        const hlsParams = `Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=2&MinSegments=1&VideoBitrate=1500000&MaxVideoBitrate=1500000&MaxWidth=1280&MaxHeight=720`;
+        const hlsParams = `Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&VideoBitrate=1500000&MaxVideoBitrate=1500000&MaxWidth=1280&MaxHeight=720`;
         
         let transcodeUrl = "";
         if (isNetlify) {
@@ -1167,14 +1230,16 @@ export default function CinemaPlayerView({
             hls = new Hls({
               enableWorker: true,
               lowLatencyMode: false,
-              backBufferLength: 30,
-              maxBufferLength: 30,
-              maxMaxBufferLength: 60,
-              maxBufferSize: 30 * 1024 * 1024,
-              maxBufferHole: 2,
-              highBufferWatchdogPeriod: 1,
-              nudgeMaxRetry: 15,
-              maxStarvationDelay: 2,
+              backBufferLength: 90,
+              maxBufferLength: 60,
+              maxMaxBufferLength: 120,
+              maxBufferSize: 120 * 1024 * 1024,
+              maxBufferHole: 0.5,
+              highBufferWatchdogPeriod: 3,
+              nudgeMaxRetry: 8,
+              maxStarvationDelay: 4,
+              abrEwmaDefaultEstimate: 5000000,
+              capLevelToPlayerSize: true,
               manifestLoadingTimeOut: 10000,
               manifestLoadingMaxRetry: 5,
               manifestLoadingRetryDelay: 500,
@@ -1189,7 +1254,7 @@ export default function CinemaPlayerView({
 
             hls.on(Hls.Events.MANIFEST_PARSED, () => {
               setIsMetadataLoaded(true);
-              const liveDur = video.duration;
+              const liveDur = video?.duration || 0;
               const jellyfinDur = playbackInfo?.duration || 0;
               validateAndSetDuration(liveDur, jellyfinDur);
               // Safe deferred play when manifest is parsed
@@ -1209,6 +1274,7 @@ export default function CinemaPlayerView({
                 return;
               }
               if ((data.type as string) === "mediaError" || data.details === "bufferStalledError") {
+                console.log(`[HLS DIAGNOSTIC] [${Date.now()}] ⚠️ Erreur HLS récupérable détectée : ${data.details} (${data.type})`);
                 hls.recoverMediaError();
                 return;
               }
@@ -1217,7 +1283,8 @@ export default function CinemaPlayerView({
                 const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
                 const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
                 const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
-                const fallbackUrl = isNetlify ? `${serverUrl}/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=2&MinSegments=1&VideoBitrate=1500000&MaxVideoBitrate=1500000&MaxWidth=1280&MaxHeight=720&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}` : formatHlsUrl(`/api/jellyfin/proxy/videos/${movieId}/master.m3u8`, movieId, deviceId, apiKey);
+                const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&VideoBitrate=1500000&MaxVideoBitrate=1500000&MaxWidth=1280&MaxHeight=720`;
+                const fallbackUrl = isNetlify ? `${serverUrl}${fallbackPath}&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}` : formatHlsUrl(`/api/jellyfin/proxy${fallbackPath}&DeviceId=${deviceId}&MediaSourceId=${movieId}`, movieId, deviceId, apiKey);
                 setPlaybackInfo({
                   id: movieId,
                   streamUrl: fallbackUrl,
@@ -1225,7 +1292,7 @@ export default function CinemaPlayerView({
                   container: "m3u8",
                   title: playbackInfo?.title || "Film",
                   isDirect: false,
-                  chosenPath: `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=2&MinSegments=1`,
+                  chosenPath: `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&`,
                   videoCodec: "h264",
                   audioCodec: "aac",
                   subtitles: [],
@@ -1294,7 +1361,7 @@ export default function CinemaPlayerView({
 
     // Prevent destructive stream reset if the URL is already loaded (State Stabilization)
     if (loadedUrlRef.current === playbackInfo.streamUrl) {
-      console.log("[STREAM LOAD] Stream URL already loaded (loadedUrlRef match). Skipping destructive reset & loadSource.");
+      console.log("[STREAM LOAD] Stream URL already loaded (loadedUrlRef match). Skipping destructive reset && loadSource.");
       return;
     }
     
@@ -1339,7 +1406,7 @@ export default function CinemaPlayerView({
     const handleLoadedMetadata = () => {
       trackEventFired("loadedmetadata", "Événement loadedmetadata");
       setIsMetadataLoaded(true);
-      const liveDur = video.duration;
+      const liveDur = video?.duration || 0;
       const jellyfinDur = playbackInfo?.duration || 0;
       validateAndSetDuration(liveDur, jellyfinDur);
       if (savedRestoreTimeRef.current > 0) {
@@ -1353,7 +1420,7 @@ export default function CinemaPlayerView({
 
     const handleCanPlay = () => {
       trackEventFired("canplay", "Événement canplay");
-      const liveDur = video.duration;
+      const liveDur = video?.duration || 0;
       const jellyfinDur = playbackInfo?.duration || 0;
       validateAndSetDuration(liveDur, jellyfinDur);
       if (savedRestoreTimeRef.current > 0) {
@@ -1465,14 +1532,16 @@ export default function CinemaPlayerView({
         const hls = new Hls({
           enableWorker: true,
           lowLatencyMode: false,
-          backBufferLength: 30,
-          maxBufferLength: 30,
-          maxMaxBufferLength: 60,
-          maxBufferSize: 30 * 1024 * 1024,
-          maxBufferHole: 2,
-          highBufferWatchdogPeriod: 1,
-          nudgeMaxRetry: 15,
-          maxStarvationDelay: 2,
+          backBufferLength: 90,
+          maxBufferLength: 60,
+          maxMaxBufferLength: 120,
+          maxBufferSize: 120 * 1024 * 1024,
+          maxBufferHole: 0.5,
+          highBufferWatchdogPeriod: 3,
+          nudgeMaxRetry: 8,
+          maxStarvationDelay: 4,
+          abrEwmaDefaultEstimate: 5000000,
+          capLevelToPlayerSize: true,
           manifestLoadingTimeOut: 10000,
           manifestLoadingMaxRetry: 5,
           manifestLoadingRetryDelay: 500,
@@ -1502,7 +1571,7 @@ export default function CinemaPlayerView({
 
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
           setIsMetadataLoaded(true);
-          const liveDur = video.duration;
+          const liveDur = video?.duration || 0;
           const jellyfinDur = playbackInfo?.duration || 0;
           validateAndSetDuration(liveDur, jellyfinDur);
           // Auto-play HLS stream gracefully managed by React effect sync and HTML5 autoplay
@@ -1515,6 +1584,7 @@ export default function CinemaPlayerView({
             return;
           }
           if ((data.type as string) === "mediaError" || data.details === "bufferStalledError") {
+            console.log(`[HLS DIAGNOSTIC] [${Date.now()}] ⚠️ Erreur HLS récupérable détectée : ${data.details} (${data.type})`);
             hls.recoverMediaError();
             return;
           }
@@ -1524,11 +1594,11 @@ export default function CinemaPlayerView({
             if (progress > 0) {
               savedRestoreTimeRef.current = progress;
             }
-            const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=2&MinSegments=1&VideoBitrate=1500000&MaxVideoBitrate=1500000&MaxWidth=1280&MaxHeight=720`;
+            const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&VideoBitrate=1500000&MaxVideoBitrate=1500000&MaxWidth=1280&MaxHeight=720`;
             const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
             const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
             const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
-            const fallbackUrl = isNetlify ? `${serverUrl}${fallbackPath}&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}` : formatHlsUrl(`/api/jellyfin/proxy/videos/${movieId}/master.m3u8`, movieId, deviceId, apiKey);
+            const fallbackUrl = isNetlify ? `${serverUrl}${fallbackPath}&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}` : formatHlsUrl(`/api/jellyfin/proxy${fallbackPath}&DeviceId=${deviceId}&MediaSourceId=${movieId}`, movieId, deviceId, apiKey);
             setPlaybackInfo({
               id: movieId,
               streamUrl: fallbackUrl,
@@ -1693,7 +1763,7 @@ export default function CinemaPlayerView({
       }`}
     >
       
-      {/* 1. STANDALONE CINEMA UPPER DECK (GO BACK & TITLE INFO) */}
+      {/* 1. STANDALONE CINEMA UPPER DECK (GO BACK && TITLE INFO) */}
       <div className={`relative p-6 pt-[calc(1.5rem+env(safe-area-inset-top))] bg-gradient-to-b from-black/95 via-black/50 to-transparent flex items-center justify-between transition-opacity duration-300 z-50 ${
         controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"
       } ${adClicks < 2 ? "hidden" : ""}`}>
@@ -1772,9 +1842,17 @@ export default function CinemaPlayerView({
               trackEventFired("play", "Événement play");
               setPlaying(true);
             }}
+            onPause={() => {
+              if (!isResettingRef.current) {
+                setPlaying(false);
+              }
+            }}
+            onProgress={() => {
+              trackEventFired("ttfb", "Réception du premier octet (TTFB)");
+            }}
             onTimeUpdate={(e) => {
               const curTime = e.currentTarget.currentTime;
-              const dur = e.currentTarget.duration;
+              const dur = e.currentTarget?.duration || 0;
               
               if (curTime > 0 && dur > 0 && movieId) {
                 try {
@@ -1825,38 +1903,60 @@ export default function CinemaPlayerView({
               setSeekOffset(0);
             }}
             onLoadedMetadata={(e) => {
+              trackEventFired("loadedmetadata", "Événement loadedmetadata");
               const video = e.currentTarget;
               console.log(`[SEEK LOGS] currentTime après loadedmetadata : ${video.currentTime}s`);
-              validateAndSetDuration(video.duration, playbackInfo?.duration || 0);
+              validateAndSetDuration(video?.duration || 0, playbackInfo?.duration || 0);
             }}
             onCanPlay={(e) => {
+              trackEventFired("canplay", "Événement canplay");
               const video = e.currentTarget;
               console.log(`[SEEK LOGS] currentTime après canplay : ${video.currentTime}s`);
-              validateAndSetDuration(video.duration, playbackInfo?.duration || 0);
+              validateAndSetDuration(video?.duration || 0, playbackInfo?.duration || 0);
               setIsBuffering(false);
             }}
-            onWaiting={() => {
+            onWaiting={(e) => {
               setIsBuffering(true);
+              const video = e.currentTarget;
+              let bufferEnd = 0;
+              if (video.buffered.length > 0) {
+                 bufferEnd = video.buffered.end(video.buffered.length - 1);
+              }
+              const bufferLevel = bufferEnd - video.currentTime;
+              console.log(`[MICRO-BUFFERING DIAGNOSTIC] [${Date.now()}] ⚠️ STALL DETECTED ⚠️ | Spinner affiché !`);
+              console.log(`[MICRO-BUFFERING DIAGNOSTIC] currentTime: ${video.currentTime}s, bufferEnd: ${bufferEnd}s, bufferLevel (restant): ${bufferLevel}s`);
+              console.log(`[MICRO-BUFFERING DIAGNOSTIC] readyState: ${video.readyState}, networkState: ${video.networkState}`);
+              
+              if ((window as any)._microStallStart === undefined) {
+                  (window as any)._microStallStart = performance.now();
+              }
               addLog("Buffering started");
             }}
-            onPlaying={(e) => {
+            onSeeking={(e) => {
+            console.log(`[PERF DIAGNOSTIC] [${Date.now()}] video.onSeeking. Cible: ${e.currentTarget.currentTime}s`);
+            ttfbTimeRef.current = 0; // reset to measure TTFB after seek
+          }}
+          onSeeked={(e) => {
+            console.log(`[PERF DIAGNOSTIC] [${Date.now()}] video.onSeeked. Atteint: ${e.currentTarget.currentTime}s`);
+          }}
+          onPlaying={(e) => {
+              trackEventFired("playing", "Événement playing (Lecture active)");
+              if (rebufferStartTimeRef.current) {
+                 const duration = performance.now() - rebufferStartTimeRef.current;
+                 console.log(`[MICRO-BUFFERING DIAGNOSTIC] [${Date.now()}] ✅ STALL RESOLVED ✅ | Temps de stall: ${duration.toFixed(2)}ms`);
+                 rebufferStartTimeRef.current = 0;
+              }
+              if ((window as any)._microStallStart !== undefined) {
+                  const duration = performance.now() - (window as any)._microStallStart;
+                  console.log(`[MICRO-BUFFERING DIAGNOSTIC] [${Date.now()}] ✅ STALL RESOLVED ✅ | Temps de stall (fallback): ${duration.toFixed(2)}ms`);
+                  (window as any)._microStallStart = undefined;
+              }
               setIsBuffering(false);
               setIsActuallyPlaying(true);
               setPlaying(true);
               addLog("Playback started");
             }}
-            onSeeked={(e) => {
-              const video = e.currentTarget;
-              console.log(`[SEEK LOGS] currentTime après seeked event : ${video.currentTime}s`);
-              console.log(`[SEEK EVENT] seeked - Valeur réelle finale dans le player : ${seekOffset + video.currentTime}s (currentTime locale : ${video.currentTime}s)`);
-              setIsBuffering(false);
-            }}
-            onSeeking={(e) => {
-              const video = e.currentTarget;
-              console.log(`[SEEK LOGS] currentTime après seeking event : ${video.currentTime}s`);
-              console.log(`[SEEK EVENT] seeking - Valeur cible demandée : ${progress}s (currentTime actuelle : ${video.currentTime}s)`);
-              setIsBuffering(true);
-            }}
+
             onError={(e) => {
               const video = e.currentTarget;
               const err = video.error;
@@ -1872,11 +1972,11 @@ export default function CinemaPlayerView({
               if (progress > 0) {
                 savedRestoreTimeRef.current = progress;
               }
-              const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&BreakOnNonKeyFrames=true&SegmentLength=2&MinSegments=1&VideoBitrate=1500000&MaxVideoBitrate=1500000&MaxWidth=1280&MaxHeight=720`;
+              const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&VideoBitrate=1500000&MaxVideoBitrate=1500000&MaxWidth=1280&MaxHeight=720`;
               const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
               const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
               const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
-              const fallbackUrl = isNetlify ? `${serverUrl}${fallbackPath}&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}` : formatHlsUrl(`/api/jellyfin/proxy/videos/${movieId}/master.m3u8`, movieId, deviceId, apiKey);
+              const fallbackUrl = isNetlify ? `${serverUrl}${fallbackPath}&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}` : formatHlsUrl(`/api/jellyfin/proxy${fallbackPath}&DeviceId=${deviceId}&MediaSourceId=${movieId}`, movieId, deviceId, apiKey);
               setPlaybackInfo({
                 id: movieId,
                 streamUrl: fallbackUrl,
@@ -1963,7 +2063,7 @@ export default function CinemaPlayerView({
                 >
                   <div className="relative z-10 flex items-center justify-center gap-2">
                     <span className="text-lg">
-                      Watch Ad & Unlock
+                      Watch Ad && Unlock
                     </span>
                   </div>
                 </button>
@@ -1978,7 +2078,7 @@ export default function CinemaPlayerView({
         )}
       </AnimatePresence>
 
-      {/* ON-SCREEN MUTED INDICATOR & PAUSE COVER OVERLAY REMOVED */}
+      {/* ON-SCREEN MUTED INDICATOR && PAUSE COVER OVERLAY REMOVED */}
 
       </div>
 
@@ -2103,7 +2203,7 @@ export default function CinemaPlayerView({
             </div>
 
           </div>
-          {/* RIGHT SIDE: DIAGNOSTICS & FULLSCREEN */}
+          {/* RIGHT SIDE: DIAGNOSTICS && FULLSCREEN */}
           <div className="flex items-center gap-3">
             {/* Cast / AirPlay Unified Button */}
             <button
@@ -2194,7 +2294,6 @@ export default function CinemaPlayerView({
                       >
                         <span className="font-semibold text-[11px]">Sous-titres</span>
                         <div className="flex items-center gap-1.5">
-                          
                           <ChevronRight className="w-4 h-4 text-zinc-500" />
                         </div>
                       </button>

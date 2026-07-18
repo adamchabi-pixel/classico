@@ -1523,6 +1523,9 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
     AudioBitrate: audioBitrate.toString(),
     EnableH264High10Profile: "false",
     Preset: "ultrafast",
+    SegmentLength: "3",
+    MinSegments: "1",
+    BreakOnNonKeyFrames: "True",
     MediaSourceId: cleanedSourceId,
     SegmentContainer: "ts",
 
@@ -1540,8 +1543,8 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
     const sourceHeight = videoStream?.Height || 1080;
     const targetWidth = Math.min(sourceWidth, 1920);
     const targetHeight = Math.min(sourceHeight, 1080);
-    hlsParams.set("VideoBitrate", "15000000");
-    hlsParams.set("MaxVideoBitrate", "15000000");
+    hlsParams.set("VideoBitrate", "8000000");
+    hlsParams.set("MaxVideoBitrate", "8000000");
     hlsParams.set("MaxWidth", targetWidth.toString());
     hlsParams.set("MaxHeight", targetHeight.toString());
   } else {
@@ -1590,8 +1593,8 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
           urlObj.searchParams.delete("MaxWidth");
           urlObj.searchParams.delete("MaxHeight");
         } else {
-          urlObj.searchParams.set("VideoBitrate", "15000000");
-          urlObj.searchParams.set("MaxVideoBitrate", "15000000");
+          urlObj.searchParams.set("VideoBitrate", "8000000");
+          urlObj.searchParams.set("MaxVideoBitrate", "8000000");
         }
       }
 
@@ -2000,7 +2003,8 @@ app.get(["/api/jellyfin/proxy/stream", "/api/jellyfin/proxy/*", "/stream", "/mas
       "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS, POST, PUT, DELETE",
       "Access-Control-Allow-Headers": "Authorization, Content-Type, Range, X-Emby-Token, X-MediaBrowser-Token, X-Requested-With, Origin, Accept",
       "Access-Control-Expose-Headers": "Content-Length, Content-Range, Accept-Ranges, Content-Type",
-      "Cross-Origin-Resource-Policy": "cross-origin"
+      "Cross-Origin-Resource-Policy": "cross-origin",
+      "X-Accel-Buffering": "no"
     };
 
     if (proxyOrigin !== "*") {
@@ -2032,6 +2036,7 @@ app.get(["/api/jellyfin/proxy/stream", "/api/jellyfin/proxy/*", "/stream", "/mas
 
     // Forward exact 206 status code for Range or 200/other
     res.writeHead(response.statusCode || 200, responseHeaders);
+    res.flushHeaders();
 
     // 6. TEST DEBUG : Throttled logging to protect the event loop from high-frequency I/O overhead
     let totalBytesStreamed = 0;

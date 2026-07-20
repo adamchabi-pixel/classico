@@ -1,7 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Search, Play, Film, Info, Heart, Award, ChevronLeft, ChevronRight, ChevronDown, User, Tv, Clock, Sparkles, History, Compass, FilmIcon, BookmarkCheck, Star, CheckCircle, AlertCircle, RefreshCw, X, Shield, Menu, Settings, Loader2 } from "lucide-react";
-import { Movie, Collection, COLLECTIONS as RAW_COLLECTIONS } from "./data";
+import { 
+  Search, Play, Film, Info, Heart, Award, 
+  ChevronLeft, ChevronRight, ChevronDown, User, Tv, Clock, 
+  Sparkles, History, Compass, FilmIcon, BookmarkCheck,
+  Star, CheckCircle, AlertCircle, RefreshCw, X, Shield, Menu, Settings, Loader2
+} from "lucide-react";
+import { COLLECTIONS as RAW_COLLECTIONS, Movie, Collection } from "./data";
+const COLLECTIONS: Collection[] = [...RAW_COLLECTIONS].sort((a, b) => { if (a.id === "trending-now") return -1; if (b.id === "trending-now") return 1; return a.title.localeCompare(b.title); });
+
 import MovieCard from "./components/MovieCard";
 import MovieModal from "./components/MovieModal";
 import MovieDetailView from "./components/MovieDetailView";
@@ -9,8 +16,6 @@ import CinemaPlayerView from "./components/CinemaPlayerView";
 import ErrorBoundary from "./components/ErrorBoundary";
 import LazyVirtualCard from "./components/LazyVirtualCard";
 import HeroSkeleton from "./components/HeroSkeleton";
-
-const COLLECTIONS: Collection[] = [...RAW_COLLECTIONS];
 
 if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual';
@@ -1093,7 +1098,7 @@ export default function App() {
     setIsJellyfinLoading(true);
     setIsJellyfinError("");
     try {
-      const res = await fetch("/api/movies");
+      const res = await fetch("/api/jellyfin/movies");
       if (!res.ok) {
         throw new Error(`Server returned HTTP ${res.status}`);
       }
@@ -1105,7 +1110,7 @@ export default function App() {
         // to retrieve full details (directors, actors) after the initial fast UI paint is complete.
         setTimeout(async () => {
           try {
-            const revalidateRes = await fetch("/api/movies");
+            const revalidateRes = await fetch("/api/jellyfin/movies?revalidate=true");
             if (revalidateRes.ok) {
               const revalidateData = await revalidateRes.json();
               if (revalidateData.success && Array.isArray(revalidateData.movies) && revalidateData.movies.length > 0) {
@@ -1133,7 +1138,7 @@ export default function App() {
 
     const tryFetchHero = async () => {
       try {
-        const res = await fetch("/api/hero");
+        const res = await fetch("/api/jellyfin/hero");
         if (!res.ok) {
           throw new Error(`Server returned HTTP ${res.status}`);
         }
@@ -1209,9 +1214,62 @@ export default function App() {
 
   const handleConnectJellyfin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsConnecting(true);
+    setConnectionError("");
+
+    if (!jellyfinInputUrl || !jellyfinInputApiKey) {
+      setConnectionError("Veuillez remplir tous les champs.");
+      setIsConnecting(false);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/jellyfin/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: jellyfinInputUrl, apiKey: jellyfinInputApiKey })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setJellyfinConfig({ configured: true, url: data.url });
+        localStorage.setItem("classico_jellyfin_url", data.url);
+        localStorage.setItem("classico_jellyfin_apikey", jellyfinInputApiKey);
+        
+        // Load movies
+        setIsJellyfinLoading(true);
+        const libRes = await fetch("/api/jellyfin/movies");
+        const libData = await libRes.json();
+        if (libData.success) {
+          setJellyfinMovies(libData.movies);
+        }
+        setIsJellyfinLoading(false);
+      } else {
+        setConnectionError(data.error || "Failed to connect to the media server.");
+      }
+    } catch (err) {
+      setConnectionError("Unable to connect to the remote server. Check your server URL.");
+    } finally {
+      setIsConnecting(false);
+    }
   };
 
   const handleDisconnectJellyfin = async () => {
+    if (!window.confirm("Voulez-vous déconnecter ce serveur de CLASSICO ?")) return;
+    try {
+      const res = await fetch("/api/jellyfin/disconnect", { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setJellyfinConfig({ configured: false, url: "" });
+        setJellyfinMovies([]);
+        setJellyfinInputUrl("");
+        setJellyfinInputApiKey("");
+        localStorage.removeItem("classico_jellyfin_url");
+        localStorage.removeItem("classico_jellyfin_apikey");
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   // Load watchlist and search default spotlight film
@@ -1254,28 +1312,22 @@ export default function App() {
 
     // Check Jellyfin server configuration status
     const checkJellyfinSetup = async () => {
-      setIsJellyfinLoading(true);
-      setIsJellyfinHeroLoading(true);
       try {
-        const [libRes, heroRes] = await Promise.all([
-          fetch("/api/movies"),
-          fetch("/api/hero")
-        ]);
+        setIsJellyfinLoading(true);
+        const libRes = await fetch("/api/jellyfin/movies");
+        if (!libRes.ok) throw new Error("Could not fetch movies");
         const libData = await libRes.json();
-        const heroData = await heroRes.json();
         if (libData.success) {
           setJellyfinMovies(libData.movies || []);
+        } else {
+          setIsJellyfinError(libData.error || "Unable to read movies.");
         }
-        if (heroData.success) {
-          setJellyfinHeroMovies(heroData.heroes || []);
-        }
-        setJellyfinConfig({ configured: true, url: "local" });
       } catch (err) {
-        console.error(err);
+        console.warn("Failed to load movies on check:", err);
+        setIsJellyfinError("Unable to connect to media source.");
       } finally {
-        setJellyfinConfig({ configured: true, url: "local" });
         setIsJellyfinLoading(false);
-        setIsJellyfinHeroLoading(false);
+        setJellyfinConfig({ configured: true, url: "" });
       }
     };
     checkJellyfinSetup();

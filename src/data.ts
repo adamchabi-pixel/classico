@@ -1,13 +1,5 @@
 export interface Movie {
   id: string;
-  isIframeEmbed?: boolean;
-  iframeSrc?: string;
-  hasLogo?: boolean;
-  logoUrl?: string | null;
-  tmdbId?: string;
-  imdbId?: string;
-  voteAverage?: number;
-  status?: string;
   title: string;
   year: number;
   duration: string;

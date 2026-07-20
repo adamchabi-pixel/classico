@@ -204,27 +204,6 @@ app.use((req, res, next) => {
 
 // Helper to get Jellyfin config if it exists
 function getJellyfinConfig() {
-  const envUrl = process.env.JELLYFIN_URL;
-  const envApiKey = process.env.JELLYFIN_API_KEY;
-
-  if (envUrl && envApiKey) {
-    // Clean trailing slashes
-    let formattedUrl = envUrl.trim();
-    if (formattedUrl.endsWith("/")) {
-      formattedUrl = formattedUrl.substring(0, formattedUrl.length - 1);
-    }
-    return { url: formattedUrl, apiKey: envApiKey.trim() };
-  }
-
-  if (fs.existsSync(CONFIG_PATH)) {
-    try {
-      const content = fs.readFileSync(CONFIG_PATH, "utf-8");
-      return JSON.parse(content);
-    } catch (e) {
-      console.error("Error reading Jellyfin config:", e);
-    }
-  }
-
   return null;
 }
 
@@ -248,7 +227,7 @@ app.get("/api/jellyfin/config", (req, res) => {
 });
 
 // 2. Disconnect Jellyfin (Delete the local secure JSON file)
-app.post("/api/jellyfin/disconnect", (req, res) => {
+app.post("/api/disconnect", (req, res) => {
   try {
     if (fs.existsSync(CONFIG_PATH)) {
       fs.unlinkSync(CONFIG_PATH);
@@ -260,7 +239,7 @@ app.post("/api/jellyfin/disconnect", (req, res) => {
 });
 
 // 2b. Recalculate categories (Clear server-side query caches)
-app.post("/api/jellyfin/recalculate", (req, res) => {
+app.post("/api/recalculate", (req, res) => {
   try {
     apiCache.clear();
     if (fs.existsSync(MOVIES_CACHE_PATH)) {
@@ -276,7 +255,7 @@ app.post("/api/jellyfin/recalculate", (req, res) => {
 });
 
 // 3. Save configuration && Test connection
-app.post("/api/jellyfin/config", async (req, res) => {
+app.post("/api/config", async (req, res) => {
   const { url, apiKey } = req.body;
 
   if (!url || !apiKey) {
@@ -391,7 +370,7 @@ function formatJellyfinItem(item: any, serverUrl: string, apiKey: string) {
   };
 
   return {
-    isJellyfin: true,
+    isCatalog: true,
     id: item.Id,
     title: item.Name || "Untitled Movie",
     originalTitle: item.OriginalTitle || "",
@@ -715,7 +694,7 @@ async function fetchAndCacheHero(config: any): Promise<any[]> {
       accentColor: "text-[#ca8a04] border-[#ca8a04]/30 bg-[#ca8a04]/5",
       accentHex: "#ca8a04",
       gradient: "from-zinc-950 via-neutral-900 to-[#ca8a04]/20",
-      isJellyfin: true
+      isCatalog: true
     };
   });
   return await enrichWithTmdb(formattedHeroes, true);
@@ -948,165 +927,18 @@ app.get("/api/admin/movies/test-odyssey", async (req, res) => {
 });
 
 // 4. List library movies from connected Jellyfin with persistent file and memory cache (SWR model)
-app.get("/api/jellyfin/movies", async (req, res) => {
+app.get("/api/movies", async (req, res) => {
   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  res.setHeader("Pragma", "no-cache");
-  res.setHeader("Expires", "0");
-
-  const config = getJellyfinConfig();
-  if (!config) {
-    let importedMovies = getGlobalImportedMovies();
-    res.json({ success: true, movies: [...importedMovies] });
-    return;
-  }
-
-  const cacheKey = "movies-list";
-  
-  // 1. Check in-memory cache
-  let cachedMovies = getCached(cacheKey);
-  
-  // 2. If memory cache empty, try persistent disk cache
-  if (!cachedMovies && fs.existsSync(MOVIES_CACHE_PATH)) {
-    try {
-      const fileContent = fs.readFileSync(MOVIES_CACHE_PATH, "utf-8");
-      cachedMovies = JSON.parse(fileContent);
-      // Populate memory cache
-      setCached(cacheKey, cachedMovies, 3600000); // 1 hour
-      
-      // Async pre-warm images in background
-      prewarmImageCache(cachedMovies);
-    } catch (e) {
-      console.error("Error reading movies disk cache:", e);
-    }
-  }
-
-  // 3. If we have cached movies (memory or disk)
-  if (cachedMovies) {
-    // Send response immediately! (Extremely fast, <10ms)
-    
-    let importedMovies = getGlobalImportedMovies();
-    res.json({
-      success: true,
-      movies: [...importedMovies, ...cachedMovies]
-    });
-
-
-    // Check if the cache is stale (older than 1 hour) and trigger background revalidation
-    let mtime = 0;
-    if (fs.existsSync(MOVIES_CACHE_PATH)) {
-      mtime = fs.statSync(MOVIES_CACHE_PATH).mtimeMs;
-    }
-    const age = Date.now() - mtime;
-    if (age > 3600000) { // 1 hour
-      backgroundFetchMovies(config);
-    } else {
-      // If fresh, make sure images are pre-warmed anyway
-      prewarmImageCache(cachedMovies);
-    }
-    return;
-  }
-
-  // 4. If no cache exists at all, perform a FAST fetch synchronously to respond in under 2 seconds!
-  try {
-    const fastMovies = await fetchAndCacheMovies(config, false);
-    
-    // Save the fast version to memory && disk immediately so the client can render the UI instantly
-    setCached(cacheKey, fastMovies, 3600000);
-    try { fs.writeFileSync(MOVIES_CACHE_PATH, JSON.stringify(fastMovies, null, 2), "utf-8");
-
-     } catch (e) { console.warn("Could not write cache:", e.message); }
-// Async pre-warm images in background
-    prewarmImageCache(fastMovies);
-
-    // Send response to client immediately! (< 2 seconds!)
-    
-    let importedMovies = getGlobalImportedMovies();
-    res.json({
-      success: true,
-      movies: [...importedMovies, ...fastMovies]
-    });
-
-
-    // Quietly fire a background full revalidation fetch to get complete metadata (actors, taglines, directors)
-    backgroundFetchMovies(config);
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
-  }
+  let importedMovies = getGlobalImportedMovies();
+  res.json({ success: true, movies: importedMovies });
 });
 
 // 4ab. Fetch dynamic Jellyfin Hero banner data with SWR caching model
-app.get("/api/jellyfin/hero", async (req, res) => {
+app.get("/api/hero", async (req, res) => {
   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  res.setHeader("Pragma", "no-cache");
-  res.setHeader("Expires", "0");
-  const config = getJellyfinConfig();
-  if (!config) {
-    let importedMovies = getGlobalImportedMovies();
-    const allHeroes = [...importedMovies].reverse().slice(0, 5);
-    res.json({ success: true, heroes: allHeroes, hero: allHeroes[0] });
-    return;
-  }
-
-  const cacheKey = "hero-list";
-
-  // 1. Check in-memory cache
-  let cachedHeroes = getCached(cacheKey);
-
-  // 2. If memory cache empty, try disk cache
-  if (!cachedHeroes && fs.existsSync(HERO_CACHE_PATH)) {
-    try {
-      const fileContent = fs.readFileSync(HERO_CACHE_PATH, "utf-8");
-      cachedHeroes = JSON.parse(fileContent);
-      // Populate memory cache
-      setCached(cacheKey, cachedHeroes, 3600000);
-    } catch (e) {
-      console.error("Error reading hero disk cache:", e);
-    }
-  }
-
-  // 3. If we have cached hero items
-  if (cachedHeroes) {
-    let importedMovies = getGlobalImportedMovies();
-
-    const allHeroes = [...importedMovies.reverse(), ...cachedHeroes].slice(0, 5);
-    res.json({
-      success: true,
-      heroes: allHeroes,
-      hero: allHeroes[0]
-    });
-
-    // Check if stale (older than 1 hour) and trigger background revalidation
-    let mtime = 0;
-    if (fs.existsSync(HERO_CACHE_PATH)) {
-      mtime = fs.statSync(HERO_CACHE_PATH).mtimeMs;
-    }
-    const age = Date.now() - mtime;
-    if (age > 3600000) { // 1 hour
-      backgroundFetchHero(config);
-    }
-    return;
-  }
-
-  // 4. If no cache exists at all, fetch synchronously
-  try {
-    const formattedHeroes = await fetchAndCacheHero(config);
-    // Save to memory && disk
-    setCached(cacheKey, formattedHeroes, 3600000);
-    try { fs.writeFileSync(HERO_CACHE_PATH, JSON.stringify(formattedHeroes, null, 2), "utf-8");
-
-     } catch (e) { console.warn("Could not write cache:", e.message); }
-let importedMovies = getGlobalImportedMovies();
-
-    const allHeroes = [...importedMovies.reverse(), ...formattedHeroes].slice(0, 5);
-
-    res.json({
-      success: true,
-      heroes: allHeroes,
-      hero: allHeroes[0]
-    });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
-  }
+  let importedMovies = getGlobalImportedMovies();
+  const allHeroes = [...importedMovies].reverse().slice(0, 5);
+  res.json({ success: true, heroes: allHeroes, hero: allHeroes[0] });
 });
 
 // 4b. Clear Jellyfin cache on demand when config is saved or manually triggered
@@ -1310,614 +1142,23 @@ const PLAYBACK_CACHE_TTL = 30 * 60 * 1000; // 30 minutes cache
 
 // 6. Secure proxy stream to circumvent CORS and force browser-playable AAC stereo audio + H264 video
 async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?: boolean, forceJellyfin?: boolean) {
-  const cacheKey = `${id}-${forceTranscode || false}-${lowQuality || false}-${forceJellyfin || false}`;
-  const cached = playbackCache.get(cacheKey);
-  if (cached && (Date.now() - cached.timestamp < PLAYBACK_CACHE_TTL)) {
-    return cached.data;
-  }
-
-  // If the ID starts with 'tt' or is purely numeric, it might be an IMDb/TMDb ID we added manually.
-  // For now, hardcode the Odyssey test bypass:
-  const isNumeric = /^\d+$/.test(id);
-  if (!forceJellyfin && (id === "tt33764258" || id.startsWith("tt") || isNumeric)) {
-    const iframeResult = {
-      id: id,
-      streamUrl: `https://player.videasy.net/movie/${id}?color=FFD700&overlay=true`,
-      duration: 0,
-      container: "iframe",
-      title: "Film (Embed)",
-      isDirect: true,
-      isIframeEmbed: true,
-      iframeSrc: `https://player.videasy.net/movie/${id}?color=FFD700&overlay=true`,
-      subtitles: [],
-      audios: []
-    };
-    playbackCache.set(cacheKey, { data: iframeResult, timestamp: Date.now() });
-    return iframeResult;
-  }
-
-  const config = getJellyfinConfig();
-  if (!config) {
-    throw new Error("Serveur non configuré.");
-  }
-
-  let activeId = id;
-  // USER REQUIREMENT: Forcer temporairement Rocky III à utiliser UNIQUEMENT : ID = 8db5a60d8317cdd9ca66b81e52cad247
-  if (id === "rocky-3" || id === "09d878060e061360dd6ba1a6f81fca03") {
-    activeId = "8db5a60d8317cdd9ca66b81e52cad247";
-  }
-
-  // Helper inside to check if container contains compatible streaming formats (MP4, M4V, WEBM, MOV)
-  const checkFriendlyContainer = (c: string): boolean => {
-    const parts = (c || "").toLowerCase().split(",").map(p => p.trim());
-    return parts.some(part => ["mp4", "m4v", "webm", "mov"].includes(part));
+  const iframeResult = {
+    id: id,
+    streamUrl: `https://player.videasy.net/movie/${id}?color=FFD700&overlay=true`,
+    duration: 0,
+    container: "iframe",
+    title: "Film (Embed)",
+    isDirect: true,
+    isIframeEmbed: true,
+    iframeSrc: `https://player.videasy.net/movie/${id}?color=FFD700&overlay=true`,
+    subtitles: [],
+    audios: [],
+    videoCodec: "",
+    audioCodec: "",
+    chosenPath: ""
   };
-
-  // 1. Get UserId dynamically
-  let userId = cachedUserId || "";
-  if (!userId) {
-    const userFetchTimer = setTimeout(() => {
-    }, 5000);
-
-    try {
-      userId = await resolveUserId(config);
-      clearTimeout(userFetchTimer);
-      if (userId) {
-        cachedUserId = userId; // Cache globally
-      }
-    } catch (err: any) {
-      clearTimeout(userFetchTimer);
-    }
-  } else {
-  }
-
-  if (!userId) {
-    throw new Error("Impossible d'obtenir un UserId valide auprès de Jellyfin.");
-  }
-
-  // NEW: Fetch item directly to get ProviderIds and bypass Jellyfin streaming logic entirely
-  try {
-    const itemRes = await fetch(`${config.url}/Users/${userId}/Items/${activeId}?api_key=${config.apiKey}`);
-    if (itemRes.ok) {
-      const itemData = await itemRes.json();
-      if (!forceJellyfin && itemData && itemData.ProviderIds) {
-        const tmdb = itemData.ProviderIds.Tmdb;
-        const imdb = itemData.ProviderIds.Imdb;
-        if (tmdb || imdb) {
-          const providerId = tmdb || imdb;
-          const iframeResult = {
-            id: activeId,
-            streamUrl: `https://player.videasy.net/movie/${providerId}?color=FFD700&overlay=true`,
-            duration: Math.round((itemData.RunTimeTicks || 0) / 10000000),
-            container: "iframe",
-            title: itemData.Name || "Film (Embed)",
-            isDirect: true,
-            isIframeEmbed: true,
-            iframeSrc: `https://player.videasy.net/movie/${providerId}?color=FFD700&overlay=true`,
-            subtitles: [],
-            audios: []
-          };
-          playbackCache.set(cacheKey, { data: iframeResult, timestamp: Date.now() });
-          return iframeResult;
-        }
-      }
-    }
-  } catch (err) {
-    console.error("Error fetching item data for provider IDs:", err);
-  }
-
-
-  let mediaSources: any[] = [];
-
-  // SLOW PATH: Lancer directement la requête PlaybackInfo vers Jellyfin
-  // Étape 1 : POST /Items/{id}/PlaybackInfo avec le DeviceProfile du navigateur pour déterminer le support de Lecture Directe
-  const pbUrl = `${config.url}/Items/${activeId}/PlaybackInfo?api_key=${config.apiKey}&userId=${userId}`;
-    const deviceProfile = {
-      UserId: userId,
-      EnableDirectPlay: false,
-      EnableDirectStream: false,
-      EnableTranscoding: true,
-      AllowVideoStreamCopy: false,
-      AllowAudioStreamCopy: false,
-      DeviceProfile: {
-        Name: "Modern Browser",
-        MaxStreamingBitrate: lowQuality ? 600000 : 140000000,
-        MaxStaticBitrate: lowQuality ? 600000 : 140000000,
-        MusicStreamingBitrate: 320000,
-        DirectPlayProfiles: [],
-        TranscodingProfiles: [
-          {
-            Container: "ts",
-            Type: "Video",
-            AudioCodec: "aac,mp3",
-            VideoCodec: "h264",
-            Context: "Streaming",
-            Protocol: "hls"
-          }
-        ],
-        ContainerProfiles: [],
-        CodecProfiles: [],
-        ResponseProfiles: [],
-        SubtitleProfiles: [
-          { Format: "vtt", Method: "External" },
-          { Format: "srt", Method: "External" },
-          { Format: "subrip", Method: "External" },
-          { Format: "subrip", Method: "Embed" },
-          { Format: "subrip", Method: "Encode" },
-          { Format: "ass", Method: "External" },
-          { Format: "ass", Method: "Embed" },
-          { Format: "ass", Method: "Encode" },
-          { Format: "pgs", Method: "Embed" },
-          { Format: "pgs", Method: "Encode" },
-          { Format: "dvdsub", Method: "Embed" },
-          { Format: "dvdsub", Method: "Encode" },
-          { Format: "vobsub", Method: "Embed" },
-          { Format: "vobsub", Method: "Encode" },
-          { Format: "ssa", Method: "External" },
-          { Format: "ssa", Method: "Embed" },
-          { Format: "ssa", Method: "Encode" }
-        ]
-      }
-    };
-
-    const pbFetchTimer = setTimeout(() => {
-    }, 5000);
-
-    let pbResponse;
-    try {
-      pbResponse = await fetch(pbUrl, {
-        method: "POST",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-          "X-Emby-Token": config.apiKey,
-          "Authorization": `MediaBrowser Client="ClassicoClient", Device="ModernBrowser", DeviceId="ModernBrowser", Version="1.0.0", Token="${config.apiKey}"`
-        },
-        body: JSON.stringify(deviceProfile)
-      });
-      clearTimeout(pbFetchTimer);
-      
-      if (pbResponse && pbResponse.ok) {
-        const pbContentType = pbResponse.headers.get("content-type") || "";
-        if (pbContentType.toLowerCase().includes("application/json")) {
-          const pbData = await pbResponse.json();
-          mediaSources = pbData.MediaSources || [];
-        }
-      }
-    } catch (err: any) {
-      clearTimeout(pbFetchTimer);
-    }
-
-  // Fallback robuste en cas d'échec de PlaybackInfo ou si aucune source média n'a été renvoyée
-  if (mediaSources.length === 0) {
-    try {
-      const itemUrl = `${config.url}/Users/${userId}/Items/${activeId}?api_key=${config.apiKey}`;
-      const itemRes = await fetch(itemUrl, {
-        headers: {
-          "Accept": "application/json",
-          "X-Emby-Token": config.apiKey,
-          "Authorization": `MediaBrowser Client="ClassicoClient", Device="ModernBrowser", DeviceId="ModernBrowser", Version="1.0.0", Token="${config.apiKey}"`
-        }
-      });
-      if (itemRes.ok) {
-        const itemData: any = await itemRes.json();
-        mediaSources = itemData.MediaSources || [];
-      } else {
-        const itemUrl2 = `${config.url}/Items/${activeId}?api_key=${config.apiKey}`;
-        const itemRes2 = await fetch(itemUrl2, {
-          headers: {
-            "Accept": "application/json",
-            "X-Emby-Token": config.apiKey,
-            "Authorization": `MediaBrowser Client="ClassicoClient", Device="ModernBrowser", DeviceId="ModernBrowser", Version="1.0.0", Token="${config.apiKey}"`
-          }
-        });
-        if (itemRes2.ok) {
-          const itemData: any = await itemRes2.json();
-          mediaSources = itemData.MediaSources || [];
-        }
-      }
-    } catch (e: any) {
-      console.error(`[PLAYBACK FALLBACK ERROR] Échec de la récupération directe de secours pour l'ID ${activeId}:`, e.message);
-    }
-  }
-
-  if (mediaSources.length === 0) {
-    throw new Error("Aucune source média trouvée pour ce film.");
-  }
-
-  // GLOBAL PIPELINE: Prioritize Web-Friendly Formats (1080p H264 over 4K HEVC) to avoid buffering
-  mediaSources.sort((a: any, b: any) => {
-    const getScore = (src: any) => {
-      const video = (src.MediaStreams || []).find((s: any) => s.Type === "Video");
-      const codec = (video?.Codec || "").toLowerCase();
-      const width = video?.Width || 0;
-      let score = 0;
-      if (codec === "h264") score += 10;
-      if (width > 0 && width < 3840) score += 5;
-      if (codec === "hevc" || codec === "h265") score -= 10;
-      if (width >= 3840) score -= 10;
-      return score;
-    };
-    return getScore(b) - getScore(a);
-  });
-
-
-  // FORCE OVERRIDE DERBY ROCKY III FOR PRIORITIZING 8db5a60d8317cdd9ca66b81e52cad247 AND IGNORES 4K/HEVC
-  if (activeId === "8db5a60d8317cdd9ca66b81e52cad247" || id === "rocky-3" || id === "09d878060e061360dd6ba1a6f81fca03") {
-    
-    // Filtre les sources pour écarter tout flux 4K (width >= 3840) ou encodé en HEVC/H265
-    mediaSources = mediaSources.filter((src: any) => {
-      const streams = src.MediaStreams || [];
-      const video = streams.find((s: any) => s.Type === "Video");
-      const codec = (video?.Codec || "").toLowerCase();
-      const width = video?.Width || 0;
-      const isHEVC = codec === "hevc" || codec === "h265";
-      const is4K = width >= 3840;
-      
-      if (isHEVC || is4K) {
-        return false;
-      }
-      return true;
-    });
-
-    // S'assurer que l'ID de source principale est bien '8db5a60d8317cdd9ca66b81e52cad247'
-    const targetSourceIndex = mediaSources.findIndex((src: any) => src.Id === "8db5a60d8317cdd9ca66b81e52cad247");
-    if (targetSourceIndex !== -1) {
-      const preferredSource = mediaSources.splice(targetSourceIndex, 1)[0];
-      mediaSources.unshift(preferredSource);
-    } else if (mediaSources.length > 0) {
-      mediaSources[0].Id = "8db5a60d8317cdd9ca66b81e52cad247";
-    }
-  }
-
-  // Étape 1a : Tolérance de panne avancée si le chemin de la source média pointe vers "movies_jellyfin_web" (répertoire mort)
-  const firstSourcePath = (mediaSources[0]?.Path || "").toLowerCase();
-  if (firstSourcePath.includes("movies_jellyfin_web")) {
-    try {
-      // Rechercher les métadonnées de l'ID actuel pour récupérer son titre exact
-      const itemUrl = `${config.url}/Users/${userId}/Items/${activeId}?api_key=${config.apiKey}`;
-      const itemRes = await fetch(itemUrl, {
-        headers: {
-          "X-Emby-Token": config.apiKey,
-          "Accept": "application/json"
-        }
-      });
-      if (itemRes.ok) {
-        const itemData: any = await itemRes.json();
-        const movieTitle = itemData.Name;
-        if (movieTitle) {
-          const searchUrl = `${config.url}/Items?recursive=true&includeItemTypes=Movie,Series&Language=en&searchTerm=${encodeURIComponent(movieTitle)}&fields=Path&api_key=${config.apiKey}`;
-          const searchRes = await fetch(searchUrl, {
-            headers: {
-              "X-Emby-Token": config.apiKey,
-              "Accept": "application/json"
-            }
-          });
-          if (searchRes.ok) {
-            const searchData: any = await searchRes.json();
-            const alternateItems = searchData.Items || [];
-            // Trouver une version qui NE contient PAS le répertoire corrompu movies_jellyfin_web
-            const healthyDuplicate = alternateItems.find((itm: any) => {
-              const itmPath = (itm.Path || "").toLowerCase();
-              return itm.id !== activeId && !itmPath.includes("movies_jellyfin_web");
-            });
-
-            if (healthyDuplicate) {
-              return await getPlaybackData(healthyDuplicate.Id, forceTranscode, lowQuality);
-            } else {
-            }
-          }
-        }
-      }
-    } catch (fallbackError: any) {
-      console.error("[PLAYBACK PIPELINE] Échec lors de la substitution automatique de doublon:", fallbackError.message);
-    }
-  }
-
-  // Étape 1b : Vérifier si une version H.264 native compatible Web existe déjà
-  const hasNativeH264 = mediaSources.some((src: any) => {
-    const streams = src.MediaStreams || [];
-    const video = streams.find((s: any) => s.Type === "Video");
-    const container = src.Container || "";
-    const codec = (video?.Codec || "").toLowerCase();
-    
-    const isFriendlyCont = checkFriendlyContainer(container);
-    const isFriendlyVideo = ["h264", "vp8", "vp9"].includes(codec);
-    return isFriendlyCont && isFriendlyVideo;
-  });
-
-  // Si le film n'a aucune version H.264 native compatible direct play sur le Web (comme Rocky Balboa),
-  // on crée et injecte automatiquement une version "Web Optimized" virtuelle.
-  // Cela garantit que les films n'ayant qu'un flux HEVC/4K entrent directement dans le pipeline optimisé.
-  if (!hasNativeH264 && mediaSources.length > 0) {
-    const baseSource = mediaSources[0];
-    const virtualSource = {
-      ...baseSource,
-      Id: `${baseSource.Id}-web-optimized`,
-      Name: baseSource.Name ? `${baseSource.Name} [Optimisé Web 1080p H.264]` : "Optimisé Web 1080p H.264",
-      Container: "ts",
-      SupportsDirectPlay: false, // Forcer le transcodage pour transcoder le HEVC natif
-      SupportsDirectStream: true,
-      MediaStreams: (baseSource.MediaStreams || []).map((stream: any) => {
-        if (stream.Type === "Video") {
-          return {
-            ...stream,
-            Codec: "h264",
-            Width: 1920,
-            Height: 1080,
-            Bitrate: 1500000
-          };
-        }
-        if (stream.Type === "Audio") {
-          return {
-            ...stream,
-            Codec: "aac",
-            Channels: 2,
-            Bitrate: 128000
-          };
-        }
-        return stream;
-      })
-    };
-    mediaSources.push(virtualSource);
-  }
-
-  // Étape 2 : Analyser et Trier les MediaSources pour privilégier la version "Optimisée Web"
-  // Si le film est disponible en plusieurs résolutions/codecs (ex: version 4K HEVC lourde ET version 1080p H.264 légère),
-  // on trie l'index pour placer d'abord la source la plus adaptée au navigateur Web standard.
-  const sortedSources = [...mediaSources].sort((a: any, b: any) => {
-    const aStreams = a.MediaStreams || [];
-    const bStreams = b.MediaStreams || [];
-    const aVideo = aStreams.find((s: any) => s.Type === "Video");
-    const bVideo = bStreams.find((s: any) => s.Type === "Video");
-
-    const aVideoCodec = (aVideo?.Codec || "").toLowerCase();
-    const bVideoCodec = (bVideo?.Codec || "").toLowerCase();
-    const aWidth = aVideo?.Width || 0;
-    const bWidth = bVideo?.Width || 0;
-
-    // Critère 1 : Donner la priorité absolue au codec H.264 qui est nativement lu sans transcodage vidéo sur le Web
-    const aIsH264 = aVideoCodec === "h264";
-    const bIsH264 = bVideoCodec === "h264";
-    if (aIsH264 !== bIsH264) {
-      return aIsH264 ? -1 : 1;
-    }
-
-    // Critère 2 : Éviter d'envoyer de la 4K (Width >= 3840) sur le navigateur (surcharge CPU énorme sur transcodage)
-    const aIs4K = aWidth >= 3840;
-    const bIs4K = bWidth >= 3840;
-    if (aIs4K !== bIs4K) {
-      return aIs4K ? 1 : -1; // Le plus faible (1080p) gagne
-    }
-
-    // Critère 3 : Privilégier un conteneur amical pour le navigateur
-    const aIsFriendlyCont = checkFriendlyContainer(a.Container || "");
-    const bIsFriendlyCont = checkFriendlyContainer(b.Container || "");
-    if (aIsFriendlyCont !== bIsFriendlyCont) {
-      return aIsFriendlyCont ? -1 : 1;
-    }
-
-    return 0;
-  });
-
-  const source = sortedSources[0];
-  const streams = source.MediaStreams || [];
-  const videoStream = streams.find((s: any) => s.Type === "Video");
-  const audioStream = streams.find((s: any) => s.Type === "Audio");
-
-  const videoCodec = (videoStream?.Codec || "").toLowerCase();
-  const audioCodec = (audioStream?.Codec || "").toLowerCase();
-  const container = (source.Container || "").toLowerCase();
-
-
-  // Les navigateurs Web standard ne supportent nativement que les conteneurs MP4/WebM avec H264 et AAC/MP3/Opus.
-  // Les conteneurs MKV/AVI/TS ou les codecs HEVC/H.265, AV1 (partiellement), DTS, TrueHD ou Dolby Vision (Dovi)
-  // causent l'écran noir et un blocage de lecture à 0:00 car le décodeur et de-multiplexeur natif du navigateur échouent.
-  const isBrowserFriendlyContainer = checkFriendlyContainer(container);
-  const isBrowserFriendlyVideo = ["h264", "vp8", "vp9"].includes(videoCodec);
-  const isDolbyVision = (
-    videoStream?.VideoRange === "Dovi" || 
-    (videoStream?.Title || "").toLowerCase().includes("dolby vision") || 
-    (videoStream?.Title || "").toLowerCase().includes("dovi")
-  );
-  const isBrowserFriendlyAudio = ["aac", "mp3", "opus", "vorbis", "flac"].includes(audioCodec);
-
-  // Détermination dynamique du Direct Play : si Jellyfin confirme que la source supporte le Direct Play d'après le DeviceProfile,
-  // ou si les codecs et conteneurs de la source sont parfaitement compatibles avec les décodeurs natifs HTML5 du navigateur.
-  const supportsDirect = source.SupportsDirectPlay === true || (isBrowserFriendlyContainer && isBrowserFriendlyVideo && isBrowserFriendlyAudio);
-  
-  // 1. FORCE HLS DYNAMIQUE : Le mode DirectPlay statique/brut est utilisé uniquement si conteneur/codecs 100% compatibles nativement.
-  // Les sources virtuelles "Optimisées Web" n'existent pas sur le disque de Jellyfin sous cette forme, donc elles doivent toujours être transcodées en HLS.
-  const isWebOptimizedVirtual = !!(source.Id && source.Id.endsWith("-web-optimized"));
-  const canDirectPlay = isBrowserFriendlyContainer && isBrowserFriendlyVideo && isBrowserFriendlyAudio && !isDolbyVision && !isWebOptimizedVirtual;
-
-
-  let chosenPath = "";
-  let isDirect = false;
-
-  const cleanedSourceId = source.Id ? source.Id.replace("-web-optimized", "") : activeId;
-
-  if (canDirectPlay && !forceTranscode) {
-    isDirect = true;
-    chosenPath = `/Videos/${activeId}/stream?Static=true&MediaSourceId=${cleanedSourceId}`;
-  }
-
-  const isSourceH264 = videoCodec === "h264";
-
-  // Calcul du bitrate et de la résolution optimisés si bascule lowQuality activée ou si codec non-H264
-  const videoBitrate = lowQuality ? 600000 : 1500000;
-  const maxVideoBitrate = lowQuality ? 600000 : 1500000;
-  const maxWidth = lowQuality ? 854 : 1280;
-  const maxHeight = lowQuality ? 480 : 720;
-  const audioBitrate = lowQuality ? 96000 : 320000;
-
-  // Configuration des paramètres optimisés pour le flux HLS dynamique
-  const hlsParams = new URLSearchParams({
-    Static: "false",
-    VideoCodec: "h264",
-    AudioCodec: "aac,mp3",
-    MediaSourceId: cleanedSourceId,
-    SegmentContainer: "ts",
-    DeviceId: "ModernBrowser"
-  });
-
-  if (lowQuality) {
-    hlsParams.set("VideoBitrate", "600000");
-    hlsParams.set("MaxVideoBitrate", "600000");
-    hlsParams.set("MaxWidth", "854");
-    hlsParams.set("MaxHeight", "480");
-  } else if (!isSourceH264) {
-    // Si la source n'est pas déjà du H.264 (ex. HEVC/H.265), on transcode. On limite à 1080p pour éviter la surcharge de transcodage 4K, mais avec un débit de 15 Mbps pour une superbe qualité !
-    const sourceWidth = videoStream?.Width || 1920;
-    const sourceHeight = videoStream?.Height || 1080;
-    const targetWidth = Math.min(sourceWidth, 1920);
-    const targetHeight = Math.min(sourceHeight, 1080);
-    hlsParams.set("VideoBitrate", "8000000");
-    hlsParams.set("MaxVideoBitrate", "8000000");
-    hlsParams.set("MaxWidth", targetWidth.toString());
-    hlsParams.set("MaxHeight", targetHeight.toString());
-  } else {
-    // Source H264 + haute qualité : Définir un débit max très élevé (140 Mbps) pour forcer le Direct Stream / Video Copy (0% CPU, chargement ultra rapide) sans compression !
-    const targetBitrate = Math.max(source.Bitrate || 0, 140000000);
-    hlsParams.set("VideoBitrate", targetBitrate.toString());
-    hlsParams.set("MaxVideoBitrate", targetBitrate.toString());
-  }
-
-  if (isDirect) {
-    // DirectPlay already configured
-  } else if (source.TranscodingUrl) {
-    try {
-      const isRelative = !source.TranscodingUrl.startsWith("http");
-      const baseUrl = isRelative ? "http://dummy.com" : "";
-      const urlObj = new URL(source.TranscodingUrl, baseUrl);
-
-      // Conserver l'URL de transcodage native générée par Jellyfin sans altération destructrice !
-      // Cela évite de forcer inutilement du décodage/encodage vidéo (FFmpeg) quand Jellyfin a déjà décidé de faire du Direct Stream (copie de flux hyper rapide).
-      
-      // Règle 1: S'assurer que Static=false est bien là s'il s'agit d'un flux HLS
-      urlObj.searchParams.delete("Static");
-      urlObj.searchParams.delete("static");
-      urlObj.searchParams.set("Static", "false");
-
-      // Remplacer l'api key pour que le proxy l'injecte de manière sécurisée et centralisée
-      urlObj.searchParams.delete("api_key");
-      urlObj.searchParams.delete("ApiKey");
-      
-      // S'assurer que le MediaSourceId est bien défini
-      urlObj.searchParams.set("MediaSourceId", cleanedSourceId);
-
-      // Si le mode "Éco" (lowQuality) est activé par l'utilisateur, appliquer le bridage de résolution / débit demandé
-      if (lowQuality) {
-        urlObj.searchParams.set("VideoBitrate", "600000");
-        urlObj.searchParams.set("MaxVideoBitrate", "600000");
-        urlObj.searchParams.set("MaxWidth", "854");
-        urlObj.searchParams.set("MaxHeight", "480");
-        urlObj.searchParams.set("AudioBitrate", "96000");
-      } else {
-        // En haute qualité, s'assurer que Jellyfin ne bride pas le débit dans l'URL de transcodage
-        if (isSourceH264) {
-          const targetBitrate = Math.max(source.Bitrate || 0, 140000000);
-          urlObj.searchParams.set("VideoBitrate", targetBitrate.toString());
-          urlObj.searchParams.set("MaxVideoBitrate", targetBitrate.toString());
-          urlObj.searchParams.delete("MaxWidth");
-          urlObj.searchParams.delete("MaxHeight");
-        } else {
-          urlObj.searchParams.set("VideoBitrate", "8000000");
-          urlObj.searchParams.set("MaxVideoBitrate", "8000000");
-        }
-      }
-
-      // Règle 2: S'assurer du bon format d'extension (.m3u8) pour le lecteur Hls.js
-      let pathname = urlObj.pathname;
-      if (!pathname.endsWith("master.m3u8")) {
-        if (pathname.endsWith(".m3u8")) {
-           pathname = pathname.substring(0, pathname.lastIndexOf("/")) + "/master.m3u8";
-        } else {
-           pathname = pathname.replace(/\/stream\/?$/, "");
-           pathname = pathname.endsWith("/") ? pathname + "master.m3u8" : pathname + "/master.m3u8";
-        }
-      }
-
-      chosenPath = isRelative ? pathname + urlObj.search : urlObj.origin + pathname + urlObj.search;
-    } catch (e) {
-      chosenPath = `/Videos/${activeId}/master.m3u8?${hlsParams.toString()}`;
-    }
-  } else {
-    chosenPath = `/Videos/${activeId}/master.m3u8?${hlsParams.toString()}`;
-  }
-
-  // Nettoyage de l'URL si elle contient l'hôte complet pour ne garder que le chemin relatif
-  if (chosenPath.startsWith("http")) {
-    try {
-      const urlObj = new URL(chosenPath);
-      chosenPath = urlObj.pathname + urlObj.search;
-    } catch (e) {
-    }
-  }
-
-
-
-  // S'assurer que le paramètre MediaSourceId est bien présent avec la casse attendue (Jellyfin/Emby supportent les deux)
-  if (!chosenPath.includes("MediaSourceId=") && !chosenPath.includes("mediaSourceId=") && source.Id) {
-    const cleanedSourceId = source.Id.replace("-web-optimized", "");
-    chosenPath += `${chosenPath.includes("?") ? "&" : "?"}MediaSourceId=${cleanedSourceId}`;
-  }
-
-  // Nettoyer l'api_key de l'URL pour la sécurité du client
-  if (chosenPath.includes("api_key=")) {
-    chosenPath = chosenPath.replace(/[?]api_key=[^&]+/g, "");
-  }
-
-  // Générer l'URL de proxy transparente : proxy classique par paramètre pour Direct Play, wildcard propre pour HLS
-  const streamUrl = isDirect 
-    ? `${config.url}${chosenPath.startsWith("/") ? "" : "/"}${chosenPath}${chosenPath.includes("?") ? "&" : "?"}api_key=${config.apiKey}`
-    : `/api/jellyfin/proxy${chosenPath}`;
-
-  const subtitleStreams = streams.filter((s: any) => s.Type === "Subtitle");
-  const subtitles = subtitleStreams.map((s: any) => {
-    const cleanedSourceId = source.Id ? source.Id.replace("-web-optimized", "") : activeId;
-
-    return {
-      index: s.Index,
-      language: s.Language || "",
-      label: s.DisplayTitle || s.Title || s.Language || `Piste ${s.Index}`,
-      isDefault: s.IsDefault === true || s.DeliveryKey === "Default",
-      isForced: s.IsForced === true,
-      codec: s.Codec || "",
-      deliveryMethod: s.DeliveryMethod || "External",
-      url: `/api/jellyfin/subtitles/${activeId}/${cleanedSourceId}/${s.Index}.vtt`
-    };
-  });
-
-  const audioStreams = streams.filter((s: any) => s.Type === "Audio");
-  const audios = audioStreams.map((s: any) => ({
-    index: s.Index,
-    language: s.Language || "",
-    label: s.DisplayTitle || s.Title || s.Language || `Audio ${s.Index}`,
-    isDefault: s.IsDefault === true,
-    codec: s.Codec || ""
-  }));
-
-  
-  const result = {
-    id: activeId,
-    streamUrl,
-    rawTranscodingUrl: source.TranscodingUrl || null,
-    duration: source.RunTimeTicks ? Math.round(source.RunTimeTicks / 10000000) : 0,
-    container: source.Container || "mp4",
-    title: source.Name || "Film",
-    isDirect,
-    chosenPath,
-    videoCodec,
-    audioCodec,
-    subtitles,
-    audios
-  };
-
-  playbackCache.set(cacheKey, { data: result, timestamp: Date.now() });
-  return result;
+  return iframeResult;
 }
-
 // Single central playback route
 app.get("/api/playback/:id", async (req, res) => {
   const { id } = req.params;

@@ -657,7 +657,6 @@ function enrichDynamicMovie(m: Movie, contextID: string): Movie {
     accentHex: customHex,
     symbol: customSymbol,
     tagline,
-    isJellyfin: true,
   };
 }
 
@@ -735,8 +734,7 @@ export default function App() {
   const [isAdminMode, setIsAdminMode] = useState<boolean>(() => {
     return localStorage.getItem("isAdmin") === "true";
   });
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [showWishlistModal, setShowWishlistModal] = useState(false);
   const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
@@ -756,49 +754,43 @@ export default function App() {
   const [history, setHistory] = useState<string[]>([]);
   const [progressData, setProgressData] = useState<Record<string, number>>({});
   const [startAsPlaying, setStartAsPlaying] = useState(false);
-  const [jellyfinHeroMovies, setJellyfinHeroMovies] = useState<any[]>([]);
+  const [heroMovies, setHeroMovies] = useState<any[]>([]);
   const [currentHeroIndex, setCurrentHeroIndex] = useState<number>(0);
   const [direction, setDirection] = useState<number>(1);
-  const jellyfinHeroMovie = jellyfinHeroMovies[currentHeroIndex] || null;
-  const [isJellyfinHeroLoading, setIsJellyfinHeroLoading] = useState(false);
-  const [useTextTitleForJellyfinHero, setUseTextTitleForJellyfinHero] = useState(false);
+  const heroMovie = heroMovies[currentHeroIndex] || null;
+  const [isHeroLoading, setIsHeroLoading] = useState(false);
+  const [useTextTitleForHero, setUseTextTitleForHero] = useState(false);
 
   // Server Integration States
-  const [jellyfinConfig, setJellyfinConfig] = useState<{ configured: boolean; url: string } | null>(null);
-
-  const isHeroLoading = 
-    jellyfinConfig === null || 
-    (jellyfinConfig.configured && isJellyfinHeroLoading && jellyfinHeroMovies.length === 0);
-
+  
+  
   const [expandedCollections, setExpandedCollections] = useState<Record<string, boolean>>({
     "christopher-nolan": true, // Start with Christopher Nolan collection unfolded so users see films immediately
   });
 
-  const [jellyfinMovies, setJellyfinMovies] = useState<Movie[]>([]);
-  const [jellyfinSearchQuery, setJellyfinSearchQuery] = useState("");
-  const [isJellyfinLoading, setIsJellyfinLoading] = useState(true);
-  const [isJellyfinError, setIsJellyfinError] = useState("");
+  const [catalogMovies, setCatalogMovies] = useState<Movie[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isCatalogLoading, setIsCatalogLoading] = useState(true);
+  const [isCatalogError, setIsCatalogError] = useState("");
 
   // Force scroll to top when initial page loading completes to prevent browser layout-shift scroll drops
   useEffect(() => {
-    if (!isJellyfinLoading) {
+    if (!isCatalogLoading) {
       const timer = setTimeout(() => {
         window.scrollTo(0, 0);
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [isJellyfinLoading]);
+  }, [isCatalogLoading]);
 
   // Connection form states
-  const [jellyfinInputUrl, setJellyfinInputUrl] = useState("");
-  const [jellyfinInputApiKey, setJellyfinInputApiKey] = useState("");
-  const [isConnecting, setIsConnecting] = useState(false);
+      const [isConnecting, setIsConnecting] = useState(false);
   const [connectionError, setConnectionError] = useState("");
   const [isRecalculating, setIsRecalculating] = useState(false);
 
   // Dynamically map movies into collections & genres by checking server presence
   const mappedCollections = React.useMemo(() => {
-    if (!jellyfinMovies || jellyfinMovies.length === 0) return [];
+    if (!catalogMovies || catalogMovies.length === 0) return [];
 
     const matchedServersMovieIds = new Set<string>();
 
@@ -807,14 +799,13 @@ export default function App() {
     const curatedSagaCollections = COLLECTIONS.map((collection) => {
       const enrichedMovies = collection.movies
         .map((movie) => {
-          const match = jellyfinMovies.find((jf) => isMovieMatch(movie.title, jf.title));
+          const match = catalogMovies.find((jf) => isMovieMatch(movie.title, jf.title));
           if (match) {
             matchedServersMovieIds.add(match.id);
             return {
               ...movie,
               id: match.id, // Use server id to play correctly
               streamUrl: match.streamUrl,
-              isJellyfin: true,
               posterUrl: match.posterUrl || movie.posterUrl,
               backdropUrl: match.backdropUrl || movie.backdropUrl,
               year: match.year || movie.year,
@@ -836,7 +827,7 @@ export default function App() {
         .filter((m): m is Movie => m !== null);
 
       // Dynamically load unmatched movies from Jellyfin that belong to this saga!
-      jellyfinMovies.forEach((jf) => {
+      catalogMovies.forEach((jf) => {
         if (!matchedServersMovieIds.has(jf.id)) {
           const sagaId = getDynamicSagaId(jf);
           if (sagaId === collection.id) {
@@ -862,7 +853,7 @@ export default function App() {
     // 2. Classify other remaining server movies into custom franchise dynamic collections (like Matrix) using high-confidence classification
     const dynamicFranchiseCollections: any[] = [];
     FRANCHISES.forEach((franchise) => {
-      const franchiseMovies = jellyfinMovies
+      const franchiseMovies = catalogMovies
         .filter((m) => {
           if (matchedServersMovieIds.has(m.id)) return false;
           const classification = classifyMovie(m.title, m.originalTitle || "", m.director || "", m.genre || [], m.studios || []);
@@ -886,7 +877,7 @@ export default function App() {
 
     // 3. Classify other remaining server movies into dynamic director retrospectives
     const dynamicDirectorCollections: any[] = [];
-    const remainingAfterFranchises = jellyfinMovies.filter((m) => !matchedServersMovieIds.has(m.id));
+    const remainingAfterFranchises = catalogMovies.filter((m) => !matchedServersMovieIds.has(m.id));
     
     const directorGroups: Record<string, Movie[]> = {};
     remainingAfterFranchises.forEach((m) => {
@@ -923,7 +914,7 @@ export default function App() {
     dynamicDirectorCollections.sort((a, b) => a.title.localeCompare(b.title));
 
     // 4. Classify leftover unmatched movies into genre categories (shelf rows)
-    const finalUnmatchedMovies = jellyfinMovies.filter((m) => {
+    const finalUnmatchedMovies = catalogMovies.filter((m) => {
       if (matchedServersMovieIds.has(m.id)) return false;
       const t = m.title.toLowerCase();
       if (t.includes("john wick")) return false;
@@ -997,18 +988,18 @@ export default function App() {
         movies: uniqueMovies
       };
     }).filter((col) => col.movies.length > 0);
-  }, [jellyfinMovies]);
+  }, [catalogMovies]);
 
   // SAGA COMPLETENESS CHECKLIST VALIDATION ENGINE
   const sagaCompletenessList = React.useMemo(() => {
-    if (!jellyfinMovies || jellyfinMovies.length === 0) return [];
+    if (!catalogMovies || catalogMovies.length === 0) return [];
 
     return COLLECTIONS.map(collection => {
       const ownedTitles: string[] = [];
       const missingMovies: Array<{ title: string; year: number }> = [];
 
       collection.movies.forEach(expectedMovie => {
-        const isOwned = jellyfinMovies.some(jf => isMovieMatch(expectedMovie.title, jf.title));
+        const isOwned = catalogMovies.some(jf => isMovieMatch(expectedMovie.title, jf.title));
         if (isOwned) {
           ownedTitles.push(expectedMovie.title);
         } else {
@@ -1029,7 +1020,7 @@ export default function App() {
         missingMovies
       };
     });
-  }, [jellyfinMovies]);
+  }, [catalogMovies]);
 
   const toggleCollection = (collectionId: string) => {
     setExpandedCollections(prev => ({
@@ -1066,7 +1057,7 @@ export default function App() {
       if (data.success) {
         setTestOdysseySuccess("Test réussi ! Le film Odyssey a été ajouté avec succès.");
         // Trigger a refresh of the movies list
-        loadJellyfinLibrary();
+        loadCatalogLibrary();
         setTimeout(() => setTestOdysseySuccess(null), 5000);
       } else {
         alert("Erreur lors du test: " + data.error);
@@ -1081,10 +1072,10 @@ export default function App() {
   const handleRecalculateSagas = async () => {
     setIsRecalculating(true);
     try {
-      const res = await fetch("/api/jellyfin/recalculate", { method: "POST" });
+      const res = await fetch("/api/recalculate", { method: "POST" });
       const data = await res.json();
       if (data.success) {
-        await Promise.all([loadJellyfinLibrary(), loadJellyfinHeroMovie()]);
+        await Promise.all([loadCatalogLibrary(), loadHeroMovie()]);
       }
     } catch (err) {
       console.error("Error recalculating sagas:", err);
@@ -1094,27 +1085,27 @@ export default function App() {
   };
 
   // Load library movies from backend
-  const loadJellyfinLibrary = async () => {
-    setIsJellyfinLoading(true);
-    setIsJellyfinError("");
+  const loadCatalogLibrary = async () => {
+    setIsCatalogLoading(true);
+    setIsCatalogError("");
     try {
-      const res = await fetch("/api/jellyfin/movies");
+      const res = await fetch("/api/movies");
       if (!res.ok) {
         throw new Error(`Server returned HTTP ${res.status}`);
       }
       const data = await res.json();
       if (data.success) {
-        setJellyfinMovies(data.movies || []);
+        setCatalogMovies(data.movies || []);
 
         // SWR (Stale-While-Revalidate): Schedule a quiet, non-blocking background revalidation
         // to retrieve full details (directors, actors) after the initial fast UI paint is complete.
         setTimeout(async () => {
           try {
-            const revalidateRes = await fetch("/api/jellyfin/movies?revalidate=true");
+            const revalidateRes = await fetch("/api/movies?revalidate=true");
             if (revalidateRes.ok) {
               const revalidateData = await revalidateRes.json();
               if (revalidateData.success && Array.isArray(revalidateData.movies) && revalidateData.movies.length > 0) {
-                setJellyfinMovies(revalidateData.movies);
+                setCatalogMovies(revalidateData.movies);
               }
             }
           } catch (bgErr) {
@@ -1122,40 +1113,40 @@ export default function App() {
           }
         }, 3000);
       } else {
-        setIsJellyfinError(data.error || "Unable to retrieve your movies.");
+        setIsCatalogError(data.error || "Unable to retrieve your movies.");
       }
     } catch (err: any) {
-      setIsJellyfinError("Network error communicating with the media server.");
+      setIsCatalogError("Network error communicating with the media server.");
     } finally {
-      setIsJellyfinLoading(false);
+      setIsCatalogLoading(false);
     }
   };
 
-  const loadJellyfinHeroMovie = async () => {
-    setIsJellyfinHeroLoading(true);
+  const loadHeroMovie = async () => {
+    setIsHeroLoading(true);
     let attempts = 0;
     const maxAttempts = 3;
 
     const tryFetchHero = async () => {
       try {
-        const res = await fetch("/api/jellyfin/hero");
+        const res = await fetch("/api/hero");
         if (!res.ok) {
           throw new Error(`Server returned HTTP ${res.status}`);
         }
         const data = await res.json();
         if (data.success) {
           if (data.heroes && data.heroes.length > 0) {
-            setJellyfinHeroMovies(data.heroes);
+            setHeroMovies(data.heroes);
           } else if (data.hero) {
-            setJellyfinHeroMovies([data.hero]);
+            setHeroMovies([data.hero]);
           } else {
-            setJellyfinHeroMovies([]);
+            setHeroMovies([]);
           }
           setCurrentHeroIndex(0);
-          setIsJellyfinHeroLoading(false);
+          setIsHeroLoading(false);
         } else {
-          setJellyfinHeroMovies([]);
-          setIsJellyfinHeroLoading(false);
+          setHeroMovies([]);
+          setIsHeroLoading(false);
         }
       } catch (err) {
         console.warn(`Jellyfin Hero load attempt ${attempts + 1} failed:`, err);
@@ -1164,8 +1155,8 @@ export default function App() {
           setTimeout(tryFetchHero, 1500 * attempts);
         } else {
           console.warn("Jellyfin Hero load error:", err);
-          setJellyfinHeroMovies([]);
-          setIsJellyfinHeroLoading(false);
+          setHeroMovies([]);
+          setIsHeroLoading(false);
         }
       }
     };
@@ -1175,27 +1166,24 @@ export default function App() {
 
   // Reset title display preferences when user slides to a different hero film
   useEffect(() => {
-    setUseTextTitleForJellyfinHero(false);
+    setUseTextTitleForHero(false);
   }, [currentHeroIndex]);
 
   // Automatic advances interval for dynamic Jellyfin Hero banner collection (10s loops)
   useEffect(() => {
-    if (jellyfinHeroMovies.length <= 1) return;
+    if (heroMovies.length <= 1) return;
     const interval = setInterval(() => {
       setDirection(1);
-      setCurrentHeroIndex((prev) => (prev + 1) % jellyfinHeroMovies.length);
+      setCurrentHeroIndex((prev) => (prev + 1) % heroMovies.length);
     }, 10000);
     return () => clearInterval(interval);
-  }, [jellyfinHeroMovies.length]);
+  }, [heroMovies.length]);
 
-  // Load Jellyfin Hero whenever config status updates
+  // Load Catalog and Hero on mount
   useEffect(() => {
-    if (jellyfinConfig?.configured) {
-      loadJellyfinHeroMovie();
-    } else {
-      setJellyfinHeroMovies([]);
-    }
-  }, [jellyfinConfig?.configured]);
+    loadHeroMovie();
+    loadCatalogLibrary();
+  }, []);
 
   // Listen for background full library updates (especially useful on deployed/Netlify environments)
   useEffect(() => {
@@ -1203,7 +1191,7 @@ export default function App() {
       const customEvent = event as CustomEvent;
       if (customEvent.detail && Array.isArray(customEvent.detail.movies)) {
         console.log("[CLIENT EVENT] Received updated movies list via event listener");
-        setJellyfinMovies(customEvent.detail.movies);
+        setCatalogMovies(customEvent.detail.movies);
       }
     };
     window.addEventListener("classico-movies-updated", handleMoviesUpdated);
@@ -1212,66 +1200,8 @@ export default function App() {
     };
   }, []);
 
-  const handleConnectJellyfin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsConnecting(true);
-    setConnectionError("");
-
-    if (!jellyfinInputUrl || !jellyfinInputApiKey) {
-      setConnectionError("Veuillez remplir tous les champs.");
-      setIsConnecting(false);
-      return;
-    }
-
-    try {
-      const res = await fetch("/api/jellyfin/config", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: jellyfinInputUrl, apiKey: jellyfinInputApiKey })
-      });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setJellyfinConfig({ configured: true, url: data.url });
-        localStorage.setItem("classico_jellyfin_url", data.url);
-        localStorage.setItem("classico_jellyfin_apikey", jellyfinInputApiKey);
-        
-        // Load movies
-        setIsJellyfinLoading(true);
-        const libRes = await fetch("/api/jellyfin/movies");
-        const libData = await libRes.json();
-        if (libData.success) {
-          setJellyfinMovies(libData.movies);
-        }
-        setIsJellyfinLoading(false);
-      } else {
-        setConnectionError(data.error || "Failed to connect to the media server.");
-      }
-    } catch (err) {
-      setConnectionError("Unable to connect to the remote server. Check your server URL.");
-    } finally {
-      setIsConnecting(false);
-    }
-  };
-
-  const handleDisconnectJellyfin = async () => {
-    if (!window.confirm("Voulez-vous déconnecter ce serveur de CLASSICO ?")) return;
-    try {
-      const res = await fetch("/api/jellyfin/disconnect", { method: "POST" });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setJellyfinConfig({ configured: false, url: "" });
-        setJellyfinMovies([]);
-        setJellyfinInputUrl("");
-        setJellyfinInputApiKey("");
-        localStorage.removeItem("classico_jellyfin_url");
-        localStorage.removeItem("classico_jellyfin_apikey");
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
+  
+  
   // Load watchlist and search default spotlight film
   useEffect(() => {
     // Watchlist persistence
@@ -1310,28 +1240,7 @@ export default function App() {
       }
     }
 
-    // Check Jellyfin server configuration status
-    const checkJellyfinSetup = async () => {
-      try {
-        setIsJellyfinLoading(true);
-        const libRes = await fetch("/api/jellyfin/movies");
-        if (!libRes.ok) throw new Error("Could not fetch movies");
-        const libData = await libRes.json();
-        if (libData.success) {
-          setJellyfinMovies(libData.movies || []);
-        } else {
-          setIsJellyfinError(libData.error || "Unable to read movies.");
-        }
-      } catch (err) {
-        console.warn("Failed to load movies on check:", err);
-        setIsJellyfinError("Unable to connect to media source.");
-      } finally {
-        setIsJellyfinLoading(false);
-        setJellyfinConfig({ configured: true, url: "" });
-      }
-    };
-    checkJellyfinSetup();
-
+    
   }, []);
 
   const handleToggleWatchlist = (movieID: string) => {
@@ -1427,22 +1336,22 @@ export default function App() {
     });
 
     // Add Jellyfin-only library movies that did not match any of the hand-crafted collections
-    jellyfinMovies.forEach(m => {
+    catalogMovies.forEach(m => {
       if (!map.has(m.id)) {
-        map.set(m.id, { ...m, isJellyfin: true });
+        map.set(m.id, { ...m, isCatalog: true });
       }
     });
 
     return Array.from(map.values());
-  }, [mappedCollections, jellyfinMovies]);
+  }, [mappedCollections, catalogMovies]);
 
     const unmatchedMovies = React.useMemo(() => {
-    if (!jellyfinMovies || jellyfinMovies.length === 0) return [];
+    if (!catalogMovies || catalogMovies.length === 0) return [];
     
     const inCollections = new Set<string>();
     mappedCollections.forEach(c => c.movies.forEach(m => inCollections.add(m.id)));
 
-    return jellyfinMovies.filter(m => {
+    return catalogMovies.filter(m => {
       if (inCollections.has(m.id)) return false;
       const t = m.title.toLowerCase();
       if (t.includes("john wick")) return false;
@@ -1454,7 +1363,7 @@ export default function App() {
       if (t.includes("memories of murder")) return false;
       return true;
     });
-  }, [jellyfinMovies, mappedCollections]);
+  }, [catalogMovies, mappedCollections]);
 
   const searchedMovies = searchQuery.trim() === ""
     ? []
@@ -1732,7 +1641,7 @@ export default function App() {
               {/* Grand Showcase Spotlight Hero Section (Premium Netflix/Apple TV style) */}
               {isHeroLoading ? (
                 <HeroSkeleton />
-              ) : jellyfinConfig?.configured && jellyfinHeroMovies.length > 0 && jellyfinHeroMovie ? (
+              ) : heroMovies.length > 0 && heroMovie ? (
                 <div 
                   className="relative w-full h-[85vh] [@media(max-height:500px)_and_(orientation:landscape)]:h-[100vh] md:h-screen bg-black overflow-hidden flex items-end select-none"
                   onTouchStart={(e) => {
@@ -1744,14 +1653,14 @@ export default function App() {
                     const diff = heroTouchStartX.current - touchEndX;
                     
                     if (Math.abs(diff) > 50) { // threshold for swipe
-                      if (diff > 0 && jellyfinHeroMovies.length > 1) {
+                      if (diff > 0 && heroMovies.length > 1) {
                         // Swiped left, go to next
                         setDirection(1);
-                        setCurrentHeroIndex((prev) => (prev + 1) % jellyfinHeroMovies.length);
-                      } else if (diff < 0 && jellyfinHeroMovies.length > 1) {
+                        setCurrentHeroIndex((prev) => (prev + 1) % heroMovies.length);
+                      } else if (diff < 0 && heroMovies.length > 1) {
                         // Swiped right, go to prev
                         setDirection(-1);
-                        setCurrentHeroIndex((prev) => (prev - 1 + jellyfinHeroMovies.length) % jellyfinHeroMovies.length);
+                        setCurrentHeroIndex((prev) => (prev - 1 + heroMovies.length) % heroMovies.length);
                       }
                     }
                     heroTouchStartX.current = null;
@@ -1760,7 +1669,7 @@ export default function App() {
                   
                   <AnimatePresence initial={false} custom={direction}>
                     <motion.div
-                      key={jellyfinHeroMovie.id}
+                      key={heroMovie.id}
                       custom={direction}
                       variants={{
                         enter: (dir: number) => ({
@@ -1790,8 +1699,8 @@ export default function App() {
                       {/* Cinematic background image wrapper covering the full width */}
                       <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
                         <motion.img
-                          src={jellyfinHeroMovie.backdropUrl || CLASSICO_HERO_BACKDROP}
-                          alt={jellyfinHeroMovie.title}
+                          src={heroMovie.backdropUrl || CLASSICO_HERO_BACKDROP}
+                          alt={heroMovie.title}
                           referrerPolicy="no-referrer"
                           className="w-full h-full object-cover object-center md:object-top"
                           style={{ willChange: "transform" }}
@@ -1824,15 +1733,15 @@ export default function App() {
                           className="space-y-4 sm:space-y-5 w-full md:max-w-[35%] lg:max-w-[35%] min-w-[280px] sm:min-w-[360px] md:min-w-[0px] z-20 [@media(max-height:500px)_and_(orientation:landscape)]:space-y-2"
                         >
                           {/* Poster Style Cinematic Title or Logo with dynamic fallback to text based styling */}
-                          {jellyfinHeroMovie.hasLogo && jellyfinHeroMovie.logoUrl && !useTextTitleForJellyfinHero ? (
+                          {heroMovie.hasLogo && heroMovie.logoUrl && !useTextTitleForHero ? (
                             <div className="scale-75 sm:scale-100 origin-left select-none my-2 relative group uppercase italic leading-[0.9]">
                               <img 
-                                src={jellyfinHeroMovie.logoUrl} 
-                                alt={jellyfinHeroMovie.title}
+                                src={heroMovie.logoUrl} 
+                                alt={heroMovie.title}
                                 className="h-12 xs:h-16 sm:h-20 lg:h-24 object-contain max-w-[85%] sm:max-w-[75%] select-none pointer-events-none filter brightness-100 drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]"
                                 referrerPolicy="no-referrer"
                                 onError={() => {
-                                  setUseTextTitleForJellyfinHero(true);
+                                  setUseTextTitleForHero(true);
                                 }}
                               />
                               {/* Subtle user feedback action to bypass logo if it's white or unreadable */}
@@ -1840,7 +1749,7 @@ export default function App() {
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setUseTextTitleForJellyfinHero(true);
+                                  setUseTextTitleForHero(true);
                                 }}
                                 className="absolute -bottom-6 left-0 opacity-0 group-hover:opacity-100 text-[9.5px] font-sans text-zinc-400 hover:text-white transition-opacity bg-black/80 px-2 py-0.5 rounded border border-white/10"
                               >
@@ -1850,14 +1759,14 @@ export default function App() {
                           ) : (
                             <div className="relative group my-1">
                               <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-sans font-black tracking-tight text-white uppercase italic leading-[1.05] filter drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] transform -skew-x-2">
-                                {jellyfinHeroMovie.title}
+                                {heroMovie.title}
                               </h1>
-                              {jellyfinHeroMovie.hasLogo && jellyfinHeroMovie.logoUrl && (
+                              {heroMovie.hasLogo && heroMovie.logoUrl && (
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setUseTextTitleForJellyfinHero(false);
+                                    setUseTextTitleForHero(false);
                                   }}
                                   className="mt-1.5 inline-flex items-center gap-1 opacity-60 hover:opacity-100 text-[9px] text-amber-400/90 hover:text-amber-300 bg-stone-900/60 hover:bg-stone-900 border border-white/5 hover:border-amber-400/20 px-2.5 py-0.5 rounded transition-all cursor-pointer font-mono"
                                 >
@@ -1870,21 +1779,21 @@ export default function App() {
                           {/* Premium Discrete Pills / Badges for movie tags */}
                            <div className="flex w-full justify-start items-center gap-1.5 text-[10px] md:text-[9.5px] font-mono uppercase tracking-[0.08em] pb-1 md:pb-0">
                             <div className="hidden md:flex items-center gap-1.5">
-                              {jellyfinHeroMovie.genre && jellyfinHeroMovie.genre.slice(0, 4).map((g: string) => (
+                              {heroMovie.genre && heroMovie.genre.slice(0, 4).map((g: string) => (
                                 <span key={g} className="whitespace-nowrap px-1.5 py-0.5 bg-white/5 border border-white/10 hover:border-white/20 text-zinc-300 rounded-full font-sans font-bold tracking-wider transition-colors duration-200">
                                   {g}
                                 </span>
                               ))}
                             </div>
                             <span className="whitespace-nowrap px-1.5 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold tracking-wider rounded-full">
-                              {jellyfinHeroMovie.year}
+                              {heroMovie.year}
                             </span>
                             <span className="whitespace-nowrap px-1.5 py-0.5 bg-white/5 border border-white/10 text-zinc-400 tracking-wider rounded-full">
-                              {jellyfinHeroMovie.duration}
+                              {heroMovie.duration}
                             </span>
-                            {jellyfinHeroMovie.rating && jellyfinHeroMovie.rating !== "N/A" && (
+                            {heroMovie.rating && heroMovie.rating !== "N/A" && (
                               <span className="whitespace-nowrap px-1.5 py-0.5 bg-white/5 border border-white/10 text-zinc-300 font-bold tracking-wider rounded-full">
-                                <span className="text-amber-500 font-extrabold mr-0.5">★</span>{jellyfinHeroMovie.rating}
+                                <span className="text-amber-500 font-extrabold mr-0.5">★</span>{heroMovie.rating}
                               </span>
                             )}
                           </div>
@@ -1894,14 +1803,14 @@ export default function App() {
                             className="text-zinc-300 text-[11px] sm:text-xs md:text-sm leading-relaxed font-sans filter drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)] line-clamp-2 md:line-clamp-3 overflow-hidden text-ellipsis whitespace-normal max-w-[70%] md:max-w-full"
                             style={{ textShadow: "0 2px 8px rgba(0,0,0,0.95), 0 1px 3px rgba(0,0,0,0.95)" }}
                           >
-                            {jellyfinHeroMovie.description}
+                            {heroMovie.description}
                           </p>
 
                           {/* Netflix & Apple TV Styled Fluid Selection Buttons */}
                           <div className="flex items-center gap-2.5 pt-1.5">
                             <button
                               id="hero-play-btn"
-                              onClick={() => handleOpenMovie(jellyfinHeroMovie, true)}
+                              onClick={() => handleOpenMovie(heroMovie, true)}
                               className="group flex items-center justify-center gap-1.5 sm:gap-2 bg-white hover:bg-neutral-100 text-stone-950 font-sans font-black px-4.5 py-2.5 sm:px-8 sm:py-3.5 rounded-full text-[10.5px] sm:text-xs md:text-sm tracking-widest uppercase transition-all duration-300 hover:shadow-[0_0_24px_rgba(255,255,255,0.25)] hover:scale-103 active:scale-95 cursor-pointer"
                             >
                               <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current text-stone-950 group-hover:scale-110 transition-transform duration-250" />
@@ -1910,7 +1819,7 @@ export default function App() {
 
                             <button
                               id="hero-info-btn"
-                              onClick={() => handleOpenMovie(jellyfinHeroMovie, false)}
+                              onClick={() => handleOpenMovie(heroMovie, false)}
                               className="group flex items-center justify-center gap-1.5 sm:gap-2 bg-transparent hover:bg-white/10 border border-white/40 hover:border-white text-white font-sans font-black px-4 py-2.5 sm:px-7 sm:py-3.5 rounded-full text-[10.5px] sm:text-xs md:text-sm tracking-widest uppercase transition-all duration-300 hover:scale-102 active:scale-95 cursor-pointer"
                             >
                               <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white group-hover:scale-110 transition-transform duration-250" />
@@ -1926,7 +1835,7 @@ export default function App() {
 
                   {/* Carousel Dots Navigation Indicator at the bottom center */}
                   <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/5 shadow-lg">
-                    {jellyfinHeroMovies.map((_, idx) => (
+                    {heroMovies.map((_, idx) => (
                       <button
                         key={idx}
                         onClick={() => {
@@ -1952,7 +1861,7 @@ export default function App() {
               <div className="max-w-[2000px] mx-auto px-4 sm:px-8 space-y-12 pb-16">
                 
                 {/* Reprendre la lecture Section */}
-                {!isJellyfinLoading && history.some(id => progressData[id] > 0 && progressData[id] < 0.95) && (
+                {!isCatalogLoading && history.some(id => progressData[id] > 0 && progressData[id] < 0.95) && (
                   <div className="space-y-4 text-left pt-6 sm:pt-8">
                     <div className="flex flex-row items-center sm:items-end justify-between gap-2 sm:gap-3 border-b border-zinc-900 pb-2 sm:pb-3">
                       <div className="space-y-0.5 max-w-[80%]">
@@ -2014,7 +1923,7 @@ export default function App() {
                   </div>
                 )}
 
-                {!isJellyfinLoading && (
+                {!isCatalogLoading && (
                   <>
                     {/* Premium Discord Community Banner */}
                     <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-r from-zinc-900 via-[#1e1f24] to-zinc-900 border border-white/5 shadow-[0_8px_32px_rgba(0,0,0,0.4)] group">

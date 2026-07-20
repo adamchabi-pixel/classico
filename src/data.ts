@@ -17,9 +17,7 @@ export interface Movie {
   streamUrl?: string;
   posterUrl?: string;
   backdropUrl?: string;
-  isIframeEmbed?: boolean;
-  iframeSrc?: string;
-  isCatalog?: boolean;
+  isJellyfin?: boolean;
   originalTitle?: string;
   studios?: string[];
   providerIds?: Record<string, string>;

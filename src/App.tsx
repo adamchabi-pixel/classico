@@ -1,14 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { 
-  Search, Play, Film, Info, Heart, Award, 
-  ChevronLeft, ChevronRight, ChevronDown, User, Tv, Clock, 
-  Sparkles, History, Compass, FilmIcon, BookmarkCheck,
-  Star, CheckCircle, AlertCircle, RefreshCw, X, Shield, Menu, Settings, Loader2
-} from "lucide-react";
-import { COLLECTIONS as RAW_COLLECTIONS, Movie, Collection } from "./data";
-const COLLECTIONS: Collection[] = [...RAW_COLLECTIONS].sort((a, b) => { if (a.id === "trending-now") return -1; if (b.id === "trending-now") return 1; return a.title.localeCompare(b.title); });
-
+import { Search, Play, Film, Info, Heart, Award, ChevronLeft, ChevronRight, ChevronDown, User, Tv, Clock, Sparkles, History, Compass, FilmIcon, BookmarkCheck, Star, CheckCircle, AlertCircle, RefreshCw, X, Shield, Menu, Settings, Loader2 } from "lucide-react";
+import { Movie, Collection, COLLECTIONS as RAW_COLLECTIONS } from "./data";
 import MovieCard from "./components/MovieCard";
 import MovieModal from "./components/MovieModal";
 import MovieDetailView from "./components/MovieDetailView";
@@ -16,6 +9,8 @@ import CinemaPlayerView from "./components/CinemaPlayerView";
 import ErrorBoundary from "./components/ErrorBoundary";
 import LazyVirtualCard from "./components/LazyVirtualCard";
 import HeroSkeleton from "./components/HeroSkeleton";
+
+const COLLECTIONS: Collection[] = [...RAW_COLLECTIONS];
 
 if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual';
@@ -1259,79 +1254,29 @@ export default function App() {
 
     // Check Jellyfin server configuration status
     const checkJellyfinSetup = async () => {
-      let attempts = 0;
-      const maxAttempts = 3;
-      
-      const tryFetch = async () => {
-        try {
-          const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
-          const defaultUrl = "https://jellyfin-jacklumber00.siren.mygiga.cloud";
-          const defaultApiKey = "a2aac09e434e4bcc897c1b181ca197eb";
-
-          const localUrl = localStorage.getItem("classico_jellyfin_url");
-          const localKey = localStorage.getItem("classico_jellyfin_apikey");
-
-          if (isNetlify || !localUrl || !localKey) {
-            localStorage.setItem("classico_jellyfin_url", defaultUrl);
-            localStorage.setItem("classico_jellyfin_apikey", defaultApiKey);
-          }
-
-          const targetUrl = localStorage.getItem("classico_jellyfin_url") || defaultUrl;
-          const targetKey = localStorage.getItem("classico_jellyfin_apikey") || defaultApiKey;
-
-          // Perform auto-configuration on server
-          const restoreRes = await fetch("/api/jellyfin/config", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ url: targetUrl, apiKey: targetKey })
-          });
-
-          if (!restoreRes.ok) throw new Error("Auto-configuration request failed");
-          const restoreData = await restoreRes.json();
-
-          if (restoreData.success) {
-            setJellyfinConfig({ configured: true, url: restoreData.url });
-            localStorage.setItem("classico_jellyfin_url", restoreData.url);
-            localStorage.setItem("classico_jellyfin_apikey", targetKey);
-
-            setIsJellyfinLoading(true);
-            try {
-              const libRes = await fetch("/api/movies");
-              if (!libRes.ok) throw new Error("Could not fetch movies");
-              const libData = await libRes.json();
-              if (libData.success) {
-                setJellyfinMovies(libData.movies || []);
-              } else {
-                setIsJellyfinError(libData.error || "Unable to read movies.");
-              }
-            } catch (libErr) {
-              console.warn("Failed to load library movies on check:", libErr);
-              setIsJellyfinError("Unable to connect to Jellyfin.");
-            } finally {
-              setIsJellyfinLoading(false);
-            }
-          } else {
-            // Fallback gracefully and set configured to true with targetUrl
-            setJellyfinConfig({ configured: true, url: targetUrl });
-            setIsJellyfinLoading(false);
-          }
-        } catch (err) {
-          console.warn(`Jellyfin connection check attempt ${attempts + 1} failed:`, err);
-          if (attempts < maxAttempts - 1) {
-            attempts++;
-            setTimeout(tryFetch, 1500 * attempts);
-          } else {
-            console.warn("Jellyfin connection check error:", err);
-            // Bulletproof fallback: set configured to true to unblock the screen immediately
-            const defaultUrl = "https://jellyfin-jacklumber00.siren.mygiga.cloud";
-            setJellyfinConfig({ configured: true, url: defaultUrl });
-            setIsJellyfinLoading(false);
-            setIsJellyfinHeroLoading(false);
-          }
+      setIsJellyfinLoading(true);
+      setIsJellyfinHeroLoading(true);
+      try {
+        const [libRes, heroRes] = await Promise.all([
+          fetch("/api/movies"),
+          fetch("/api/hero")
+        ]);
+        const libData = await libRes.json();
+        const heroData = await heroRes.json();
+        if (libData.success) {
+          setJellyfinMovies(libData.movies || []);
         }
-      };
-      
-      tryFetch();
+        if (heroData.success) {
+          setJellyfinHeroMovies(heroData.heroes || []);
+        }
+        setJellyfinConfig({ configured: true, url: "local" });
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setJellyfinConfig({ configured: true, url: "local" });
+        setIsJellyfinLoading(false);
+        setIsJellyfinHeroLoading(false);
+      }
     };
     checkJellyfinSetup();
 

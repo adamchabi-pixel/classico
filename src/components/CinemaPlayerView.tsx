@@ -735,156 +735,47 @@ export default function CinemaPlayerView({
       setVideoError(null);
       setIsTimeoutReached(false);
       try {
-        const prefetches = (window as any).playbackPrefetches || {};
         
-        // Nettoyage complet du click prefetch pour forcer un démarrage sur un état totalement neuf
-        if (prefetches[movieId]) {
-          delete prefetches[movieId];
-        }
-        
-        let data: any;
-
-        
-        // Fallback if prefetch was null or failed (now always runs since we cleared it)
-        if (!data) {
-          const isNumeric = /^\d+$/.test(movieId);
-          if (!forceJellyfin && (movieId.startsWith("tt") || isNumeric)) {
-            const iframeResult = {
-              id: movieId,
-              streamUrl: `https://player.videasy.net/movie/${movieId}?color=FFD700&overlay=true`,
-              duration: 0,
-              container: "iframe",
-              title: "Film (Embed)",
-              isDirect: true,
-              isIframeEmbed: true,
-              iframeSrc: `https://player.videasy.net/movie/${movieId}?color=FFD700&overlay=true`,
-              subtitles: [],
-              audios: []
-            };
-            setPlaybackInfo(iframeResult);
-            setIsLoading(false);
-            return;
-          }
-
-          const needsTranscodeParam = forceTranscode || playbackAttempts > 0 || isLowQuality;
-          
-          const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
-          
-          if (isNetlify) {
-            const serverUrl = localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud";
-            const currentApiKey = localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb";
-            
-            // Bypass google proxy entirely
-            const streamUrl = `${serverUrl}/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&SegmentLength=3&MinSegments=1&BreakOnNonKeyFrames=True&VideoBitrate=140000000&MaxVideoBitrate=140000000&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}`;
-            
-            data = {
-              id: movieId,
-              streamUrl: streamUrl,
-              duration: 0,
-              container: "m3u8",
-              title: movieTitle || "Film",
-              isDirect: false,
-              videoCodec: "h264",
-              audioCodec: "aac",
-              chosenPath: "Direct Bypass",
-              subtitles: [],
-              audios: []
-            };
-            
-            try {
-              let itemData: any = null;
-              // Try direct Items endpoint first (does not require a userId)
-              const itemRes = await fetch(`${serverUrl}/Items/${movieId}?api_key=${currentApiKey}`);
-              if (itemRes.ok) {
-                itemData = await itemRes.json();
-              } else {
-                // Try fetching users first to resolve userId, then query the item
-                const usersRes = await fetch(`${serverUrl}/Users?api_key=${currentApiKey}`);
-                if (usersRes.ok) {
-                  const users = await usersRes.json();
-                  if (users && users.length > 0) {
-                    const userId = users[0].Id;
-                    const userItemRes = await fetch(`${serverUrl}/Users/${userId}/Items/${movieId}?api_key=${currentApiKey}`);
-                    if (userItemRes.ok) {
-                      itemData = await userItemRes.json();
-                    }
-                  }
-                }
-              }
-
-              if (itemData) {
-                if (itemData.RunTimeTicks) {
-                  data.duration = Math.round(itemData?.RunTimeTicks / 10000000);
-                }
-                
-                if (!forceJellyfin && itemData.ProviderIds) {
-                  if (itemData.ProviderIds.Tmdb) {
-                    data.isIframeEmbed = true;
-                    data.iframeSrc = `https://player.videasy.net/movie/${itemData.ProviderIds.Tmdb}?color=FFD700&overlay=true`;
-                  } else if (itemData.ProviderIds.Imdb) {
-                    data.isIframeEmbed = true;
-                    data.iframeSrc = `https://player.videasy.net/movie/${itemData.ProviderIds.Imdb}?color=FFD700&overlay=true`;
-                  }
-                }
-                // Fallback for testing if jellyfin bugs and no provider IDs are found
-                if (!forceJellyfin && !data.isIframeEmbed) {
-                   data.isIframeEmbed = true;
-                   data.iframeSrc = "https://player.videasy.net/movie/1368337?color=FFD700&overlay=true";
-                }
-
-                const mediaSources = itemData.MediaSources || [];
-                if (mediaSources.length > 0) {
-                  const source = mediaSources[0];
-                  const streams = source.MediaStreams || [];
-                  
-                  // Extract subtitle streams with direct external VTT urls
-                  const subtitleStreams = streams.filter((s: any) => s.Type === "Subtitle");
-                  data.subtitles = subtitleStreams.map((s: any) => {
-                    const subtitleUrl = `${serverUrl}/Videos/${movieId}/${source.Id}/Subtitles/${s.Index}/Stream.vtt?api_key=${currentApiKey}`;
-                    return {
-                      index: s.Index,
-                      language: s.Language || "",
-                      label: s.DisplayTitle || s.Title || s.Language || `Piste ${s.Index}`,
-                      isDefault: s.IsDefault === true || s.DeliveryKey === "Default",
-                      isForced: s.IsForced === true,
-                      codec: s.Codec || "",
-                      deliveryMethod: s.DeliveryMethod || "External",
-                      url: subtitleUrl
-                    };
-                  });
-                  
-                  // Extract audio streams
-                  const audioStreams = streams.filter((s: any) => s.Type === "Audio");
-                  data.audios = audioStreams.map((s: any) => ({
-                    index: s.Index,
-                    language: s.Language || "",
-                    label: s.DisplayTitle || s.Title || s.Language || `Audio ${s.Index}`,
-                    isDefault: s.IsDefault === true,
-                    codec: s.Codec || ""
-                  }));
-                }
-              }
-            } catch (e) {
-            }
-          } else {
-            let url = `/api/playback/${encodeURIComponent(movieId)}?`;
-            const params = new URLSearchParams();
-            if (needsTranscodeParam) params.set("forceTranscode", "true");
-            if (isLowQuality) params.set("lowQuality", "true");
-            if (forceJellyfin) params.set("forceJellyfin", "true");
-            url += params.toString();
-
-            trackEventFired("metadataStart", "Début de récupération des métadonnées");
-            const res = await fetch(url);
-            trackEventFired("serverResponse", "Réponse du serveur (métadonnées reçues)");
-            if (!res.ok) {
-              throw new Error(`Erreur de lecture (Code ${res.status})`);
-            }
-            data = await res.json();
-            trackEventFired("metadataEnd", "Fin de récupération des métadonnées");
-          }
+        const isNumeric = /^\d+$/.test(movieId);
+        if (movieId.startsWith("tt") || isNumeric) {
+          const iframeResult = {
+            id: movieId,
+            streamUrl: `https://player.videasy.net/movie/${movieId}?color=FFD700&overlay=true`,
+            duration: 0,
+            container: "iframe",
+            title: movieTitle || "Film (Embed)",
+            isDirect: true,
+            isIframeEmbed: true,
+            iframeSrc: `https://player.videasy.net/movie/${movieId}?color=FFD700&overlay=true`,
+            subtitles: [],
+            audios: []
+          };
+          setPlaybackInfo(iframeResult);
+          setIsLoading(false);
+          return;
         }
 
+        const res = await fetch(`/api/playback/${encodeURIComponent(movieId)}`);
+        if (!res.ok) throw new Error("Film introuvable");
+        let data = await res.json();
+        
+        if (data.isIframeEmbed) {
+           setPlaybackInfo({
+             id: movieId,
+             streamUrl: data.iframeSrc,
+             duration: 0,
+             container: "iframe",
+             title: movieTitle || "Film (Embed)",
+             isDirect: true,
+             isIframeEmbed: true,
+             iframeSrc: data.iframeSrc,
+             subtitles: [],
+             audios: []
+           });
+           setIsLoading(false);
+           return;
+        }
+        
         if (active) {
           if (data && data.streamUrl) {
             const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));

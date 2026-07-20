@@ -7,10 +7,16 @@ const app = express();
 const PORT = 3000;
 
 app.get("/api/movies", (req, res) => {
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
   res.json({ success: true, movies: importedMoviesData });
 });
 
 app.get("/api/hero", (req, res) => {
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
   // Use the last 5 movies added (reverse chronological)
   const heroes = [...importedMoviesData].reverse().slice(0, 5);
   res.json({ success: true, heroes });

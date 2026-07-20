@@ -1698,11 +1698,12 @@ export default function CinemaPlayerView({
         <div className="absolute inset-0 w-full h-full bg-black z-40 pointer-events-auto flex items-center justify-center">
           <iframe
             src={playbackInfo.iframeSrc}
-            allowFullScreen={true}
-            allow="encrypted-media; autoplay; fullscreen; picture-in-picture"
-            className="w-full h-full border-0"
+            allowFullScreen
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+            className="absolute inset-0 w-full h-full border-0"
             // @ts-ignore
             webkitallowfullscreen="true"
+            // @ts-ignore
             mozallowfullscreen="true"
           ></iframe>
         </div>

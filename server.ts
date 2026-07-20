@@ -739,7 +739,7 @@ app.post("/api/admin/movies/add", express.json(), async (req, res) => {
       }
 
       // Fetch movie details from TMDb
-      const movieUrl = `https://api.themoviedb.org/3/movie/${tmdbId}?append_to_response=credits&language=en-US`;
+      const movieUrl = `https://api.themoviedb.org/3/movie/${tmdbId}?append_to_response=credits,images&include_image_language=en,null&language=en-US`;
       const movieRes = await fetch(movieUrl, {
         headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
       });
@@ -755,11 +755,15 @@ app.post("/api/admin/movies/add", express.json(), async (req, res) => {
         const directorObj = movieData.credits?.crew?.find(c => c.job === 'Director');
         const director = directorObj ? directorObj.name : "Inconnu";
         const cast = movieData.credits?.cast?.slice(0, 10).map(c => c.name) || [];
-        const genres = movieData.genres?.map(g => g.name) || [];
+        const genres = movieData.genres?.map((g: any) => g.name) || [];
         
+        const logoObj = movieData.images?.logos?.find((l: any) => l.iso_639_1 === 'en') || movieData.images?.logos?.[0];
+
         const finalId = imdbId || String(tmdbId); // Prefer IMDb for iframe
 
         const newFiche = {
+          hasLogo: !!logoObj,
+          logoUrl: logoObj ? `https://image.tmdb.org/t/p/w500${logoObj.file_path}` : null,
           id: finalId,
           tmdbId: tmdbId,
           imdbId: imdbId,
@@ -770,8 +774,9 @@ app.post("/api/admin/movies/add", express.json(), async (req, res) => {
           backdropUrl: movieData.backdrop_path ? `https://image.tmdb.org/t/p/original${movieData.backdrop_path}` : "",
           year: movieData.release_date ? parseInt(movieData.release_date.substring(0, 4)) : new Date().getFullYear(),
           releaseDate: movieData.release_date,
-          duration: movieData.runtime || 0,
+          duration: movieData.runtime ? `${movieData.runtime} min` : "0 min",
           voteAverage: movieData.vote_average,
+          rating: movieData.vote_average ? movieData.vote_average.toFixed(1) : "N/A",
           language: movieData.original_language,
           status: movieData.status,
           genre: genres,
@@ -839,7 +844,7 @@ app.get("/api/admin/movies/test-odyssey", async (req, res) => {
     const tmdbId = findData.movie_results[0].id;
 
     // 2. Interroger TMDb /movie pour récupérer les détails
-    const movieUrl = `https://api.themoviedb.org/3/movie/${tmdbId}?append_to_response=credits&language=en-US`;
+    const movieUrl = `https://api.themoviedb.org/3/movie/${tmdbId}?append_to_response=credits,images&include_image_language=en,null&language=en-US`;
     const movieRes = await fetch(movieUrl, {
       headers: {
         "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`,
@@ -859,7 +864,11 @@ app.get("/api/admin/movies/test-odyssey", async (req, res) => {
     const cast = movieData.credits?.cast?.slice(0, 10).map((c: any) => c.name) || [];
     const genres = movieData.genres?.map((g: any) => g.name) || [];
 
+    const logoObj = movieData.images?.logos?.find((l: any) => l.iso_639_1 === 'en') || movieData.images?.logos?.[0];
+
     const newFiche = {
+      hasLogo: !!logoObj,
+      logoUrl: logoObj ? `https://image.tmdb.org/t/p/w500${logoObj.file_path}` : null,
       id: imdbId, // On utilise l'imdbId comme ID unique
       tmdbId: tmdbId,
       imdbId: imdbId,
@@ -870,8 +879,9 @@ app.get("/api/admin/movies/test-odyssey", async (req, res) => {
       backdropUrl: movieData.backdrop_path ? `https://image.tmdb.org/t/p/original${movieData.backdrop_path}` : "",
       year: movieData.release_date ? parseInt(movieData.release_date.substring(0, 4)) : new Date().getFullYear(),
       releaseDate: movieData.release_date,
-      duration: movieData.runtime || 0,
+      duration: movieData.runtime ? `${movieData.runtime} min` : "0 min",
       voteAverage: movieData.vote_average,
+      rating: movieData.vote_average ? movieData.vote_average.toFixed(1) : "N/A",
       language: movieData.original_language,
       status: movieData.status,
       genre: genres,
@@ -974,7 +984,7 @@ app.get("/api/jellyfin/movies", async (req, res) => {
 
   // 4. If no cache exists at all, perform a FAST fetch synchronously to respond in under 2 seconds!
   try {
-    const fastMovies = await fetchAndCacheMovies(config, true);
+    const fastMovies = await fetchAndCacheMovies(config, false);
     
     // Save the fast version to memory && disk immediately so the client can render the UI instantly
     setCached(cacheKey, fastMovies, 3600000);
@@ -1038,7 +1048,7 @@ app.get("/api/jellyfin/hero", async (req, res) => {
       }
     } catch (e) {}
 
-    const allHeroes = [...importedMovies.reverse(), ...cachedHeroes];
+    const allHeroes = [...importedMovies.reverse(), ...cachedHeroes].slice(0, 5);
     res.json({
       success: true,
       heroes: allHeroes,
@@ -1064,10 +1074,19 @@ app.get("/api/jellyfin/hero", async (req, res) => {
     setCached(cacheKey, formattedHeroes, 3600000);
     fs.writeFileSync(HERO_CACHE_PATH, JSON.stringify(formattedHeroes, null, 2), "utf-8");
 
+    let importedMovies = [];
+    try {
+      if (fs.existsSync(path.join(process.cwd(), "imported_movies.json"))) {
+        importedMovies = JSON.parse(fs.readFileSync(path.join(process.cwd(), "imported_movies.json"), "utf-8"));
+      }
+    } catch (e) {}
+
+    const allHeroes = [...importedMovies.reverse(), ...formattedHeroes].slice(0, 5);
+
     res.json({
       success: true,
-      heroes: formattedHeroes,
-      hero: formattedHeroes[0]
+      heroes: allHeroes,
+      hero: allHeroes[0]
     });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });

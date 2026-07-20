@@ -27,6 +27,29 @@ const keepAliveHttpsAgent = new https.Agent({
 
 import { importedMoviesData } from './src/data/imported_movies';
 let globalImportedMovies = [...importedMoviesData];
+function getGlobalImportedMovies() {
+    let imported = [...importedMoviesData];
+    const DB_PATH = path.join(process.cwd(), "imported_movies.json");
+    if (fs.existsSync(DB_PATH)) {
+      try {
+        const existingMovies = JSON.parse(fs.readFileSync(DB_PATH, "utf-8"));
+        if (Array.isArray(existingMovies)) {
+           imported = [...existingMovies, ...imported];
+        }
+      } catch(e) {}
+    }
+    // Dedup by id
+    const unique = [];
+    const seen = new Set();
+    for (const m of imported) {
+       if (!seen.has(m.id)) {
+           seen.add(m.id);
+           unique.push(m);
+       }
+    }
+    return unique;
+}
+
 
 const app = express();
 const PORT = 3000;
@@ -968,7 +991,7 @@ app.get("/api/jellyfin/movies", async (req, res) => {
   if (cachedMovies) {
     // Send response immediately! (Extremely fast, <10ms)
     
-    let importedMovies = globalImportedMovies;
+    let importedMovies = getGlobalImportedMovies();
     res.json({
       success: true,
       movies: [...importedMovies, ...cachedMovies]
@@ -1004,7 +1027,7 @@ app.get("/api/jellyfin/movies", async (req, res) => {
 
     // Send response to client immediately! (< 2 seconds!)
     
-    let importedMovies = globalImportedMovies;
+    let importedMovies = getGlobalImportedMovies();
     res.json({
       success: true,
       movies: [...importedMovies, ...fastMovies]
@@ -1048,7 +1071,7 @@ app.get("/api/jellyfin/hero", async (req, res) => {
 
   // 3. If we have cached hero items
   if (cachedHeroes) {
-    let importedMovies = globalImportedMovies;
+    let importedMovies = getGlobalImportedMovies();
 
     const allHeroes = [...importedMovies.reverse(), ...cachedHeroes].slice(0, 5);
     res.json({
@@ -1077,7 +1100,7 @@ app.get("/api/jellyfin/hero", async (req, res) => {
     try { fs.writeFileSync(HERO_CACHE_PATH, JSON.stringify(formattedHeroes, null, 2), "utf-8");
 
      } catch (e) { console.warn("Could not write cache:", e.message); }
-let importedMovies = globalImportedMovies;
+let importedMovies = getGlobalImportedMovies();
 
     const allHeroes = [...importedMovies.reverse(), ...formattedHeroes].slice(0, 5);
 
@@ -2528,6 +2551,14 @@ async function startServer() {
   }
 
   serverInstance.listen(PORT, "0.0.0.0", () => {
+    // Delete local caches on boot to ensure fresh posters
+    try {
+      if (fs.existsSync(MOVIES_CACHE_PATH)) fs.unlinkSync(MOVIES_CACHE_PATH);
+      if (fs.existsSync(HERO_CACHE_PATH)) fs.unlinkSync(HERO_CACHE_PATH);
+      const TMDB_CACHE_PATH = path.join(process.cwd(), ".data", "tmdb_cache.json");
+      if (fs.existsSync(TMDB_CACHE_PATH)) fs.unlinkSync(TMDB_CACHE_PATH);
+    } catch(e) {}
+    
     // Pre-warm caches immediately on server boot
     const startupConfig = getJellyfinConfig();
     if (startupConfig) {

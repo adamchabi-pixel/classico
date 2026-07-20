@@ -1,9 +1,10 @@
-import re
+import sys
 
-with open('src/App.tsx', 'r') as f:
-    text = f.read()
+with open("server.ts", "r") as f:
+    content = f.read()
 
-text = text.replace('  a.title.localeCompare(b.title));', '')
+content = content.replace('} catch (e) { console.warn("Could not write cache:", e.message); }//', '} catch (e) { console.warn("Could not write cache:", e.message); }\n//')
+content = content.replace('} catch (e) { console.warn("Could not write cache:", e.message); }let', '} catch (e) { console.warn("Could not write cache:", e.message); }\nlet')
 
-with open('src/App.tsx', 'w') as f:
-    f.write(text)
+with open("server.ts", "w") as f:
+    f.write(content)

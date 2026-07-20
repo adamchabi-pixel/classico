@@ -317,9 +317,10 @@ app.post("/api/jellyfin/config", async (req, res) => {
     }
 
     // Save configurations securely on development/containered server disk
-    fs.writeFileSync(CONFIG_PATH, JSON.stringify({ url: formattedUrl, apiKey }, null, 2));
+    try { fs.writeFileSync(CONFIG_PATH, JSON.stringify({ url: formattedUrl, apiKey }, null, 2));
 
-    // Reset all old server caches immediately
+     } catch (e) { console.warn("Could not write cache:", e.message); }
+// Reset all old server caches immediately
     apiCache.clear();
     playbackCache.clear();
     cachedUserId = null;
@@ -369,8 +370,8 @@ function setCached(key: string, data: any, ttlMs: number) {
 // Ensure local directory for poster images cache exists on disks
 const IMAGE_CACHE_DIR = path.join(process.cwd(), ".image-cache");
 if (!fs.existsSync(IMAGE_CACHE_DIR)) {
-  fs.mkdirSync(IMAGE_CACHE_DIR, { recursive: true });
-}
+  try { fs.mkdirSync(IMAGE_CACHE_DIR, { recursive: true });
+ } catch (e) { }}
 
 // Format Jellyfin raw metadata with secure, cached proxy URLs instead of exposing the secret api key
 function formatJellyfinItem(item: any, serverUrl: string, apiKey: string) {
@@ -464,9 +465,10 @@ async function backgroundFetchMovies(config: any) {
     // Update in-memory cache
     setCached("movies-list", formattedMovies, 3600000); // 1 hour fresh
     // Write to persistent disk cache
-    fs.writeFileSync(MOVIES_CACHE_PATH, JSON.stringify(formattedMovies, null, 2), "utf-8");
+    try { fs.writeFileSync(MOVIES_CACHE_PATH, JSON.stringify(formattedMovies, null, 2), "utf-8");
     
-    // Start asynchronous image cache pre-warming
+     } catch (e) { console.warn("Could not write cache:", e.message); }
+// Start asynchronous image cache pre-warming
     prewarmImageCache(formattedMovies);
   } catch (err: any) {
     console.error("[BG FETCH] Background fetch for movies failed:", err);
@@ -484,9 +486,10 @@ async function backgroundFetchHero(config: any) {
     // Update in-memory cache
     setCached("hero-list", formattedHeroes, 3600000); // 1 hour fresh
     // Write to persistent disk cache
-    fs.writeFileSync(HERO_CACHE_PATH, JSON.stringify(formattedHeroes, null, 2), "utf-8");
+    try { fs.writeFileSync(HERO_CACHE_PATH, JSON.stringify(formattedHeroes, null, 2), "utf-8");
     
-    // Start asynchronous image cache pre-warming
+     } catch (e) { console.warn("Could not write cache:", e.message); }
+// Start asynchronous image cache pre-warming
     prewarmImageCache(formattedHeroes);
   } catch (err: any) {
     console.error("[BG FETCH] Background fetch for hero failed:", err);
@@ -523,7 +526,7 @@ async function resolveUserId(config: any): Promise<string> {
       const meData = await meResp.json();
       if (meData && meData.Id) {
         cachedUserId = meData.Id;
-        try { fs.writeFileSync(USERID_CACHE_PATH, JSON.stringify({ userId: meData.Id, url: config.url, apiKey: config.apiKey })); } catch (e) {}
+        try { try { fs.writeFileSync(USERID_CACHE_PATH, JSON.stringify({ userId: meData.Id, url: config.url, apiKey: config.apiKey }));  } catch (e) { console.warn("Could not write cache:", e.message); }} catch (e) {}
         return meData.Id;
       }
     } else {
@@ -619,9 +622,9 @@ async function enrichWithTmdb(movies: any[], fetchMissing: boolean = false): Pro
         if (i + 10 < missingTmdbIds.length) await new Promise(r => setTimeout(r, 200));
       }
       if (cacheModified) {
-        if (!fs.existsSync(path.dirname(TMDB_CACHE_PATH))) fs.mkdirSync(path.dirname(TMDB_CACHE_PATH), { recursive: true });
-        fs.writeFileSync(TMDB_CACHE_PATH, JSON.stringify(tmdbCache), "utf-8");
-      }
+        if (!fs.existsSync(path.dirname(TMDB_CACHE_PATH))) try { fs.mkdirSync(path.dirname(TMDB_CACHE_PATH), { recursive: true });
+         } catch (e) { }try { fs.writeFileSync(TMDB_CACHE_PATH, JSON.stringify(tmdbCache), "utf-8");
+       } catch (e) { console.warn("Could not write cache:", e.message); }}
     }
   }
 
@@ -811,9 +814,10 @@ app.post("/api/admin/movies/add", express.json(), async (req, res) => {
       existingMovies.unshift(newM);
     }
 
-    fs.writeFileSync(DB_PATH, JSON.stringify(existingMovies, null, 2));
+    try { fs.writeFileSync(DB_PATH, JSON.stringify(existingMovies, null, 2));
     
-    // Clear the memory cache so the next GET /api/jellyfin/movies will reload
+     } catch (e) { console.warn("Could not write cache:", e.message); }
+// Clear the memory cache so the next GET /api/jellyfin/movies will reload
     setCached("movies-list", null, 0);
 
     return res.json({ success: true, count: addedMovies.length, added: addedMovies });
@@ -917,8 +921,8 @@ app.get("/api/admin/movies/test-odyssey", async (req, res) => {
     // Mettre à jour les caches
     setCached(cacheKey, cachedMovies, 3600000);
     try {
-      fs.writeFileSync(MOVIES_CACHE_PATH, JSON.stringify(cachedMovies));
-    } catch (e) {}
+      try { fs.writeFileSync(MOVIES_CACHE_PATH, JSON.stringify(cachedMovies));
+     } catch (e) { console.warn("Could not write cache:", e.message); }} catch (e) {}
 
     return res.json({ success: true, movie: newFiche });
 
@@ -930,6 +934,9 @@ app.get("/api/admin/movies/test-odyssey", async (req, res) => {
 
 // 4. List library movies from connected Jellyfin with persistent file and memory cache (SWR model)
 app.get("/api/jellyfin/movies", async (req, res) => {
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
 
   const config = getJellyfinConfig();
   if (!config) {
@@ -989,9 +996,10 @@ app.get("/api/jellyfin/movies", async (req, res) => {
     
     // Save the fast version to memory && disk immediately so the client can render the UI instantly
     setCached(cacheKey, fastMovies, 3600000);
-    fs.writeFileSync(MOVIES_CACHE_PATH, JSON.stringify(fastMovies, null, 2), "utf-8");
+    try { fs.writeFileSync(MOVIES_CACHE_PATH, JSON.stringify(fastMovies, null, 2), "utf-8");
 
-    // Async pre-warm images in background
+     } catch (e) { console.warn("Could not write cache:", e.message); }
+// Async pre-warm images in background
     prewarmImageCache(fastMovies);
 
     // Send response to client immediately! (< 2 seconds!)
@@ -1012,6 +1020,9 @@ app.get("/api/jellyfin/movies", async (req, res) => {
 
 // 4ab. Fetch dynamic Jellyfin Hero banner data with SWR caching model
 app.get("/api/jellyfin/hero", async (req, res) => {
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
   const config = getJellyfinConfig();
   if (!config) {
     res.json({ success: false, error: "Serveur non configuré." });
@@ -1063,9 +1074,10 @@ app.get("/api/jellyfin/hero", async (req, res) => {
     const formattedHeroes = await fetchAndCacheHero(config);
     // Save to memory && disk
     setCached(cacheKey, formattedHeroes, 3600000);
-    fs.writeFileSync(HERO_CACHE_PATH, JSON.stringify(formattedHeroes, null, 2), "utf-8");
+    try { fs.writeFileSync(HERO_CACHE_PATH, JSON.stringify(formattedHeroes, null, 2), "utf-8");
 
-    let importedMovies = globalImportedMovies;
+     } catch (e) { console.warn("Could not write cache:", e.message); }
+let importedMovies = globalImportedMovies;
 
     const allHeroes = [...importedMovies.reverse(), ...formattedHeroes].slice(0, 5);
 

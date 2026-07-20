@@ -1098,7 +1098,7 @@ export default function App() {
     setIsJellyfinLoading(true);
     setIsJellyfinError("");
     try {
-      const res = await fetch("/api/jellyfin/movies");
+      const res = await fetch("/api/movies");
       if (!res.ok) {
         throw new Error(`Server returned HTTP ${res.status}`);
       }
@@ -1110,7 +1110,7 @@ export default function App() {
         // to retrieve full details (directors, actors) after the initial fast UI paint is complete.
         setTimeout(async () => {
           try {
-            const revalidateRes = await fetch("/api/jellyfin/movies?revalidate=true");
+            const revalidateRes = await fetch("/api/movies");
             if (revalidateRes.ok) {
               const revalidateData = await revalidateRes.json();
               if (revalidateData.success && Array.isArray(revalidateData.movies) && revalidateData.movies.length > 0) {
@@ -1138,7 +1138,7 @@ export default function App() {
 
     const tryFetchHero = async () => {
       try {
-        const res = await fetch("/api/jellyfin/hero");
+        const res = await fetch("/api/hero");
         if (!res.ok) {
           throw new Error(`Server returned HTTP ${res.status}`);
         }
@@ -1214,62 +1214,9 @@ export default function App() {
 
   const handleConnectJellyfin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsConnecting(true);
-    setConnectionError("");
-
-    if (!jellyfinInputUrl || !jellyfinInputApiKey) {
-      setConnectionError("Veuillez remplir tous les champs.");
-      setIsConnecting(false);
-      return;
-    }
-
-    try {
-      const res = await fetch("/api/jellyfin/config", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: jellyfinInputUrl, apiKey: jellyfinInputApiKey })
-      });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setJellyfinConfig({ configured: true, url: data.url });
-        localStorage.setItem("classico_jellyfin_url", data.url);
-        localStorage.setItem("classico_jellyfin_apikey", jellyfinInputApiKey);
-        
-        // Load movies
-        setIsJellyfinLoading(true);
-        const libRes = await fetch("/api/jellyfin/movies");
-        const libData = await libRes.json();
-        if (libData.success) {
-          setJellyfinMovies(libData.movies);
-        }
-        setIsJellyfinLoading(false);
-      } else {
-        setConnectionError(data.error || "Failed to connect to the media server.");
-      }
-    } catch (err) {
-      setConnectionError("Unable to connect to the remote server. Check your server URL.");
-    } finally {
-      setIsConnecting(false);
-    }
   };
 
   const handleDisconnectJellyfin = async () => {
-    if (!window.confirm("Voulez-vous déconnecter ce serveur de CLASSICO ?")) return;
-    try {
-      const res = await fetch("/api/jellyfin/disconnect", { method: "POST" });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setJellyfinConfig({ configured: false, url: "" });
-        setJellyfinMovies([]);
-        setJellyfinInputUrl("");
-        setJellyfinInputApiKey("");
-        localStorage.removeItem("classico_jellyfin_url");
-        localStorage.removeItem("classico_jellyfin_apikey");
-      }
-    } catch (err) {
-      console.error(err);
-    }
   };
 
   // Load watchlist and search default spotlight film
@@ -1349,7 +1296,7 @@ export default function App() {
 
             setIsJellyfinLoading(true);
             try {
-              const libRes = await fetch("/api/jellyfin/movies");
+              const libRes = await fetch("/api/movies");
               if (!libRes.ok) throw new Error("Could not fetch movies");
               const libData = await libRes.json();
               if (libData.success) {

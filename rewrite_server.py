@@ -1,4 +1,6 @@
-import express from "express";
+import sys
+
+content = """import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { importedMoviesData } from './src/data/imported_movies';
@@ -54,3 +56,7 @@ async function startServer() {
 }
 
 startServer();
+"""
+
+with open("server.ts", "w") as f:
+    f.write(content)

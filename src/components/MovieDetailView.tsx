@@ -18,6 +18,15 @@ export default function MovieDetailView({
   isBookmarked,
   onToggleBookmark,
 }: MovieDetailViewProps) {
+  const formatDuration = (val: number | string) => {
+    if (!val) return "";
+    let minutes = typeof val === 'string' ? parseInt(val.replace(/\D/g, ''), 10) : val;
+    if (isNaN(minutes)) return val as string;
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (h > 0) return `${h}h ${m > 0 ? m + 'm' : ''}`;
+    return `${m}m`;
+  };
   const [expandedSection, setExpandedSection] = useState<"synopsis" | "casting" | "trailer" | null>("synopsis");
 
   const toggleSection = (section: "synopsis" | "casting" | "trailer") => {
@@ -71,7 +80,7 @@ export default function MovieDetailView({
                 {movie.year}
               </span>
               <span className="bg-zinc-900/80 border border-zinc-700 text-zinc-300 px-2.5 py-0.5 rounded text-[11px] font-mono tracking-widest uppercase shadow-sm">
-                {movie.duration}
+                {formatDuration(movie.duration)}
               </span>
             </div>
 

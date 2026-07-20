@@ -327,6 +327,80 @@
   },
   {
     "isJellyfin": true,
+    "id": "43ca7f58401b68e25ae4dcaf12f0ea51",
+    "title": "Black Panther",
+    "originalTitle": "Black Panther",
+    "providerIds": {
+      "Imdb": "tt1825683",
+      "Tmdb": "284054",
+      "TmdbCollection": "529892"
+    },
+    "studios": [
+      "Marvel Studios"
+    ],
+    "year": 2018,
+    "duration": "135 min",
+    "rating": "7.4",
+    "genre": [
+      "Action",
+      "Adventure",
+      "Science Fiction"
+    ],
+    "description": "King T'Challa returns home to the reclusive, technologically advanced African nation of Wakanda to serve as his country's new leader. However, T'Challa soon finds that he is challenged for the throne by factions within his own country as well as without. Using powers reserved to Wakandan kings, T'Challa assumes the Black Panther mantle to join with ex-girlfriend Nakia, the queen-mother, his princess-kid sister, members of the Dora Milaje (the Wakandan 'special forces') and an American secret agent, to prevent Wakanda from being dragged into a world war.",
+    "director": "Ryan Coogler",
+    "cast": [
+      "Chadwick Boseman",
+      "Michael B. Jordan",
+      "Lupita Nyong'o",
+      "Danai Gurira"
+    ],
+    "posterUrl": "/api/jellyfin/image/43ca7f58401b68e25ae4dcaf12f0ea51/Primary",
+    "backdropUrl": "/api/jellyfin/image/43ca7f58401b68e25ae4dcaf12f0ea51/Backdrop",
+    "streamUrl": "https://jellyfin-jacklumber00.siren.mygiga.cloud/Videos/43ca7f58401b68e25ae4dcaf12f0ea51/stream.mp4?Static=true&api_key=a2aac09e434e4bcc897c1b181ca197eb",
+    "tagline": "Long live the king.",
+    "symbol": "📡🎬",
+    "accentColor": "text-[#ca8a04] border-[#ca8a04]/30 bg-[#ca8a04]/5",
+    "accentHex": "#ca8a04"
+  },
+  {
+    "isJellyfin": true,
+    "id": "3901d79fe61811c90f8a7b6d1f66ab91",
+    "title": "Black Panther: Wakanda Forever",
+    "originalTitle": "Black Panther: Wakanda Forever",
+    "providerIds": {
+      "Imdb": "tt9114286",
+      "Tmdb": "505642",
+      "TmdbCollection": "529892"
+    },
+    "studios": [
+      "Marvel Studios"
+    ],
+    "year": 2022,
+    "duration": "161 min",
+    "rating": "7.0",
+    "genre": [
+      "Action",
+      "Adventure",
+      "Science Fiction"
+    ],
+    "description": "Queen Ramonda, Shuri, M’Baku, Okoye and the Dora Milaje fight to protect their nation from intervening world powers in the wake of King T’Challa’s death.  As the Wakandans strive to embrace their next chapter, the heroes must band together with the help of War Dog Nakia and Everett Ross and forge a new path for the kingdom of Wakanda.",
+    "director": "Ryan Coogler",
+    "cast": [
+      "Letitia Wright",
+      "Tenoch Huerta Mejía",
+      "Lupita Nyong'o",
+      "Danai Gurira"
+    ],
+    "posterUrl": "/api/jellyfin/image/3901d79fe61811c90f8a7b6d1f66ab91/Primary",
+    "backdropUrl": "/api/jellyfin/image/3901d79fe61811c90f8a7b6d1f66ab91/Backdrop",
+    "streamUrl": "https://jellyfin-jacklumber00.siren.mygiga.cloud/Videos/3901d79fe61811c90f8a7b6d1f66ab91/stream.mp4?Static=true&api_key=a2aac09e434e4bcc897c1b181ca197eb",
+    "tagline": "Forever.",
+    "symbol": "📡🎬",
+    "accentColor": "text-[#ca8a04] border-[#ca8a04]/30 bg-[#ca8a04]/5",
+    "accentHex": "#ca8a04"
+  },
+  {
+    "isJellyfin": true,
     "id": "5eb2eb8f06c5b14ef8201d8f922aeccc",
     "title": "A Bronx Tale",
     "originalTitle": "A Bronx Tale",

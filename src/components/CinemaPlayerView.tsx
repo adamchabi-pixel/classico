@@ -5,6 +5,7 @@ import {
   Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Languages, 
   Maximize2, ArrowLeft, Loader2, Sparkles, AlertCircle, Captions, Lock, Menu, Cast, Settings, ChevronRight, ChevronLeft
 } from "lucide-react";
+import EmbedPlayer from "./EmbedPlayer";
 
 interface JfSubtitleCue {
   start: number;
@@ -16,12 +17,6 @@ const logChrono = (step: string) => {
   const clickTime = (window as any).moviePlayClickTime;
   const now = performance.now();
   const elapsed = clickTime ? ((now - clickTime) / 1000).toFixed(3) : "N/A (mount reference)";
-  console.log(`%c[CHRONO LECTEUR CINEMA] %c${step} : %c+${elapsed}s%c (Timestamp: ${new Date().toISOString().slice(11, 23)})`, 
-    "color: #a855f7; font-weight: bold;", 
-    "color: #ffffff; font-weight: bold;", 
-    "color: #10b981; font-weight: bold; font-size: 13px;", 
-    "color: #6b7280; font-style: italic;"
-  );
 };
 
 const isTextSubtitle = (codec: string) => {
@@ -102,7 +97,6 @@ export function formatHlsUrl(url: string, id: string, deviceId?: string, apiKey?
     
     formatted = urlParts[0] + "?" + params.toString();
   } catch (err) {
-    console.warn("Issue formatting HLS URL params:", err);
   }
 
   return formatted;
@@ -113,6 +107,7 @@ interface CinemaPlayerViewProps {
   movieTitle: string;
   movieDuration?: string;
   moviePoster?: string;
+  movieBackdrop?: string;
   onClose: () => void;
 }
 
@@ -176,6 +171,7 @@ export default function CinemaPlayerView({
   movieTitle,
   movieDuration,
   moviePoster,
+  movieBackdrop,
   onClose
 }: CinemaPlayerViewProps) {
   const deviceId = "CinemaAppClient";
@@ -185,6 +181,9 @@ export default function CinemaPlayerView({
     id: string;
     streamUrl: string;
     duration: number;
+    isIframeEmbed?: boolean;
+    iframeSrc?: string;
+
     container: string;
     title: string;
     isDirect: boolean;
@@ -223,6 +222,8 @@ export default function CinemaPlayerView({
   const [videoError, setVideoError] = useState<string | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
   
+  const [isCurtainOpen, setIsCurtainOpen] = useState(false);
+  const [forceJellyfin, setForceJellyfin] = useState(false);
   const [playing, setPlaying] = useState(true);
   const [isMetadataLoaded, setIsMetadataLoaded] = useState(false);
   const [isAutoplayBlocked, setIsAutoplayBlocked] = useState(false);
@@ -268,7 +269,6 @@ export default function CinemaPlayerView({
   const addLog = (msg: string) => {
     const timestamp = new Date().toLocaleTimeString();
     setPlayerLogs(prev => [...prev, `[${timestamp}] ${msg}`].slice(-8));
-    console.log(`[PLAYER LOG] ${msg}`);
   };
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -338,22 +338,6 @@ export default function CinemaPlayerView({
           return "N/A";
         };
 
-        console.log(`%c
-===================================================================
-🎥 DIAGNOSTIC PIPELINE DE LECTURE VIDÉO : TIMELINE COMPLÈTE
-===================================================================
-1. Clic sur le film : 0.000s
-2. Début de récupération des métadonnées : ${formatTimeDiff(eventsTrackerRef.current.metadataStart.time)}
-3. Réponse du serveur (métadonnées) : ${formatTimeDiff(eventsTrackerRef.current.serverResponse.time)} (TTFB: ${formatDuration(eventsTrackerRef.current.metadataStart.time, eventsTrackerRef.current.serverResponse.time)})
-4. Fin de récupération des métadonnées : ${formatTimeDiff(eventsTrackerRef.current.metadataEnd.time)} (Durée: ${formatDuration(eventsTrackerRef.current.metadataStart.time, eventsTrackerRef.current.metadataEnd.time)})
-5. Début de récupération de l'URL de streaming : ${formatTimeDiff(eventsTrackerRef.current.streamUrlStart.time)}
-6. Réception du premier octet du stream (TTFB) : ${formatTimeDiff(eventsTrackerRef.current.ttfb.time)} (Délai d'établissement: ${formatDuration(eventsTrackerRef.current.streamUrlStart.time, eventsTrackerRef.current.ttfb.time)})
-7. Événement loadedmetadata : ${formatTimeDiff(eventsTrackerRef.current.loadedmetadata.time)}
-8. Événement canplay : ${formatTimeDiff(eventsTrackerRef.current.canplay.time)}
-9. Événement playing (Lecture active) : ${formatTimeDiff(eventsTrackerRef.current.playing.time)}
--------------------------------------------------------------------
-⏱️ TEMPS TOTAL CLIC -> LECTURE ACTIVE (playing) : ${((now - clickTime) / 1000).toFixed(3)}s
-===================================================================`, "color: #10b981; font-weight: bold; font-family: monospace;");
       }
     }
   };
@@ -378,14 +362,6 @@ export default function CinemaPlayerView({
     ];
 
     events.forEach(evt => {
-      if (!eventsTrackerRef.current[evt.key].fired) {
-        console.log(
-          `%c[CHRONO INFOS] Événement "${evt.name}" NON RÉALISÉ : %c${reason} %c(Temps écoulé: +${elapsed}s, Timestamp: ${new Date().toISOString().slice(11, 23)})`,
-          "color: #ef4444; font-weight: bold;",
-          "color: #fca5a5; font-style: italic;",
-          "color: #9ca3af;"
-        );
-      }
     });
   };
 
@@ -395,11 +371,9 @@ export default function CinemaPlayerView({
     const isTikTok = /TikTok|Bytedance|musical_ly/i.test(navigator.userAgent);
     if (!isTikTok) return;
 
-    console.log("[TikTok Fix] Désactivation des popunders pendant la lecture vidéo");
 
     const originalWindowOpen = window.open;
     window.open = function(url?: string | URL, target?: string, features?: string) {
-      console.log("[TikTok Fix] window.open bloqué");
       return null;
     } as any;
 
@@ -416,7 +390,6 @@ export default function CinemaPlayerView({
       if (target && target.closest) {
         const link = target.closest('a');
         if (link && link.target === '_blank') {
-          console.log("[TikTok Fix] Clic sur un lien externe bloqué");
           e.preventDefault();
           e.stopImmediatePropagation();
         }
@@ -425,7 +398,6 @@ export default function CinemaPlayerView({
     document.addEventListener('click', blockPopunderLinks, true);
 
     return () => {
-      console.log("[TikTok Fix] Réactivation des popunders (sortie du lecteur)");
       window.open = originalWindowOpen;
       if (rootElement) {
         rootElement.removeEventListener('click', stopPopunderBubble);
@@ -443,7 +415,6 @@ export default function CinemaPlayerView({
         const saved = JSON.parse(localStorage.getItem("classico_progress") || "{}");
         if (saved[movieId] && saved[movieId].currentTime > 0) {
            savedRestoreTimeRef.current = saved[movieId].currentTime;
-           console.log("[RESUME PLAYBACK] Found saved progress for " + movieId + ": " + savedRestoreTimeRef.current + "s");
         }
       } catch(e) {}
     }
@@ -451,7 +422,6 @@ export default function CinemaPlayerView({
   useEffect(() => {
     if (!(window as any).moviePlayClickTime) {
       (window as any).moviePlayClickTime = performance.now();
-      console.log("%c[CHRONO LECTEUR CINEMA] Aucun click initial détecté, initialisation du temps de référence au montage : 0.000s", "color: #eab308; font-style: italic;");
     }
     return () => {
       logMissingEvents("Rechargement du composant ou fermeture du lecteur");
@@ -532,10 +502,6 @@ export default function CinemaPlayerView({
     // -----------------------------------------------------
     // TEMPORARY DIAGNOSTIC CONSOLE LOGS AS REQUESTED
     // -----------------------------------------------------
-    console.log("JELLYFIN duration:", jellyfinDuration);
-    console.log("VIDEO duration:", videoDuration);
-    console.log("SOURCE URL:", sourceUrl);
-    console.log("MEDIA INFO:", playbackInfo);
     // -----------------------------------------------------
 
     let finalSecs = 0;
@@ -552,7 +518,6 @@ export default function CinemaPlayerView({
       source = "Vidéo réelle (Fallback car Jellyfin duration absente)";
     }
 
-    console.log(`[DURÉE DEBUG] Source finale décidée pour l'affichage : ${source} (${finalSecs}s)`);
 
     // Synchronize slider state scale
     if (finalSecs > 0) {
@@ -651,21 +616,16 @@ export default function CinemaPlayerView({
 
     const fetchSubtitles = async () => {
       try {
-        console.log(`[CONCURRENCY] Téléchargement asynchrone du sous-titre .vtt lancé en même temps que Hls.js depuis : ${activeTrack.url}`);
         const res = await fetch(activeTrack.url);
         if (res.ok) {
           const vttText = await res.text();
           if (isSubscribed) {
             const parsed = parseVTT(vttText);
-            console.log(`[CINEMA SUBTITLE] Chargé avec succès : ${parsed.length} répliques.`);
             if (parsed.length > 0) {
-              console.log("[CINEMA SUBTITLE DIACNOSTICS] Premières répliques pour contrôle de format et d'unité (secondes vs millisecondes) :");
-              console.dir(parsed.slice(0, 3));
             }
             setCinemaCues(parsed);
           }
         } else if (res.status === 404 || res.status === 401) {
-          console.warn(`[CINEMA SUBTITLE] Échec de téléchargement (${res.status}). Pas de retry pour ce code.`);
           if (isSubscribed) {
             setCinemaCues([]);
             setActiveCinemaCue(null);
@@ -676,12 +636,10 @@ export default function CinemaPlayerView({
           throw new Error(`Code HTTP ${res.status}`);
         }
       } catch (err) {
-        console.warn(`[CINEMA SUBTITLE] Erreur de chargement (essai ${retryCount + 1}/${maxRetries}):`, err);
         if (isSubscribed && retryCount < maxRetries) {
           retryCount++;
           setTimeout(fetchSubtitles, 1500 * retryCount);
         } else if (isSubscribed) {
-          console.warn(`[CINEMA SUBTITLE] Échec définitif du chargement des sous-titres:`, err);
           setCinemaCues([]);
           setActiveCinemaCue(null);
           setSubtitlesOn(false);
@@ -726,10 +684,6 @@ export default function CinemaPlayerView({
     // Boundary protection
     const targetTime = Math.max(0, Math.min(newTime, duration || 999999));
 
-    console.log(`[SEEK LOGS] --- NATIVE SEEK TRIGGERED ---`);
-    console.log(`[SEEK LOGS] Seeking to : ${targetTime}s (Total duration : ${duration}s)`);
-    console.log(`[SEEK LOGS] mode isDirect : ${playbackInfo.isDirect}`);
-    console.log(`[SEEK LOGS] currentTime before seek : ${video.currentTime}s`);
 
     // Native HTML5 seek remains identical for both Direct Play and HLS:
     // setting video.currentTime will trigger Hls.js segment-seeking behind the scenes!
@@ -737,7 +691,6 @@ export default function CinemaPlayerView({
     setSeekOffset(0);
     setProgress(targetTime);
 
-    console.log(`[SEEK LOGS] currentTime immediately after seek assignment : ${video.currentTime}s`);
 
     // Ensure we trigger play if we were in playing state or if video was paused by seek side effects
     if (playing) {
@@ -749,7 +702,6 @@ export default function CinemaPlayerView({
             setIsAutoplayBlocked(false);
           })
           .catch((err) => {
-            console.warn("[SEEK LOGS] Playback paused post-seeking :", err);
             setIsAutoplayBlocked(true);
             setPlaying(false);
           });
@@ -765,7 +717,6 @@ export default function CinemaPlayerView({
     if (
       playbackInfo &&       lastOpts.movieId === movieId &&       lastOpts.forceTranscode === forceTranscode &&       lastOpts.playbackAttempts === playbackAttempts &&       lastOpts.isLowQuality === isLowQuality
     ) {
-      console.log("[CINEMA METADATA BLOCK] Playback metadata already loaded with same parameters. Preventing re-fetch.");
       return;
     }
 
@@ -788,15 +739,33 @@ export default function CinemaPlayerView({
         
         // Nettoyage complet du click prefetch pour forcer un démarrage sur un état totalement neuf
         if (prefetches[movieId]) {
-          console.log("[PLAYBACK CACHE] Nettoyage du click prefetch pour garantir un état 100% neuf.");
           delete prefetches[movieId];
         }
         
         let data: any;
+
         
         // Fallback if prefetch was null or failed (now always runs since we cleared it)
         if (!data) {
-          console.log("[PLAYBACK FETCH] Fetching metadata synchronously for movie: " + movieId);
+          const isNumeric = /^\d+$/.test(movieId);
+          if (!forceJellyfin && (movieId.startsWith("tt") || isNumeric)) {
+            const iframeResult = {
+              id: movieId,
+              streamUrl: `https://player.videasy.net/movie/${movieId}?color=FFD700&overlay=true`,
+              duration: 0,
+              container: "iframe",
+              title: "Film (Embed)",
+              isDirect: true,
+              isIframeEmbed: true,
+              iframeSrc: `https://player.videasy.net/movie/${movieId}?color=FFD700&overlay=true`,
+              subtitles: [],
+              audios: []
+            };
+            setPlaybackInfo(iframeResult);
+            setIsLoading(false);
+            return;
+          }
+
           const needsTranscodeParam = forceTranscode || playbackAttempts > 0 || isLowQuality;
           
           const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
@@ -848,6 +817,21 @@ export default function CinemaPlayerView({
                   data.duration = Math.round(itemData?.RunTimeTicks / 10000000);
                 }
                 
+                if (!forceJellyfin && itemData.ProviderIds) {
+                  if (itemData.ProviderIds.Tmdb) {
+                    data.isIframeEmbed = true;
+                    data.iframeSrc = `https://player.videasy.net/movie/${itemData.ProviderIds.Tmdb}?color=FFD700&overlay=true`;
+                  } else if (itemData.ProviderIds.Imdb) {
+                    data.isIframeEmbed = true;
+                    data.iframeSrc = `https://player.videasy.net/movie/${itemData.ProviderIds.Imdb}?color=FFD700&overlay=true`;
+                  }
+                }
+                // Fallback for testing if jellyfin bugs and no provider IDs are found
+                if (!forceJellyfin && !data.isIframeEmbed) {
+                   data.isIframeEmbed = true;
+                   data.iframeSrc = "https://player.videasy.net/movie/1368337?color=FFD700&overlay=true";
+                }
+
                 const mediaSources = itemData.MediaSources || [];
                 if (mediaSources.length > 0) {
                   const source = mediaSources[0];
@@ -881,13 +865,13 @@ export default function CinemaPlayerView({
                 }
               }
             } catch (e) {
-              console.warn("Could not get exact duration or streams from direct bypass:", e);
             }
           } else {
             let url = `/api/playback/${encodeURIComponent(movieId)}?`;
             const params = new URLSearchParams();
             if (needsTranscodeParam) params.set("forceTranscode", "true");
             if (isLowQuality) params.set("lowQuality", "true");
+            if (forceJellyfin) params.set("forceJellyfin", "true");
             url += params.toString();
 
             trackEventFired("metadataStart", "Début de récupération des métadonnées");
@@ -930,7 +914,6 @@ export default function CinemaPlayerView({
             const defaultAudioTrack = englishAudio || data.audios.find((t: any) => t.isDefault) || data.audios[0];
             if (defaultAudioTrack) {
               setActiveAudioIndex(defaultAudioTrack.index);
-              console.log(`[CINEMA AUDIO] Sélection de la piste audio : Index ${defaultAudioTrack.index} (${defaultAudioTrack.label})`);
             }
           }
           if (data && data.subtitles && data.subtitles.length > 0) {
@@ -951,7 +934,6 @@ export default function CinemaPlayerView({
               // Activer automatiquement les sous-titres si c'est la piste en anglais préférée ou marquée par défaut/forcée par le serveur
               const shouldBeOn = englishSub ? true : (serverDefaultTrack ? true : false);
               setSubtitlesOn(shouldBeOn);
-              console.log(`[CINEMA SUBTITLE] Sélection de la piste : Index ${selectedTrack.index} (${selectedTrack.label}), Activé automatiquement : ${shouldBeOn}`);
             } else {
               setActiveSubtitleIndex(null);
               setSubtitlesOn(false);
@@ -962,11 +944,9 @@ export default function CinemaPlayerView({
           }
         }
       } catch (err: any) {
-        console.warn(`Playback fetch attempt could not complete (attempt ${playbackAttempts + 1}):`, err);
         if (active) {
           if (playbackAttempts < 3) {
             const nextAttempt = playbackAttempts + 1;
-            console.warn(`[CINEMA METADATA RETRY] Attempt ${playbackAttempts + 1} did not succeed. Retrying with attempt ${nextAttempt + 1} in ${1500 * nextAttempt}ms...`);
             setTimeout(() => {
               if (active) {
                 setPlaybackAttempts(nextAttempt);
@@ -978,7 +958,6 @@ export default function CinemaPlayerView({
               }
             }, 1500 * nextAttempt);
           } else {
-            console.warn("[CINEMA METADATA FALLBACK] All metadata fetching attempts did not succeed. Emitting safe fallback source.");
             const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
             const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
             const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
@@ -1017,7 +996,7 @@ export default function CinemaPlayerView({
     return () => {
       active = false;
     };
-  }, [movieId, forceTranscode, playbackAttempts, isLowQuality]);
+  }, [movieId, forceTranscode, playbackAttempts, isLowQuality, forceJellyfin]);
 
   // Handle Audio && non-text Subtitle Track changes by reloading stream
   useEffect(() => {
@@ -1083,7 +1062,6 @@ export default function CinemaPlayerView({
       
       // Only convert to transcoding if we ACTUALLY need a non-default audio or burned in subtitles
       if (playbackInfo.isDirect && (isChangingAudio || needsBurnIn)) {
-        console.log("[STREAM CONVERSION] Converting DirectPlay to Transcoding to support Audio/Subtitle change.");
         const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
         const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : "";
         const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
@@ -1127,7 +1105,6 @@ export default function CinemaPlayerView({
           newUrl = urlObj.toString();
         }
         
-        console.log(`[STREAM RELOAD] AudioIndex=${activeAudioIndex}, SubtitleIndex=${needsBurnIn ? activeSubtitleIndex : 'Overlay'}`);
         
         if (videoRef.current && videoRef.current.currentTime > 0) {
             savedRestoreTimeRef.current = videoRef.current.currentTime;
@@ -1146,13 +1123,6 @@ export default function CinemaPlayerView({
   // Real-time console diagnostics logger for Cinema
   useEffect(() => {
     if (playbackInfo && playbackInfo.streamUrl) {
-      console.log(`%c[DIAGNOSTIC CINEMA CLIENT] DEBUT DES INFORMATIONS DE FLUX`, "color: #f59e0b; font-weight: bold; font-size: 12px;");
-      console.log(`%cURL exacte du flux : %c${playbackInfo.streamUrl}`, "color: #9ca3af;", "color: #38bdf8; font-family: monospace;");
-      console.log(`%cMode de lecture : %c${playbackInfo.isDirect ? "DirectPlay (Flux brut d'origine)" : "Transcoding (Conversion HLS)"}`, "color: #9ca3af;", "color: #10b981; font-weight: bold;");
-      console.log(`%cCodec Vidéo Détecté : %c${playbackInfo.videoCodec || "Inconnu"}`, "color: #9ca3af;", "color: #a78bfa; font-family: monospace;");
-      console.log(`%cCodec Audio Détecté : %c${playbackInfo.audioCodec || "Inconnu"}`, "color: #9ca3af;", "color: #a78bfa; font-family: monospace;");
-      console.log(`%cConteneur : %c${playbackInfo.container || "Inconnu"}`, "color: #9ca3af;", "color: #f472b6; font-family: monospace;");
-      console.log(`%c[DIAGNOSTIC CINEMA CLIENT] FIN DES INFORMATIONS DE FLUX`, "color: #f59e0b; font-weight: bold; font-size: 12px;");
     }
   }, [playbackInfo]);
 
@@ -1188,7 +1158,6 @@ export default function CinemaPlayerView({
       const durationMs = performance.now() - streamLoadStartRef.current;
       setInitialBufferingTime(durationMs / 1000);
       streamLoadStartRef.current = null;
-      console.log(`[CINEMA PLAYER] Initial buffering took ${(durationMs / 1000).toFixed(2)} seconds.`);
     }
   }, [isMetadataLoaded]);
 
@@ -1269,7 +1238,6 @@ export default function CinemaPlayerView({
       // 1. Force l'attachement du média : Dans la fonction déclenchée par le bouton de lecture, assure-toi que hls.attachMedia(videoRef.current) soit explicitement exécuté AVANT de lancer hls.loadSource(streamUrl)
       if (!isDirect && streamUrl && Hls.isSupported()) {
         if (loadedUrlRef.current !== streamUrl) {
-          console.log("[PLAYBACK HANDLER] Synchronous HLS initialization on user click gesture...");
           let hls = hlsRef.current;
           if (!hls) {
             hls = new Hls({
@@ -1304,11 +1272,9 @@ export default function CinemaPlayerView({
               validateAndSetDuration(liveDur, jellyfinDur);
               // Safe deferred play when manifest is parsed
               video.play().catch((err) => {
-                console.warn("[PLAYBACK HANDLER] Deferred HLS play could not start, retrying with muted...");
                 video.muted = true;
                 setMuted(true);
                 video.play().catch((err2) => {
-                  console.warn("[PLAYBACK HANDLER] Deferred HLS muted play could not start either");
                 });
               });
             });
@@ -1319,14 +1285,12 @@ export default function CinemaPlayerView({
                 return;
               }
               if ((data.type as string) === "mediaError" || data.details === "bufferStalledError") {
-                console.log(`[HLS DIAGNOSTIC] [${Date.now()}] ⚠️ Erreur HLS récupérable détectée : ${data.details} (${data.type})`);
                 if (data.details !== "bufferStalledError") {
                   hls.recoverMediaError();
                 }
                 return;
               }
               if (data.fatal) {
-                console.warn("[CINEMA RECOVERY] Severe HLS condition. Falling back to alternative stream.");
                 const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
                 const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
                 const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
@@ -1353,40 +1317,32 @@ export default function CinemaPlayerView({
             });
           }
 
-          console.log("[PLAYBACK HANDLER] Attaching media and loading source...");
           hls.attachMedia(video);
           hls.loadSource(streamUrl);
           lastLoadedSourceRef.current = streamUrl;
           loadedUrlRef.current = streamUrl;
         } else {
-          console.log("[PLAYBACK HANDLER] HLS is already loaded for this URL. Skipping loadSource to avoid aborting play.");
         }
       } else if (streamUrl) {
         if (loadedUrlRef.current !== streamUrl) {
-          console.log("[PLAYBACK HANDLER] Loading direct play src...");
           video.src = streamUrl;
           video.load();
           lastLoadedSourceRef.current = streamUrl;
           loadedUrlRef.current = streamUrl;
         } else {
-          console.log("[PLAYBACK HANDLER] Direct play src already loaded. Skipping video.load() to avoid aborting play.");
         }
       }
 
       // 4. Sécurise le .play() : Assure-toi que la promesse de lecture ne soit appelée qu'une fois que l'événement HLS MANIFEST_PARSED a été totalement validé par le lecteur.
       // 2. Déclenchement direct du Play : Une fois le média attaché, force la lecture avec une promesse propre seulement si les métadonnées sont chargées ou si c'est du Direct Play (qui gère sa propre synchro de chargement)
       if (isDirect || isMetadataLoaded) {
-        console.log("[PLAYBACK HANDLER] Metadata is already loaded or DirectPlay. Triggering video.play() immediately...");
         video.play().catch((err) => {
-          console.warn("[PLAYBACK HANDLER] Play attempt halted by browser. Retrying with muted fallback...");
           video.muted = true;
           setMuted(true);
           video.play().catch((err2) => {
-            console.warn("[PLAYBACK HANDLER] Muted play attempt could not start:");
           });
         });
       } else {
-        console.log("[PLAYBACK HANDLER] Metadata not loaded yet. Delaying video.play() until MANIFEST_PARSED / loadedmetadata fires.");
       }
 
       // Request fullscreen on explicit user gesture/click
@@ -1394,7 +1350,6 @@ export default function CinemaPlayerView({
         if (viewportRef.current.requestFullscreen) {
           viewportRef.current.requestFullscreen()
             .then(() => setFullscreen(true))
-            .catch((err) => console.warn("Fullscreen request could not complete:"));
         }
       }
     }
@@ -1403,12 +1358,22 @@ export default function CinemaPlayerView({
   // 5. VIDEO SOURCE TRANSITION MANAGER WITH SEAMLESS HLS.JS INTEGRATION
   useEffect(() => {
     if (isLoading) return;
+    
+    // Pour les iframes, on n'a pas besoin de l'élément video
+    if (playbackInfo?.isIframeEmbed) {
+      setIsMetadataLoaded(true);
+      setPlaying(true);
+      setIsActuallyPlaying(true);
+      setIsLoading(false);
+      setIsStreamLoading(false);
+      return;
+    }
+
     const video = videoRef.current;
     if (!video || !playbackInfo?.streamUrl) return;
-
     // Prevent destructive stream reset if the URL is already loaded (State Stabilization)
     if (loadedUrlRef.current === playbackInfo.streamUrl) {
-      console.log("[STREAM LOAD] Stream URL already loaded (loadedUrlRef match). Skipping destructive reset && loadSource.");
+
       return;
     }
     
@@ -1419,23 +1384,12 @@ export default function CinemaPlayerView({
     // Reset video player stream state
     video.pause();
     if (hlsRef.current) {
-      console.trace("[PLAYER STATE CHANGE]", {
-        action: "hls.destroy() - stream load cleanup",
-        streamUrl: playbackInfo.streamUrl,
-        playbackState: playing ? "playing" : "paused",
-        isLoading,
-        isStreamLoading: isLoading,
-        readyState: video?.readyState,
-        networkState: video?.networkState
-      });
-      hlsRef.current.destroy();
       hlsRef.current = null;
     }
     video.removeAttribute("src");
     try {
       video.load();
     } catch (e) {
-      console.warn("Video reset completed with adjustment");
     }
 
     setIsMetadataLoaded(false);
@@ -1457,7 +1411,6 @@ export default function CinemaPlayerView({
       const jellyfinDur = playbackInfo?.duration || 0;
       validateAndSetDuration(liveDur, jellyfinDur);
       if (savedRestoreTimeRef.current > 0) {
-        console.log(`[CINEMA RESTORE] Restoring position to: ${savedRestoreTimeRef.current}s`);
         video.currentTime = savedRestoreTimeRef.current;
         savedRestoreTimeRef.current = 0;
       }
@@ -1471,36 +1424,15 @@ export default function CinemaPlayerView({
       const jellyfinDur = playbackInfo?.duration || 0;
       validateAndSetDuration(liveDur, jellyfinDur);
       if (savedRestoreTimeRef.current > 0) {
-        console.log(`[CINEMA RESTORE] Restoring position to: ${savedRestoreTimeRef.current}s`);
         video.currentTime = savedRestoreTimeRef.current;
         savedRestoreTimeRef.current = 0;
       }
       setPlaying(true);
-      console.trace("[PLAYER STATE CHANGE]", {
-        action: "setIsLoading(false) - handleCanPlay",
-        streamUrl: playbackInfo.streamUrl,
-        playbackState: playing ? "playing" : "paused",
-        isLoading: false,
-        isStreamLoading: false,
-        readyState: video?.readyState,
-        networkState: video?.networkState
-      });
-      setIsLoading(false);
-      setIsStreamLoading(false);
     };
 
     const handleLoadedData = () => {
       trackEventFired("loadeddata", "Événement loadeddata");
       setPlaying(true);
-      console.trace("[PLAYER STATE CHANGE]", {
-        action: "setIsLoading(false) - handleLoadedData",
-        streamUrl: playbackInfo.streamUrl,
-        playbackState: playing ? "playing" : "paused",
-        isLoading: false,
-        isStreamLoading: false,
-        readyState: video?.readyState,
-        networkState: video?.networkState
-      });
       setIsLoading(false);
       setIsStreamLoading(false);
     };
@@ -1513,32 +1445,17 @@ export default function CinemaPlayerView({
 
     if (streamMode === "DirectPlay") {
       // 1. BRANCHING LOGIC CRITIQUE: Si mode === "DirectPlay", bypass HLS entirely
-      console.log("[STREAM LOAD] Lecture directe (Direct Play) native lancée (HLS contourné complètement)");
       addLog("Stream attached (Direct Play)");
-      logChrono("Attribution du src vidéo");
-      console.log(`[URL DEBUG LOG] [CINEMA PLAYER DIRECT] Loading URL: "${playbackInfo.streamUrl}" | Contains id: ${playbackInfo.streamUrl.includes("id=")} | Contains path: ${playbackInfo.streamUrl.includes("path=")}`);
-      if (video.src === playbackInfo.streamUrl) return;
-      console.trace("[PLAYER STATE CHANGE]", {
-        action: "video.src = playbackInfo.streamUrl - DirectPlay",
-        streamUrl: playbackInfo.streamUrl,
-        playbackState: playing ? "playing" : "paused",
-        isLoading,
-        isStreamLoading: isLoading,
-        readyState: video?.readyState,
-        networkState: video?.networkState
-      });
       video.src = playbackInfo.streamUrl;
       video.load();
 
       // play() immédiat seulement si l'utilisateur a débloqué
       if (adClicks >= 2) {
         video.play().catch((err) => {
-          console.warn("[STREAM LOAD] Playback immédiat DirectPlay reporté");
         });
       }
     } else {
       // Si mode === "Transcoding / HLS", initialiser Hls.js s'il est supporté
-      console.log(`[CONCURRENCY] Initialisation asynchrone de Hls.js lancée en parallèle du téléchargement du sous-titre pour : ${playbackInfo.title}`);
       addLog("Stream attached (HLS)");
       // Detect Apple devices to prioritize native HLS for AirPlay support
       const isApple = /Mac|iPod|iPhone|iPad/.test(navigator.platform) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -1547,35 +1464,14 @@ export default function CinemaPlayerView({
 
       if (preferNativeHLS) {
         // Native support (Safari iOS/macOS) prioritizes AirPlay compatibility
-        console.log("[STREAM LOAD] Lecture native HLS activée (priorité Apple/Safari pour AirPlay)");
         logChrono("Attribution du src vidéo");
         video.src = playbackInfo.streamUrl;
         video.load();
       } else if (Hls.isSupported()) {
         if (hlsRef.current) {
-          console.warn("[HLS CONTROLLER] Destroying previous HLS player instance to prevent double instantiation.");
-          console.trace("[PLAYER STATE CHANGE]", {
-            action: "hls.destroy() - pre-instantiation safety",
-            streamUrl: playbackInfo.streamUrl,
-            playbackState: playing ? "playing" : "paused",
-            isLoading,
-            isStreamLoading: isLoading,
-            readyState: video?.readyState,
-            networkState: video?.networkState
-          });
           hlsRef.current.destroy();
           hlsRef.current = null;
         }
-
-        console.trace("[PLAYER STATE CHANGE]", {
-          action: "new Hls() - initializing cinema player instance",
-          streamUrl: playbackInfo.streamUrl,
-          playbackState: playing ? "playing" : "paused",
-          isLoading,
-          isStreamLoading: isLoading,
-          readyState: video?.readyState,
-          networkState: video?.networkState
-        });
         const hls = new Hls({
           enableWorker: true,
           lowLatencyMode: false,
@@ -1601,17 +1497,6 @@ export default function CinemaPlayerView({
         });
 
         logChrono("Attribution du src vidéo");
-        console.log(`[URL DEBUG LOG] [CINEMA PLAYER HLS] Loading URL: "${playbackInfo.streamUrl}" | Contains id: ${playbackInfo.streamUrl.includes("id=")} | Contains path: ${playbackInfo.streamUrl.includes("path=")}`);
-        if (video.src === playbackInfo.streamUrl) return;
-        console.trace("[PLAYER STATE CHANGE]", {
-          action: "hls.loadSource() - loading cinema manifest",
-          streamUrl: playbackInfo.streamUrl,
-          playbackState: playing ? "playing" : "paused",
-          isLoading,
-          isStreamLoading: isLoading,
-          readyState: video?.readyState,
-          networkState: video?.networkState
-        });
         hls.attachMedia(video);
         hls.loadSource(playbackInfo.streamUrl);
         hlsRef.current = hls;
@@ -1631,7 +1516,6 @@ export default function CinemaPlayerView({
             return;
           }
           if ((data.type as string) === "mediaError" || data.details === "bufferStalledError") {
-            console.log(`[HLS DIAGNOSTIC] [${Date.now()}] ⚠️ Erreur HLS récupérable détectée : ${data.details} (${data.type})`);
             if (data.details !== "bufferStalledError") {
               hls.recoverMediaError();
             }
@@ -1639,7 +1523,6 @@ export default function CinemaPlayerView({
           }
           if (data.fatal) {
             // Instant fallback (0ms) to alternative safe stream
-            console.warn("[CINEMA RECOVERY] Severe HLS condition encountered.");
             if (progress > 0) {
               savedRestoreTimeRef.current = progress;
             }
@@ -1670,10 +1553,8 @@ export default function CinemaPlayerView({
       } else {
         // Fallback Native HLS if Hls.js is not supported but native is
         if (video.canPlayType("application/vnd.apple.mpegurl")) {
-            console.log("[STREAM LOAD] Lecture native HLS activée (Fallback)");
             video.src = playbackInfo.streamUrl;
         } else {
-            console.log("[STREAM LOAD] Fallback HLS non supporté au niveau du navigateur");
             video.src = playbackInfo.streamUrl;
         }
         logChrono("Attribution du src vidéo");
@@ -1694,6 +1575,7 @@ export default function CinemaPlayerView({
 
   // 4. SYNC PLAY ACTIONS WITH HTML5 VIDEO ELEMENT (For subsequent user play/pause button actions)
   useEffect(() => {
+    if (playbackInfo?.isIframeEmbed) return;
     const video = videoRef.current;
     if (!video) return;
 
@@ -1709,25 +1591,20 @@ export default function CinemaPlayerView({
         playPromise
           .then(() => {
             setIsAutoplayBlocked(false);
-            console.log("[AUTOPLAY/PLAY] Playback execution successful.");
-            console.log(`[SEEK LOGS] currentTime après play resolved : ${video.currentTime}s`);
 
             if (isInitialAutoplayRef.current) {
               isInitialAutoplayRef.current = false;
             }
           })
           .catch((err) => {
-            console.warn("Play request delayed by browser security policy. Triggering automatic muted fallback...");
             video.muted = true;
             setMuted(true);
             video.play()
               .then(() => {
                 setIsAutoplayBlocked(false);
                 setPlaying(true);
-                console.log("[AUTOPLAY] Play with automatic muted fallback successful.");
               })
               .catch((err2) => {
-                console.warn("[AUTOPLAY] Muted fallback could not start");
                 setIsAutoplayBlocked(false); // Do not block UI with an overlay
                 setPlaying(false);
               });
@@ -1778,7 +1655,6 @@ export default function CinemaPlayerView({
       try {
         vid.webkitEnterFullscreen();
       } catch (e) {
-        console.warn("Erreur webkitEnterFullscreen:", e);
       }
       return;
     }
@@ -1789,740 +1665,52 @@ export default function CinemaPlayerView({
 
     if (!doc.fullscreenElement && !doc.webkitFullscreenElement) {
       if (viewport.requestFullscreen) {
-        viewport.requestFullscreen().then(() => setFullscreen(true)).catch((e: any) => console.warn(e));
       } else if (viewport.webkitRequestFullscreen) {
-        viewport.webkitRequestFullscreen().then(() => setFullscreen(true)).catch((e: any) => console.warn(e));
       }
     } else {
       if (doc.exitFullscreen) {
-        doc.exitFullscreen().then(() => setFullscreen(false)).catch((e: any) => console.warn(e));
       } else if (doc.webkitExitFullscreen) {
-        doc.webkitExitFullscreen().then(() => setFullscreen(false)).catch((e: any) => console.warn(e));
       }
     }
   };
 
   return (
-    <div 
-      ref={viewportRef}
-      onMouseMove={resetInactivityTimer}
-      onClick={resetInactivityTimer}
-      className={`fixed inset-0 z-50 bg-black flex flex-col justify-between select-none overflow-hidden ${
-        controlsVisible ? "cursor-default" : "cursor-none"
-      }`}
-    >
-      
-      {/* 1. STANDALONE CINEMA UPPER DECK (GO BACK && TITLE INFO) */}
-      <div className={`relative p-6 pt-[calc(1.5rem+env(safe-area-inset-top))] bg-gradient-to-b from-black/95 via-black/50 to-transparent flex items-center justify-between transition-opacity duration-300 z-50 ${
-        controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"
-      } ${adClicks < 2 ? "hidden" : ""}`}>
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => {
-              if (document.fullscreenElement) {
-                document.exitFullscreen().catch(() => {});
-              }
-              onClose();
-            }}
-            className="p-2 rounded-full bg-white/5 hover:bg-white/10 active:scale-95 text-white/70 hover:text-white border border-white/5 hover:border-white/15 transition-all cursor-pointer flex items-center justify-center"
-            title="Back"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <h2 className="text-lg md:text-xl font-serif text-white/90 tracking-wide font-light">
-            {movieTitle}
-          </h2>
-        </div>
-
-        {/* Top Right completely empty and clean */}
-        <div />
-      </div>
-
-      {/* 2. CORE MOVIE VIEWPORT RENDER CONTAINER */}
-      <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
-        
-        {/* Unified High-End Loader Overlay */}
-        {(isLoading || isStreamLoading || isBuffering) && !videoError && adClicks >= 2 && (
-          <div className="fixed inset-0 flex flex-col items-center justify-center bg-black z-50 space-y-4">
-            <Loader2 className="w-12 h-12 text-amber-500 animate-spin" />
-            <div className="flex flex-col items-center text-center space-y-2">
-              <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest animate-pulse">
-                Loading in progress...
-              </span>
-              <span className="text-[11px] text-zinc-500 font-sans tracking-wide">
-                Please wait at least 30 seconds before reporting any issues
-              </span>
-            </div>
-          </div>
-        )}
-
-        {videoError && (
-          <div className="max-w-md p-6 bg-black/95 border border-rose-500/20 rounded-2xl text-center space-y-4 z-40 mx-4 shadow-2xl">
-            <AlertCircle className="w-10 h-10 text-rose-500 mx-auto animate-bounce" />
-            <div className="space-y-1">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-rose-400">Cinema Playback Error</h3>
-              <p className="text-xs text-zinc-400 font-sans leading-relaxed">{videoError}</p>
-            </div>
-            <button
-              onClick={() => window.location.reload()}
-              className="bg-zinc-900 border border-zinc-800 text-stone-200 hover:text-amber-400 text-xs font-mono py-2 px-4 rounded-lg transition-all"
-            >
-              Réessayer
-            </button>
-          </div>
-        )}
-
-        {/* Dynamic Video element (Unconditionally mounted to prevent remounting) */}
-        <div 
-          className="relative w-full h-full flex items-center justify-center"
-          style={{ display: !videoError ? "flex" : "none" }}
+    <div className="fixed inset-0 z-50 bg-black flex flex-col justify-center items-center select-none overflow-hidden cursor-default">
+      {/* UPPER DECK (GO BACK) */}
+      <div className="absolute top-0 left-0 right-0 p-6 pt-[calc(1.5rem+env(safe-area-inset-top))] flex items-center justify-between z-50 pointer-events-none">
+        <button
+          onClick={() => {
+            if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+            onClose();
+          }}
+          className="pointer-events-auto p-2 rounded-full bg-black/50 hover:bg-black/80 text-white/70 hover:text-white transition-all cursor-pointer flex items-center justify-center backdrop-blur-md"
+          title="Back"
         >
-          <video
-            ref={videoRef}
-            x-webkit-airplay="allow"
-            playsInline
-            controls={false}
-            autoPlay={adClicks >= 2}
-            muted={muted}
-            preload="auto"
-            crossOrigin="anonymous"
-                        className="w-full h-full bg-black object-contain "
-            onPlay={() => {
-              trackEventFired("play", "Événement play");
-              setPlaying(true);
-            }}
-            onPause={() => {
-              if (!isResettingRef.current) {
-                setPlaying(false);
-              }
-            }}
-            onProgress={() => {
-              trackEventFired("ttfb", "Réception du premier octet (TTFB)");
-            }}
-            onTimeUpdate={(e) => {
-              const curTime = e.currentTarget.currentTime;
-              const dur = e.currentTarget?.duration || 0;
-              
-              if (curTime > 0 && dur > 0 && movieId) {
-                try {
-                  const savedStr = localStorage.getItem("classico_progress") || "{}";
-                  const progressObj = JSON.parse(savedStr);
-                  progressObj[movieId] = {
-                    id: movieId,
-                    title: movieTitle,
-                    poster: moviePoster,
-                    currentTime: curTime,
-                    duration: dur,
-                    updatedAt: Date.now()
-                  };
-                  localStorage.setItem("classico_progress", JSON.stringify(progressObj));
-                } catch (err) {}
-              }
-
-              if (!videoRef.current) return;
-              const currentVideoTime = e.currentTarget.currentTime;
-              if (!firstFrameLoggedRef.current && currentVideoTime > 0) {
-                firstFrameLoggedRef.current = true;
-                setIsActuallyPlaying(true);
-                trackEventFired("firstFrame", "Première frame affichée");
-              }
-              const absoluteTime = seekOffset + currentVideoTime;
-              setProgress(absoluteTime);
-
-              // Synchronisation et recherche de la réplique correspondante
-              if (!cinemaCuesRef || !cinemaCuesRef.current) {
-                setActiveCinemaCue(null);
-                return;
-              }
-              const cuesLimit = cinemaCuesRef.current.length;
-              if (subtitlesOn && activeSubtitleIndex !== null && cuesLimit > 0) {
-                // Tolérance de +/- 0.3s pour parer aux décalages de synchro
-                const foundCue = cinemaCuesRef.current.find(
-                  cue => cue && absoluteTime >= (cue.start - 0.3) && absoluteTime <= (cue.end + 0.3)
-                );
-                
-                setActiveCinemaCue(foundCue ? foundCue.text : null);
-              } else {
-                setActiveCinemaCue(null);
-              }
-            }}
-            onEnded={() => {
-              setPlaying(false);
-              setProgress(0);
-              setSeekOffset(0);
-            }}
-            onLoadedMetadata={(e) => {
-              trackEventFired("loadedmetadata", "Événement loadedmetadata");
-              const video = e.currentTarget;
-              console.log(`[SEEK LOGS] currentTime après loadedmetadata : ${video.currentTime}s`);
-              validateAndSetDuration(video?.duration || 0, playbackInfo?.duration || 0);
-            }}
-            onCanPlay={(e) => {
-              trackEventFired("canplay", "Événement canplay");
-              const video = e.currentTarget;
-              console.log(`[SEEK LOGS] currentTime après canplay : ${video.currentTime}s`);
-              validateAndSetDuration(video?.duration || 0, playbackInfo?.duration || 0);
-              setIsBuffering(false);
-            }}
-            onWaiting={(e) => {
-              setIsBuffering(true);
-              const video = e.currentTarget;
-              let bufferEnd = 0;
-              if (video.buffered.length > 0) {
-                 bufferEnd = video.buffered.end(video.buffered.length - 1);
-              }
-              const bufferLevel = bufferEnd - video.currentTime;
-              console.log(`[MICRO-BUFFERING DIAGNOSTIC] [${Date.now()}] ⚠️ STALL DETECTED ⚠️ | Spinner affiché !`);
-              console.log(`[MICRO-BUFFERING DIAGNOSTIC] currentTime: ${video.currentTime}s, bufferEnd: ${bufferEnd}s, bufferLevel (restant): ${bufferLevel}s`);
-              console.log(`[MICRO-BUFFERING DIAGNOSTIC] readyState: ${video.readyState}, networkState: ${video.networkState}`);
-              
-              if ((window as any)._microStallStart === undefined) {
-                  (window as any)._microStallStart = performance.now();
-              }
-              addLog("Buffering started");
-            }}
-            onSeeking={(e) => {
-            console.log(`[PERF DIAGNOSTIC] [${Date.now()}] video.onSeeking. Cible: ${e.currentTarget.currentTime}s`);
-            ttfbTimeRef.current = 0; // reset to measure TTFB after seek
-          }}
-          onSeeked={(e) => {
-            console.log(`[PERF DIAGNOSTIC] [${Date.now()}] video.onSeeked. Atteint: ${e.currentTarget.currentTime}s`);
-          }}
-          onPlaying={(e) => {
-              trackEventFired("playing", "Événement playing (Lecture active)");
-              if (rebufferStartTimeRef.current) {
-                 const duration = performance.now() - rebufferStartTimeRef.current;
-                 console.log(`[MICRO-BUFFERING DIAGNOSTIC] [${Date.now()}] ✅ STALL RESOLVED ✅ | Temps de stall: ${duration.toFixed(2)}ms`);
-                 rebufferStartTimeRef.current = 0;
-              }
-              if ((window as any)._microStallStart !== undefined) {
-                  const duration = performance.now() - (window as any)._microStallStart;
-                  console.log(`[MICRO-BUFFERING DIAGNOSTIC] [${Date.now()}] ✅ STALL RESOLVED ✅ | Temps de stall (fallback): ${duration.toFixed(2)}ms`);
-                  (window as any)._microStallStart = undefined;
-              }
-              setIsBuffering(false);
-              setIsActuallyPlaying(true);
-              setPlaying(true);
-              addLog("Playback started");
-            }}
-
-            onError={(e) => {
-              const video = e.currentTarget;
-              const err = video.error;
-              console.warn("HTML5 video warning event:");
-              
-              if (err && err.code === 1) {
-                console.log("[CINEMA] Stream aborted. Skipping.");
-                return;
-              }
-              
-              // Suppression des boucles de secours : Bascule instantanée (0ms) vers le flux direct de secours
-              console.warn("[CINEMA RECOVERY] HTML5 video transition occurred. Adjusting streaming sources.");
-              if (progress > 0) {
-                savedRestoreTimeRef.current = progress;
-              }
-              const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&SegmentLength=3&MinSegments=1&BreakOnNonKeyFrames=True&VideoBitrate=140000000&MaxVideoBitrate=140000000`;
-              const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
-              const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
-              const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
-              const fallbackUrl = isNetlify ? `${serverUrl}${fallbackPath}&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}` : formatHlsUrl(`/api/jellyfin/proxy${fallbackPath}&DeviceId=${deviceId}&MediaSourceId=${movieId}`, movieId, deviceId, apiKey);
-              setPlaybackInfo({
-                id: movieId,
-                streamUrl: fallbackUrl,
-                duration: duration,
-                container: "m3u8",
-                title: playbackInfo?.title || "Film",
-                isDirect: false,
-                chosenPath: fallbackPath,
-                videoCodec: "h264",
-                audioCodec: "aac",
-                subtitles: [],
-                audios: []
-              } as any);
-              setVideoError(null);
-              setIsMetadataLoaded(false);
-            }}
-          >
-          </video>
-
-          {/* Custom React Subtitle Overlay */}
-          {subtitlesOn && activeCinemaCue && (
-            <div 
-              className="absolute bottom-[10%] left-1/2 -translate-x-1/2 z-[60] text-center pointer-events-none w-[80%] max-w-2xl select-none"
-              style={{ textShadow: "0 2px 4px rgba(0,0,0,0.8)" }}
-            >
-              <span className="inline-block bg-black/85 text-stone-100 px-4 py-2 rounded-lg text-sm sm:text-base md:text-lg lg:text-xl font-sans font-medium tracking-wide leading-relaxed shadow-2xl border border-white/5 whitespace-pre-line text-center">
-                {activeCinemaCue}
-              </span>
-            </div>
-          )}
-        </div>
-
-      {/* 3. CENTER SCREEN TAP GRABBER (PLAY/PAUSE ON BIG SCREEN TAP) */}
-      <div 
-        onClick={() => {
-          handlePlayPauseClick();
-        }}
-        className={`absolute inset-0 z-20 cursor-pointer ${adClicks < 2 ? "hidden" : ""}`}
-        style={{ pointerEvents: isLoading || videoError ? "none" : "auto" }}
-      />
-
-      {/* AD WALL OVERLAY */}
-      <AnimatePresence>
-        {adClicks < 2 && (
-          <motion.div
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center"
-            onClick={(e) => {
-              const target = e.target as HTMLElement;
-              if (!target.closest('button') && !target.closest('a')) {
-                e.stopPropagation();
-              }
-            }}
-          >
-            <div className="max-w-2xl w-[90%] md:w-full flex flex-col gap-3">
-              {/* Top Status Bars */}
-              <div className="flex justify-between gap-3 px-1">
-                <div className="h-1.5 flex-1 bg-[#D4AF37] rounded-full transition-all duration-300" />
-                <div className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${adClicks >= 1 ? 'bg-[#D4AF37]' : 'bg-[#333333]'}`} />
-              </div>
-
-              <div className="flex flex-col items-center gap-6 w-full px-6 py-10 md:px-10 bg-[#1e1e1e] rounded-[12px] shadow-[0_10px_40px_rgba(0,0,0,0.8)] border border-[#D4AF37]/30 relative overflow-hidden">
-                <div className="w-16 h-16 rounded-2xl bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] mb-2 shadow-[0_0_20px_rgba(212,175,55,0.1)]">
-                  <Lock className="w-8 h-8" strokeWidth={1.5} />
-                </div>
-                <div className="text-center space-y-4">
-                  <h3 className="text-2xl font-bold text-white tracking-tight">Ads completed: {adClicks} / 2</h3>
-                  <p className="text-[15px] md:text-base text-zinc-300 leading-relaxed max-w-xl mx-auto">
-                    To keep Classico 100% free and premium, please support us by temporarily disabling your AdBlocker and interacting with our sponsored links. Thank you for your amazing support! While you unlock the access, your movie is already safely loading in the background.
-                  </p>
-                </div>
-                <button
-                  onClick={(e) => {
-                    window.open('https://www.effectivecpmnetwork.com/p7kic0xhh?key=471353696cb771339e1bfbcb52b34d63', '_blank');
-                    if (adClicks === 0) {
-                      setAdClicks(1);
-                    } else if (adClicks === 1) {
-                      setAdClicks(2);
-                      setPlaying(true); // Auto start playback
-                    }
-                  }}
-                  className="w-full max-w-sm relative overflow-hidden group bg-gradient-to-b from-[#E5C158] to-[#C39B22] text-black font-semibold py-4 px-6 rounded-xl hover:from-[#F6D269] hover:to-[#D4AF37] active:scale-[0.98] transition-all block text-center mt-2 shadow-[0_0_20px_rgba(212,175,55,0.2)]"
-                >
-                  <div className="relative z-10 flex items-center justify-center gap-2">
-                    <span className="text-lg">
-                      Watch Ad && Unlock
-                    </span>
-                  </div>
-                </button>
-                <div className="mt-2 text-center max-w-md mx-auto">
-                  <p className="text-[11px] md:text-xs text-zinc-500 font-mono tracking-wide leading-relaxed">
-                    We strictly guarantee absolutely NO interruptions, unexpected cuts, or pop-up redirections during your movie playback.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ON-SCREEN MUTED INDICATOR && PAUSE COVER OVERLAY REMOVED */}
-
+          <ArrowLeft className="w-6 h-6" />
+        </button>
       </div>
 
-      {/* 4. CINEMA LOWER CONTROL STATION */}
-      <div className={`relative p-6 bg-gradient-to-t from-black/95 via-black/80 to-transparent border-t border-white/5 flex flex-col gap-4 transition-opacity duration-300 z-40 ${
-        controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"
-      } ${adClicks < 2 ? "hidden" : ""}`}>
-        
-        {/* PROGRESS SCRUB TIMELINE BAR */}
-        {!isLoading && !videoError && (
-          <div className="flex items-center gap-4">
-            <span className="text-[10px] font-mono text-zinc-400 select-none w-10 text-left">
-              {formatTime(progress)}
-            </span>
-
-            <div 
-              id="cinema-timeline"
-              className="flex-grow h-1.5 bg-zinc-800 rounded-full cursor-pointer relative group"
-              onClick={(e) => {
-                e.stopPropagation();
-                const rect = e.currentTarget.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                const percentage = clickX / rect.width;
-                const newTime = duration * percentage;
-                seekTo(newTime);
-              }}
-            >
-              {/* Loaded visual progress fill */}
-              <div 
-                className="absolute inset-y-0 left-0 bg-amber-500 rounded-full group-hover:bg-amber-400"
-                style={{ width: `${progressPercent}%` }}
-              />
-              {/* Handled Scrubber point */}
-              <div 
-                className="absolute w-3.5 h-3.5 bg-white border border-amber-500 rounded-full -top-1 shadow group-hover:scale-125 transition-all duration-150"
-                style={{ left: `calc(${progressPercent}% - 7px)` }}
-              />
-            </div>
-
-            <span className="text-[10px] font-mono text-zinc-400 select-none min-w-[70px] text-right whitespace-nowrap">
-              {getFormattedDuration()}
-            </span>
-          </div>
-        )}
-
-        {/* CORE AUDIO/PLAY/MUTING ACTION DECK BUTTONS */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 sm:gap-5">
-            {/* Play/Pause control */}
-            <button
-              onClick={handlePlayPauseClick}
-              className="text-white/80 hover:text-white p-1.5 active:scale-90 transition-all duration-150 cursor-pointer"
-              title={playing ? "Pause" : "Play"}
-            >
-              {playing ? (
-                <Pause className="w-6 h-6 fill-current" />
-              ) : (
-                <Play className="w-6 h-6 fill-current" />
-              )}
-            </button>
-
-            {/* Reculer de 15s */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (videoRef.current) {
-                  seekTo(videoRef.current.currentTime - 15);
-                }
-              }}
-              className="text-white/60 hover:text-white p-1.5 active:scale-90 transition-all duration-150 cursor-pointer flex items-center justify-center"
-              title="Reculer de 15s"
-            >
-              <RotateCcw className="w-5 h-5" />
-            </button>
-
-            {/* Avancer de 15s */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (videoRef.current) {
-                  seekTo(videoRef.current.currentTime + 15);
-                }
-              }}
-              className="text-white/60 hover:text-white p-1.5 active:scale-90 transition-all duration-150 cursor-pointer flex items-center justify-center"
-              title="Avancer de 15s"
-            >
-              <RotateCw className="w-5 h-5" />
-            </button>
-
-            {/* Volume control deck */}
-            <div className="flex items-center border-l border-white/10 pl-2 sm:pl-4 group/volume relative">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setMuted(prev => !prev);
-                }}
-                className="text-white/60 hover:text-white transition-colors p-1.5 active:scale-95 cursor-pointer flex items-center justify-center"
-                title={muted || volume === 0 ? "Activer le son" : "Couper le son"}
-              >
-                {muted || volume === 0 ? (
-                  <VolumeX className="w-5 h-5 text-rose-500" />
-                ) : (
-                  <Volume2 className="w-5 h-5 text-amber-500" />
-                )}
-              </button>
-
-              <div className="w-0 overflow-hidden group-hover/volume:w-24 group-focus-within/volume:w-24 transition-all duration-300 ease-out flex items-center pl-1">
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={muted ? 0 : volume}
-                  onChange={(e) => {
-                    const v = Number(e.target.value);
-                    setVolume(v);
-                    setMuted(v === 0);
-                  }}
-                  className="w-20 h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                  onClick={(e) => e.stopPropagation()}
-                />
-              </div>
-            </div>
-
-          </div>
-          {/* RIGHT SIDE: DIAGNOSTICS && FULLSCREEN */}
-          <div className="flex items-center gap-3">
-            {/* Cast / AirPlay Unified Button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                const video = videoRef.current as any;
-                if (!video) return;
-                
-                if (video.webkitShowPlaybackTargetPicker) {
-                  video.webkitShowPlaybackTargetPicker();
-                } else if (video.remote && video.remote.prompt) {
-                  video.remote.prompt().catch((err: any) => {
-                    console.log("Cast prompt error:", err);
-                    alert("Impossible de démarrer le casting. Veuillez vérifier votre appareil.");
-                  });
-                } else {
-                  alert("Le casting n'est pas supporté directement sur ce navigateur.");
-                }
-              }}
-              className="p-1.5 text-zinc-500 hover:text-white active:scale-95 transition-all cursor-pointer"
-              title="Caster l'écran"
-            >
-              <Cast className="w-5 h-5" />
-            </button>
-
-            {/* Unified Settings Menu */}
-            <div className="relative">
-              <button
-                id="cinema-settings-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowSettingsMenu(prev => !prev);
-                }}
-                className={`p-1.5 rounded transition-all duration-150 cursor-pointer flex items-center justify-center ${
-                  showSettingsMenu ? "text-amber-400 bg-amber-500/10" : "text-white/60 hover:text-white hover:bg-white/5"
-                }`}
-                title="Settings"
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-
-              {showSettingsMenu && (
-                <div 
-                  id="cinema-settings-menu"
-                  className="absolute bottom-full right-0 mb-3 w-64 bg-zinc-950/98 border border-zinc-800 rounded-xl p-3 shadow-2xl font-sans text-xs text-left backdrop-blur-md max-h-[60vh] overflow-y-auto text-zinc-200"
-                  onClick={e => e.stopPropagation()}
-                >
-                  {settingsView === "main" && (
-                    <div className="animate-in fade-in slide-in-from-left-2 duration-200">
-                      {/* Vitesse de lecture */}
-                      <div className="mb-3">
-                        <div className="text-zinc-400 font-bold tracking-wide text-[10px] uppercase mb-1.5">Vitesse de lecture</div>
-                        <div className="flex gap-1 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                          {[0.5, 0.75, 1, 1.25, 1.5, 2].map(speed => (
-                            <button
-                              key={speed}
-                              onClick={() => {
-                                setPlaybackRate(speed);
-                                if (videoRef.current) videoRef.current.playbackRate = speed;
-                              }}
-                              className={`px-2 py-1.5 rounded shrink-0 font-bold transition-colors cursor-pointer text-[10px] ${
-                                playbackRate === speed ? "bg-amber-500 text-zinc-950" : "bg-white/5 text-zinc-300 hover:bg-white/10"
-                              }`}
-                            >
-                              {speed}x
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Menu Audio */}
-                      {playbackInfo?.audios && playbackInfo.audios.length > 0 && (
-                        <button
-                          onClick={() => setSettingsView("audio")}
-                          className="w-full px-2.5 py-2 mb-1 text-left rounded-lg transition-colors flex items-center justify-between cursor-pointer bg-white/5 hover:bg-white/10 text-zinc-300"
-                        >
-                          <span className="font-semibold text-[11px]">Audio</span>
-                          <div className="flex items-center gap-1.5">
-                            <ChevronRight className="w-4 h-4 text-zinc-500" />
-                          </div>
-                        </button>
-                      )}
-
-                      {/* Menu Sous-titres */}
-                      <button
-                        onClick={() => setSettingsView("subtitles")}
-                        className="w-full px-2.5 py-2 mb-3 text-left rounded-lg transition-colors flex items-center justify-between cursor-pointer bg-white/5 hover:bg-white/10 text-zinc-300"
-                      >
-                        <span className="font-semibold text-[11px]">Sous-titres</span>
-                        <div className="flex items-center gap-1.5">
-                          <ChevronRight className="w-4 h-4 text-zinc-500" />
-                        </div>
-                      </button>
-
-                      {/* Popout (PiP) */}
-                      {typeof document !== "undefined" && (document as any).pictureInPictureEnabled && (
-                        <button
-                          onClick={() => {
-                            if (videoRef.current && videoRef.current !== document.pictureInPictureElement) {
-                              videoRef.current.requestPictureInPicture().catch(() => {});
-                            } else if (document.pictureInPictureElement) {
-                              document.exitPictureInPicture().catch(() => {});
-                            }
-                            setShowSettingsMenu(false);
-                            setTimeout(() => setSettingsView("main"), 200);
-                          }}
-                          className="w-full mt-2 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-zinc-300 font-bold text-[11px] flex justify-center items-center cursor-pointer transition-colors"
-                        >
-                          Mode Popout (PiP)
-                        </button>
-                      )}
-                    </div>
-                  )}
-
-                  {settingsView === "audio" && (
-                    <div className="animate-in fade-in slide-in-from-right-2 duration-200">
-                      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-zinc-800">
-                        <button 
-                          onClick={() => setSettingsView("main")}
-                          className="p-1 rounded hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                        </button>
-                        <span className="text-zinc-300 font-bold tracking-wide text-[11px] uppercase">Audio</span>
-                      </div>
-                      <div className="space-y-0.5 max-h-[40vh] overflow-y-auto pr-1">
-                        {playbackInfo?.audios && playbackInfo.audios.map((track: any) => {
-                          const isCurrentActive = activeAudioIndex === track.index;
-                          return (
-                            <button
-                              key={track.index}
-                              onClick={() => {
-                                setActiveAudioIndex(track.index);
-                                // Don't close immediately so user can see what they clicked
-                              }}
-                              className={`w-full px-2.5 py-2 text-left rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
-                                isCurrentActive ? "bg-amber-500/15 text-amber-400 font-bold border-l-2 border-amber-500" : "text-zinc-300 hover:bg-white/5"
-                              }`}
-                            >
-                              <span className="font-semibold text-[11px] truncate"><TrackName track={track} /></span>
-                              {isCurrentActive && <span className="text-amber-500 pl-2">✔</span>}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {settingsView === "subtitles" && (
-                    <div className="animate-in fade-in slide-in-from-right-2 duration-200">
-                      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-zinc-800">
-                        <button 
-                          onClick={() => setSettingsView("main")}
-                          className="p-1 rounded hover:bg-white/10 text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                        </button>
-                        <span className="text-zinc-300 font-bold tracking-wide text-[11px] uppercase">Sous-titres</span>
-                      </div>
-                      <div className="space-y-0.5 max-h-[40vh] overflow-y-auto pr-1">
-                        <button
-                          onClick={() => {
-                            setActiveSubtitleIndex(null);
-                            setSubtitlesOn(false);
-                          }}
-                          className={`w-full px-2.5 py-2 text-left rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
-                            !subtitlesOn || activeSubtitleIndex === null ? "bg-amber-500/15 text-amber-400 font-bold border-l-2 border-amber-500" : "text-zinc-300 hover:bg-white/5"
-                          }`}
-                        >
-                          <span className="font-semibold text-[11px]">Désactivé</span>
-                          {(!subtitlesOn || activeSubtitleIndex === null) && <span className="text-amber-500 pl-2">✔</span>}
-                        </button>
-
-                        {playbackInfo?.subtitles && playbackInfo.subtitles.length > 0 && playbackInfo.subtitles.map((track: any) => {
-                          const isCurrentActive = subtitlesOn && activeSubtitleIndex === track.index;
-                          return (
-                            <button
-                              key={track.index}
-                              onClick={() => {
-                                setActiveSubtitleIndex(track.index);
-                                setSubtitlesOn(true);
-                              }}
-                              className={`w-full px-2.5 py-2 text-left rounded-lg transition-colors flex items-center justify-between cursor-pointer ${
-                                isCurrentActive ? "bg-amber-500/15 text-amber-400 font-bold border-l-2 border-amber-500" : "text-zinc-300 hover:bg-white/5"
-                              }`}
-                            >
-                              <span className="font-semibold text-[11px] truncate"><TrackName track={track} /></span>
-                              {isCurrentActive && <span className="text-amber-500 pl-2">✔</span>}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-</div>
-              )}
-            </div>
-
-            
-            {/* Fullscreen Button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleFullscreen();
-              }}
-              className="p-1.5 text-white/60 hover:text-white active:scale-95 transition-all cursor-pointer"
-              title="Plein écran"
-            >
-              <Maximize2 className="w-5 h-5" />
-            </button>
-          </div>
+      {isLoading || isStreamLoading ? (
+        <div className="text-amber-500 flex flex-col items-center gap-4">
+          <Loader2 className="w-10 h-10 animate-spin" />
         </div>
-
-      </div>
-
-      {/* Floating diagnostic overlay (Admin Mode) */}
-      {showDiagnostics && (
-        <div className="absolute top-20 right-6 z-50 w-full max-w-md bg-black/96 border border-amber-500/30 rounded-2xl p-4 font-mono text-[11px] leading-relaxed text-zinc-300 shadow-2xl space-y-3.5 backdrop-blur-md max-h-[72vh] overflow-y-auto pointer-events-auto text-left">
-          <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-              <span className="font-sans font-black text-xs text-white tracking-widest uppercase">CINEMA PLAYBACK CONTROLLER</span>
-            </div>
-            <button 
-              onClick={() => setShowDiagnostics(false)}
-              className="text-zinc-500 hover:text-white transition-colors cursor-pointer text-xs"
-            >
-              [Masquer]
-            </button>
-          </div>
-
-          <div className="space-y-1">
-            <div className="text-amber-500 font-bold uppercase tracking-wider text-[10px]">1. PLAYBACK INFORMATION :</div>
-            <div className="bg-black/55 p-2 rounded-lg border border-zinc-900 space-y-1">
-              <p><span className="text-zinc-500">Titre :</span> <span className="text-zinc-100 font-bold">{movieTitle}</span></p>
-              <p><span className="text-zinc-500">ID Film :</span> <span className="text-zinc-400 break-all">{movieId}</span></p>
-              <p><span className="text-zinc-500">Playback Method :</span> <span className="text-emerald-400 font-bold">{playbackInfo?.isDirect ? "Direct Play (Raw File)" : "Transcoding (HLS Stream)"}</span></p>
-              <p><span className="text-zinc-500">Conteneur :</span> <span className="text-zinc-300 font-mono font-bold uppercase">{playbackInfo?.container || "Inconnu"}</span></p>
-              <p><span className="text-zinc-500">Codec Vidéo :</span> <span className="text-amber-400 font-mono font-bold">{playbackInfo?.videoCodec || "Inconnu"}</span></p>
-              <p><span className="text-zinc-500">Codec Audio :</span> <span className="text-amber-400 font-mono font-bold">{playbackInfo?.audioCodec || "Inconnu"}</span></p>
-              <p><span className="text-zinc-500">Transcoding State :</span> <span className="text-teal-400 font-bold">{playbackInfo?.isDirect ? "Inactive (Direct Play)" : "Active (Jellyfin Transcoder)"}</span></p>
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <div className="text-amber-500 font-bold uppercase tracking-wider text-[10px]">2. FLUX ET PROTOCOLE :</div>
-            <div className="bg-black/55 p-2 rounded-lg border border-zinc-900 space-y-1">
-              <p><span className="text-zinc-500">URL du flux :</span> <span className="text-zinc-400 break-all select-all text-[9.5px] block bg-black/40 p-1.5 rounded mt-0.5 border border-zinc-800/50">{playbackInfo?.streamUrl || "Non résolue"}</span></p>
-              <p><span className="text-zinc-500">Chemin Jellyfin :</span> <span className="text-zinc-400 break-all text-[9.5px] block bg-black/40 p-1.5 rounded mt-0.5 border border-zinc-800/50">{playbackInfo?.chosenPath || "Indéterminé"}</span></p>
-              <p><span className="text-zinc-500">currentTime réel :</span> <span className="text-emerald-400 font-bold font-mono">{(videoRef.current?.currentTime || 0).toFixed(2)} s</span></p>
-              <p><span className="text-zinc-500">video.readyState :</span> <span className="text-zinc-300 font-mono">{videoRef.current?.readyState ?? "-"}</span></p>
-              <p><span className="text-zinc-500">Last Error :</span> <span className={videoError ? "text-rose-400 font-bold" : "text-zinc-500"}>{videoError || "None (OK)"}</span></p>
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <div className="text-amber-500 font-bold uppercase tracking-wider text-[10px]">3. EVENT LOGS (VISIBLE) :</div>
-            <div className="bg-black/55 p-2 rounded-lg border border-zinc-900 space-y-1 max-h-[150px] overflow-y-auto scrollbar-thin">
-              {playerLogs.length === 0 ? (
-                <p className="text-zinc-600 italic">Waiting for events...</p>
-              ) : (
-                playerLogs.map((log, i) => (
-                  <p key={i} className="text-[10px] text-amber-100 font-mono leading-tight">{log}</p>
-                ))
-              )}
-            </div>
-          </div>
+      ) : playbackInfo?.iframeSrc ? (
+        <div className="absolute inset-0 w-full h-full bg-black z-40 pointer-events-auto flex items-center justify-center">
+          <iframe
+            src={playbackInfo.iframeSrc}
+            allowFullScreen={true}
+            allow="encrypted-media; autoplay; fullscreen; picture-in-picture"
+            className="w-full h-full border-0"
+            // @ts-ignore
+            webkitallowfullscreen="true"
+            mozallowfullscreen="true"
+          ></iframe>
+        </div>
+      ) : (
+        <div className="text-rose-500 font-mono text-xs p-4 bg-black/80 rounded border border-rose-500/30">
+          Source introuvable.
         </div>
       )}
-
     </div>
   );
 }

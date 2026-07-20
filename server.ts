@@ -164,7 +164,7 @@ app.use((req, res, next) => {
 
   res.setHeader("Access-Control-Allow-Origin", origin);
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD, PUT, DELETE");
-  res.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, Range, X-Emby-Token, X-MediaBrowser-Token, X-Requested-With, Origin, Accept");
+  res.setHeader("Access-Control-Allow-Headers", "*");
   res.setHeader("Access-Control-Expose-Headers", "Content-Length, Content-Range, Accept-Ranges, Content-Type");
   if (origin !== "*") {
     res.setHeader("Access-Control-Allow-Credentials", "true");
@@ -174,20 +174,12 @@ app.use((req, res, next) => {
   res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
   res.setHeader("Cross-Origin-Embedder-Policy-Report-Only", "require-corp");
 
-  // 5. DEBUG MODE - Logs backend requests with thorough header profiling
-  const isStaticAsset = req.path.match(/\.(tsx|ts|jsx|js|css|json|png|jpg|jpeg|gif|svg|ico|woff2?|ttf)$/) || req.path.includes("ErrorBoundary");
-  if (!isStaticAsset) {
-    console.log(
-      `[API REQUEST LOG] ` +
-      `Method: ${req.method} | ` +
-      `Path: ${req.path} | ` +
-      `Origin: ${req.headers.origin || "None"} | ` +
-      `Referer: ${req.headers.referer || "None"} | ` +
-      `Range: ${req.headers.range || "None"} | ` +
-      `Headers: ${JSON.stringify(req.headers)} | ` +
-      `Auth Config: ${config ? "CONFIGURED (" + config.url + ")" : "NOT CONFIGURED"}`
-    );
+  if (req.method === 'OPTIONS') {
+    res.status(204).end();
+    return;
   }
+
+  // 5. DEBUG MODE - Logs backend requests with thorough header profiling
 
   if (req.method === "OPTIONS") {
     return res.sendStatus(204);
@@ -266,7 +258,6 @@ app.post("/api/jellyfin/recalculate", (req, res) => {
     if (fs.existsSync(HERO_CACHE_PATH)) {
       try { fs.unlinkSync(HERO_CACHE_PATH); } catch (e) {}
     }
-    console.log("[RECALCULATE] Server Cache successfully cleared by user demand.");
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
@@ -354,12 +345,12 @@ interface CacheEntry {
   data: any;
   expiry: number;
 }
+let cachedUserId: string | null = null;
 const apiCache = new Map<string, CacheEntry>();
 
 function getCached(key: string): any | null {
   const entry = apiCache.get(key);
   if (entry && entry.expiry > Date.now()) {
-    console.log(`[CACHE LOG] Serveur: Succès cache mémoire pour la clé: "${key}"`);
     return entry.data;
   }
   return null;
@@ -416,7 +407,6 @@ function formatJellyfinItem(item: any, serverUrl: string, apiKey: string) {
 // Background image pre-warmer to populate .image-cache with WebP posters and backdrops asynchronously
 async function prewarmImageCache(movies: any[]) {
   if (!movies || movies.length === 0) return;
-  console.log(`[PREWARM] Queueing image cache pre-warming for ${movies.length} movies...`);
   
   const config = getJellyfinConfig();
   if (!config) return;
@@ -445,40 +435,6 @@ async function prewarmImageCache(movies: any[]) {
           // silent ignore
         }
       }
-
-      // 2. Backdrop Image
-      const backdropKey = `${movie.id}-Backdrop.webp`;
-      const backdropPath = path.join(IMAGE_CACHE_DIR, backdropKey);
-      if (!fs.existsSync(backdropPath)) {
-        try {
-          const url = `${config.url}/Items/${movie.id}/Images/Backdrop?maxWidth=1280&quality=80&format=webp&api_key=${config.apiKey}`;
-          const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
-          if (res.ok) {
-            const buffer = Buffer.from(await res.arrayBuffer());
-            await fs.promises.writeFile(backdropPath, buffer);
-          }
-        } catch (e: any) {
-          // silent ignore
-        }
-      }
-
-      // 3. Optional Logo Image (if it exists)
-      if (movie.hasLogo || movie.logoUrl) {
-        const logoKey = `${movie.id}-Logo.webp`;
-        const logoPath = path.join(IMAGE_CACHE_DIR, logoKey);
-        if (!fs.existsSync(logoPath)) {
-          try {
-            const url = `${config.url}/Items/${movie.id}/Images/Logo?maxWidth=600&quality=90&format=webp&api_key=${config.apiKey}`;
-            const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
-            if (res.ok) {
-              const buffer = Buffer.from(await res.arrayBuffer());
-              await fs.promises.writeFile(logoPath, buffer);
-            }
-          } catch (e: any) {
-            // silent ignore
-          }
-        }
-      }
     }
   }
 
@@ -490,6 +446,7 @@ async function prewarmImageCache(movies: any[]) {
 // Persistent JSON file cache paths for immediate loading upon startup
 const MOVIES_CACHE_PATH = path.join(process.cwd(), "jellyfin-movies-cache.json");
 const HERO_CACHE_PATH = path.join(process.cwd(), "jellyfin-hero-cache.json");
+const USERID_CACHE_PATH = path.join(process.cwd(), "jellyfin-userid-cache.json");
 
 // Background fetch lock variables to avoid duplicate API requests
 let isFetchingMovies = false;
@@ -499,14 +456,12 @@ let isFetchingHero = false;
 async function backgroundFetchMovies(config: any) {
   if (isFetchingMovies) return;
   isFetchingMovies = true;
-  console.log("[BG FETCH] Starting background fetch for movies library...");
   try {
     const formattedMovies = await fetchAndCacheMovies(config);
     // Update in-memory cache
     setCached("movies-list", formattedMovies, 3600000); // 1 hour fresh
     // Write to persistent disk cache
     fs.writeFileSync(MOVIES_CACHE_PATH, JSON.stringify(formattedMovies, null, 2), "utf-8");
-    console.log("[BG FETCH] Background fetch for movies complete.");
     
     // Start asynchronous image cache pre-warming
     prewarmImageCache(formattedMovies);
@@ -521,14 +476,12 @@ async function backgroundFetchMovies(config: any) {
 async function backgroundFetchHero(config: any) {
   if (isFetchingHero) return;
   isFetchingHero = true;
-  console.log("[BG FETCH] Starting background fetch for hero banner collection...");
   try {
     const formattedHeroes = await fetchAndCacheHero(config);
     // Update in-memory cache
     setCached("hero-list", formattedHeroes, 3600000); // 1 hour fresh
     // Write to persistent disk cache
     fs.writeFileSync(HERO_CACHE_PATH, JSON.stringify(formattedHeroes, null, 2), "utf-8");
-    console.log("[BG FETCH] Background fetch for hero complete.");
     
     // Start asynchronous image cache pre-warming
     prewarmImageCache(formattedHeroes);
@@ -542,6 +495,18 @@ async function backgroundFetchHero(config: any) {
 // Helper to resolve current UserId from Jellyfin config
 async function resolveUserId(config: any): Promise<string> {
   if (!config) return "";
+
+  if (cachedUserId) return cachedUserId;
+
+  if (fs.existsSync(USERID_CACHE_PATH)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(USERID_CACHE_PATH, "utf-8"));
+      if (data.userId && data.url === config.url && data.apiKey === config.apiKey) {
+        cachedUserId = data.userId;
+        return cachedUserId;
+      }
+    } catch (e) {}
+  }
   
   // 1. Try /Users/me which works for both admin and non-admin users with their token!
   try {
@@ -554,14 +519,13 @@ async function resolveUserId(config: any): Promise<string> {
     if (meResp.ok) {
       const meData = await meResp.json();
       if (meData && meData.Id) {
-        console.log(`[USER RESOLUTION] Resolved current user ID via /Users/me: ${meData.Id}`);
+        cachedUserId = meData.Id;
+        try { fs.writeFileSync(USERID_CACHE_PATH, JSON.stringify({ userId: meData.Id, url: config.url, apiKey: config.apiKey })); } catch (e) {}
         return meData.Id;
       }
     } else {
-      console.warn(`[USER RESOLUTION] /Users/me returned non-200 status: ${meResp.status}`);
     }
   } catch (err: any) {
-    console.warn(`[USER RESOLUTION] /Users/me failed: ${err.message}`);
   }
 
   // 2. If not found, try /Users list as fallback
@@ -575,14 +539,11 @@ async function resolveUserId(config: any): Promise<string> {
     if (usersResp.ok) {
       const usersData = await usersResp.json();
       if (usersData && usersData.length > 0 && usersData[0].Id) {
-        console.log(`[USER RESOLUTION] Resolved first user ID via /Users list: ${usersData[0].Id}`);
         return usersData[0].Id;
       }
     } else {
-      console.warn(`[USER RESOLUTION] /Users list returned non-200 status: ${usersResp.status}`);
     }
   } catch (err: any) {
-    console.warn(`[USER RESOLUTION] /Users list failed: ${err.message}`);
   }
 
   return "";
@@ -619,7 +580,66 @@ async function fetchAndCacheMovies(config: any, isFastMode: boolean = false): Pr
   const data: any = await response.json();
   const rawMovies = data.Items || [];
 
-  return rawMovies.map((item: any) => formatJellyfinItem(item, config.url, config.apiKey));
+  const formatted = rawMovies.map((item: any) => formatJellyfinItem(item, config.url, config.apiKey));
+  return await enrichWithTmdb(formatted, !isFastMode);
+}
+
+
+const TMDB_CACHE_PATH = path.join(process.cwd(), ".data", "tmdb_cache.json");
+
+async function enrichWithTmdb(movies: any[], fetchMissing: boolean = false): Promise<any[]> {
+  let tmdbCache: Record<string, any> = {};
+  if (fs.existsSync(TMDB_CACHE_PATH)) {
+    try { tmdbCache = JSON.parse(fs.readFileSync(TMDB_CACHE_PATH, "utf-8")); } catch(e) {}
+  }
+  
+  let cacheModified = false;
+  const TMDB_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs";
+  
+  if (fetchMissing) {
+    const missingTmdbIds = movies.filter(m => m.providerIds?.Tmdb && !tmdbCache[m.providerIds.Tmdb]).map(m => m.providerIds.Tmdb);
+    if (missingTmdbIds.length > 0) {
+      console.log(`[TMDB] Fetching data for ${missingTmdbIds.length} new movies...`);
+      for (let i = 0; i < missingTmdbIds.length; i += 10) {
+        const batch = missingTmdbIds.slice(i, i + 10);
+        await Promise.all(batch.map(async (tmdbId) => {
+          try {
+            const res = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?language=en-US`, {
+              headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
+            });
+            if (res.ok) {
+              tmdbCache[tmdbId] = await res.json();
+              cacheModified = true;
+            }
+          } catch(e) {}
+        }));
+        if (i + 10 < missingTmdbIds.length) await new Promise(r => setTimeout(r, 200));
+      }
+      if (cacheModified) {
+        if (!fs.existsSync(path.dirname(TMDB_CACHE_PATH))) fs.mkdirSync(path.dirname(TMDB_CACHE_PATH), { recursive: true });
+        fs.writeFileSync(TMDB_CACHE_PATH, JSON.stringify(tmdbCache), "utf-8");
+      }
+    }
+  }
+
+  return movies.map(m => {
+    const tmdbId = m.providerIds?.Tmdb;
+    const t = tmdbId ? tmdbCache[tmdbId] : null;
+    if (t) {
+      return { 
+        ...m, 
+        posterUrl: t.poster_path ? `https://image.tmdb.org/t/p/w500${t.poster_path}` : m.posterUrl, 
+        backdropUrl: t.backdrop_path ? `https://image.tmdb.org/t/p/original${t.backdrop_path}` : m.backdropUrl, 
+        description: t.overview || m.description, 
+        year: t.release_date ? parseInt(t.release_date.substring(0, 4)) : m.year, 
+        releaseDate: t.release_date || m.releaseDate, 
+        genre: t.genres?.map((g: any) => g.name) || m.genre, 
+        rating: t.vote_average ? t.vote_average.toFixed(1) : m.rating,
+        tmdbId: tmdbId
+      };
+    }
+    return m;
+  });
 }
 
 // Helper to fetch and format hero banner items
@@ -656,7 +676,7 @@ async function fetchAndCacheHero(config: any): Promise<any[]> {
   };
 
   const topItems = items.slice(0, 6);
-  return topItems.map((heroItem: any) => {
+  const formattedHeroes = topItems.map((heroItem: any) => {
     const hasLogo = !!(heroItem.ImageTags && heroItem.ImageTags.Logo);
     return {
       id: heroItem.Id,
@@ -681,10 +701,220 @@ async function fetchAndCacheHero(config: any): Promise<any[]> {
       isJellyfin: true
     };
   });
+  return await enrichWithTmdb(formattedHeroes, true);
 }
+
+// Test route for Odyssey TMDb automated import
+
+app.post("/api/admin/movies/add", express.json(), async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!ids) {
+      return res.status(400).json({ success: false, error: "Paramètre ids manquant." });
+    }
+
+    const TMDB_API_KEY = "a46ab41a292facadfd7e85f0ff213109";
+    const TMDB_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs";
+
+    const idList = ids.split(",").map(id => id.trim()).filter(id => id.length > 0);
+    const addedMovies = [];
+
+    for (const rawId of idList) {
+      let tmdbId = rawId;
+      let imdbId = "";
+
+      // Si c'est un IMDb ID, on cherche le TMDb ID d'abord
+      if (rawId.startsWith("tt")) {
+        imdbId = rawId;
+        const findUrl = `https://api.themoviedb.org/3/find/${imdbId}?external_source=imdb_id`;
+        const findRes = await fetch(findUrl, {
+          headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
+        });
+        if (findRes.ok) {
+          const findData = await findRes.json();
+          if (findData.movie_results && findData.movie_results.length > 0) {
+            tmdbId = findData.movie_results[0].id;
+          }
+        }
+      }
+
+      // Fetch movie details from TMDb
+      const movieUrl = `https://api.themoviedb.org/3/movie/${tmdbId}?append_to_response=credits&language=en-US`;
+      const movieRes = await fetch(movieUrl, {
+        headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
+      });
+      
+      if (movieRes.ok) {
+        const movieData = await movieRes.json();
+        
+        // Si on n'avait pas l'imdb_id, on le récupère maintenant
+        if (!imdbId && movieData.imdb_id) {
+          imdbId = movieData.imdb_id;
+        }
+
+        const directorObj = movieData.credits?.crew?.find(c => c.job === 'Director');
+        const director = directorObj ? directorObj.name : "Inconnu";
+        const cast = movieData.credits?.cast?.slice(0, 10).map(c => c.name) || [];
+        const genres = movieData.genres?.map(g => g.name) || [];
+        
+        const finalId = imdbId || String(tmdbId); // Prefer IMDb for iframe
+
+        const newFiche = {
+          id: finalId,
+          tmdbId: tmdbId,
+          imdbId: imdbId,
+          title: movieData.title,
+          originalTitle: movieData.original_title,
+          description: movieData.overview,
+          posterUrl: movieData.poster_path ? `https://image.tmdb.org/t/p/w500${movieData.poster_path}` : "",
+          backdropUrl: movieData.backdrop_path ? `https://image.tmdb.org/t/p/original${movieData.backdrop_path}` : "",
+          year: movieData.release_date ? parseInt(movieData.release_date.substring(0, 4)) : new Date().getFullYear(),
+          releaseDate: movieData.release_date,
+          duration: movieData.runtime || 0,
+          voteAverage: movieData.vote_average,
+          language: movieData.original_language,
+          status: movieData.status,
+          genre: genres,
+          director: director,
+          cast: cast,
+          isIframeEmbed: true,
+          iframeSrc: imdbId ? `https://player.videasy.net/movie/${imdbId}?color=FFD700&overlay=true` : `https://player.videasy.net/movie/${tmdbId}?color=FFD700&overlay=true`
+        };
+
+        addedMovies.push(newFiche);
+      }
+    }
+
+    // Sauvegarde dans imported_movies.json
+    const DB_PATH = path.join(process.cwd(), "imported_movies.json");
+    let existingMovies = [];
+    if (fs.existsSync(DB_PATH)) {
+      try {
+        existingMovies = JSON.parse(fs.readFileSync(DB_PATH, "utf-8"));
+      } catch (e) {}
+    }
+
+    // Filter out duplicates before merging
+    for (const newM of addedMovies) {
+      existingMovies = existingMovies.filter(m => m.id !== newM.id);
+      existingMovies.unshift(newM);
+    }
+
+    fs.writeFileSync(DB_PATH, JSON.stringify(existingMovies, null, 2));
+    
+    // Clear the memory cache so the next GET /api/jellyfin/movies will reload
+    setCached("movies-list", null, 0);
+
+    return res.json({ success: true, count: addedMovies.length, added: addedMovies });
+  } catch (err) {
+    console.error("Erreur bulk import:", err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get("/api/admin/movies/test-odyssey", async (req, res) => {
+  try {
+    const TMDB_API_KEY = "a46ab41a292facadfd7e85f0ff213109";
+    const TMDB_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs";
+    const imdbId = "tt33764258";
+
+    // 1. Interroger TMDb /find pour récupérer le tmdbId
+    const findUrl = `https://api.themoviedb.org/3/find/${imdbId}?external_source=imdb_id`;
+    const findRes = await fetch(findUrl, {
+      headers: {
+        "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`,
+        "Accept": "application/json"
+      }
+    });
+
+    if (!findRes.ok) {
+      return res.status(500).json({ success: false, error: "Erreur lors de la recherche TMDb find" });
+    }
+
+    const findData = await findRes.json();
+    if (!findData.movie_results || findData.movie_results.length === 0) {
+      return res.status(404).json({ success: false, error: "Film non trouvé sur TMDb" });
+    }
+
+    const tmdbId = findData.movie_results[0].id;
+
+    // 2. Interroger TMDb /movie pour récupérer les détails
+    const movieUrl = `https://api.themoviedb.org/3/movie/${tmdbId}?append_to_response=credits&language=en-US`;
+    const movieRes = await fetch(movieUrl, {
+      headers: {
+        "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`,
+        "Accept": "application/json"
+      }
+    });
+
+    if (!movieRes.ok) {
+      return res.status(500).json({ success: false, error: "Erreur lors de la récupération des détails TMDb" });
+    }
+
+    const movieData = await movieRes.json();
+
+    // 3. Extraire et structurer les données
+    const directorObj = movieData.credits?.crew?.find((c: any) => c.job === 'Director');
+    const director = directorObj ? directorObj.name : "Inconnu";
+    const cast = movieData.credits?.cast?.slice(0, 10).map((c: any) => c.name) || [];
+    const genres = movieData.genres?.map((g: any) => g.name) || [];
+
+    const newFiche = {
+      id: imdbId, // On utilise l'imdbId comme ID unique
+      tmdbId: tmdbId,
+      imdbId: imdbId,
+      title: movieData.title,
+      originalTitle: movieData.original_title,
+      description: movieData.overview,
+      posterUrl: movieData.poster_path ? `https://image.tmdb.org/t/p/w500${movieData.poster_path}` : "",
+      backdropUrl: movieData.backdrop_path ? `https://image.tmdb.org/t/p/original${movieData.backdrop_path}` : "",
+      year: movieData.release_date ? parseInt(movieData.release_date.substring(0, 4)) : new Date().getFullYear(),
+      releaseDate: movieData.release_date,
+      duration: movieData.runtime || 0,
+      voteAverage: movieData.vote_average,
+      language: movieData.original_language,
+      status: movieData.status,
+      genre: genres,
+      director: director,
+      cast: cast,
+      isIframeEmbed: true,
+      iframeSrc: `https://player.videasy.net/movie/${imdbId}?color=FFD700&overlay=true`
+    };
+
+    // 4. Sauvegarder dans le cache pour que le frontend puisse l'afficher
+    // On met à jour MOVIES_CACHE_PATH et le cache mémoire "movies-list"
+    const cacheKey = "movies-list";
+    let cachedMovies = getCached(cacheKey) || [];
+    
+    if (cachedMovies.length === 0 && fs.existsSync(MOVIES_CACHE_PATH)) {
+      try {
+        cachedMovies = JSON.parse(fs.readFileSync(MOVIES_CACHE_PATH, "utf-8"));
+      } catch (e) {}
+    }
+
+    // Retirer s'il existe déjà
+    cachedMovies = cachedMovies.filter((m: any) => m.id !== imdbId);
+    
+    // L'ajouter au début
+    cachedMovies.unshift(newFiche);
+
+    // Mettre à jour les caches
+    setCached(cacheKey, cachedMovies, 3600000);
+    try {
+      fs.writeFileSync(MOVIES_CACHE_PATH, JSON.stringify(cachedMovies));
+    } catch (e) {}
+
+    return res.json({ success: true, movie: newFiche });
+
+  } catch (err: any) {
+    console.error("Erreur test odyssey:", err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 // 4. List library movies from connected Jellyfin with persistent file and memory cache (SWR model)
 app.get("/api/jellyfin/movies", async (req, res) => {
+
   const config = getJellyfinConfig();
   if (!config) {
     res.status(401).json({ success: false, error: "Serveur non configuré." });
@@ -703,7 +933,6 @@ app.get("/api/jellyfin/movies", async (req, res) => {
       cachedMovies = JSON.parse(fileContent);
       // Populate memory cache
       setCached(cacheKey, cachedMovies, 3600000); // 1 hour
-      console.log("[CACHE LOG] Loaded movies from persistent disk cache.");
       
       // Async pre-warm images in background
       prewarmImageCache(cachedMovies);
@@ -715,10 +944,18 @@ app.get("/api/jellyfin/movies", async (req, res) => {
   // 3. If we have cached movies (memory or disk)
   if (cachedMovies) {
     // Send response immediately! (Extremely fast, <10ms)
+    
+    let importedMovies = [];
+    try {
+      if (fs.existsSync(path.join(process.cwd(), "imported_movies.json"))) {
+        importedMovies = JSON.parse(fs.readFileSync(path.join(process.cwd(), "imported_movies.json"), "utf-8"));
+      }
+    } catch (e) {}
     res.json({
       success: true,
-      movies: cachedMovies
+      movies: [...importedMovies, ...cachedMovies]
     });
+
 
     // Check if the cache is stale (older than 1 hour) and trigger background revalidation
     let mtime = 0;
@@ -727,7 +964,6 @@ app.get("/api/jellyfin/movies", async (req, res) => {
     }
     const age = Date.now() - mtime;
     if (age > 3600000) { // 1 hour
-      console.log(`[CACHE LOG] Movies cache is stale (age: ${Math.round(age/1000)}s), triggering background revalidation...`);
       backgroundFetchMovies(config);
     } else {
       // If fresh, make sure images are pre-warmed anyway
@@ -737,7 +973,6 @@ app.get("/api/jellyfin/movies", async (req, res) => {
   }
 
   // 4. If no cache exists at all, perform a FAST fetch synchronously to respond in under 2 seconds!
-  console.log("[CACHE LOG] No movies cache found. Performing ultra-fast first-time sync fetch...");
   try {
     const fastMovies = await fetchAndCacheMovies(config, true);
     
@@ -749,13 +984,20 @@ app.get("/api/jellyfin/movies", async (req, res) => {
     prewarmImageCache(fastMovies);
 
     // Send response to client immediately! (< 2 seconds!)
+    
+    let importedMovies = [];
+    try {
+      if (fs.existsSync(path.join(process.cwd(), "imported_movies.json"))) {
+        importedMovies = JSON.parse(fs.readFileSync(path.join(process.cwd(), "imported_movies.json"), "utf-8"));
+      }
+    } catch (e) {}
     res.json({
       success: true,
-      movies: fastMovies
+      movies: [...importedMovies, ...fastMovies]
     });
 
+
     // Quietly fire a background full revalidation fetch to get complete metadata (actors, taglines, directors)
-    console.log("[CACHE LOG] Fast sync response sent. Booting background revalidation for full details (directors, casts)...");
     backgroundFetchMovies(config);
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
@@ -782,7 +1024,6 @@ app.get("/api/jellyfin/hero", async (req, res) => {
       cachedHeroes = JSON.parse(fileContent);
       // Populate memory cache
       setCached(cacheKey, cachedHeroes, 3600000);
-      console.log("[CACHE LOG] Loaded hero items from persistent disk cache.");
     } catch (e) {
       console.error("Error reading hero disk cache:", e);
     }
@@ -790,10 +1031,18 @@ app.get("/api/jellyfin/hero", async (req, res) => {
 
   // 3. If we have cached hero items
   if (cachedHeroes) {
+    let importedMovies = [];
+    try {
+      if (fs.existsSync(path.join(process.cwd(), "imported_movies.json"))) {
+        importedMovies = JSON.parse(fs.readFileSync(path.join(process.cwd(), "imported_movies.json"), "utf-8"));
+      }
+    } catch (e) {}
+
+    const allHeroes = [...importedMovies.reverse(), ...cachedHeroes];
     res.json({
       success: true,
-      heroes: cachedHeroes,
-      hero: cachedHeroes[0]
+      heroes: allHeroes,
+      hero: allHeroes[0]
     });
 
     // Check if stale (older than 1 hour) and trigger background revalidation
@@ -803,14 +1052,12 @@ app.get("/api/jellyfin/hero", async (req, res) => {
     }
     const age = Date.now() - mtime;
     if (age > 3600000) { // 1 hour
-      console.log(`[CACHE LOG] Hero cache is stale (age: ${Math.round(age/1000)}s), triggering background revalidation...`);
       backgroundFetchHero(config);
     }
     return;
   }
 
   // 4. If no cache exists at all, fetch synchronously
-  console.log("[CACHE LOG] No hero cache found, fetching synchronously...");
   try {
     const formattedHeroes = await fetchAndCacheHero(config);
     // Save to memory && disk
@@ -846,7 +1093,6 @@ app.post("/api/jellyfin/cache/clear", (req, res) => {
     for (const file of files) {
       fs.unlinkSync(path.join(IMAGE_CACHE_DIR, file));
     }
-    console.log("[CACHE LOG] Cache des images et API vidé avec succès.");
   } catch (e) {
     console.error("Erreur de vidage du cache des images :", e);
   }
@@ -882,7 +1128,9 @@ app.get("/api/jellyfin/image/:id/:type", async (req, res) => {
     const width = isPrimary ? 340 : (isLogo ? 600 : 1280);
     const quality = 80;
 
-    const jellyfinImageUrl = `${config.url}/Items/${id}/Images/${type}?maxWidth=${width}&quality=${quality}&format=webp&api_key=${config.apiKey}`;
+    const jellyfinImageUrl = type === "Backdrop"
+      ? `${config.url}/Items/${id}/Images/${type}?api_key=${config.apiKey}`
+      : `${config.url}/Items/${id}/Images/${type}?maxWidth=${width}&quality=${quality}&format=webp&api_key=${config.apiKey}`;
     
     const response = await fetch(jellyfinImageUrl, {
       signal: AbortSignal.timeout(10000) // 10 seconds timeout
@@ -1008,7 +1256,6 @@ function getWithRedirects(
           return;
         }
       }
-      console.log(`[PROXY STREAM] Following redirect to: ${redirectUrl}`);
       getWithRedirects(redirectUrl, requestOptions, onResponse, onError, maxRedirects - 1, currentReqRef);
     } else {
       onResponse(response);
@@ -1023,20 +1270,37 @@ function getWithRedirects(
   return req;
 }
 
-let cachedUserId: string | null = null;
 const playbackCache = new Map<string, { data: any; timestamp: number }>();
 const PLAYBACK_CACHE_TTL = 30 * 60 * 1000; // 30 minutes cache
 
 // 6. Secure proxy stream to circumvent CORS and force browser-playable AAC stereo audio + H264 video
-async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?: boolean) {
-  const cacheKey = `${id}-${forceTranscode || false}-${lowQuality || false}`;
+async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?: boolean, forceJellyfin?: boolean) {
+  const cacheKey = `${id}-${forceTranscode || false}-${lowQuality || false}-${forceJellyfin || false}`;
   const cached = playbackCache.get(cacheKey);
   if (cached && (Date.now() - cached.timestamp < PLAYBACK_CACHE_TTL)) {
-    console.log(`[PLAYBACK CACHE] Servir les données de lecture depuis le cache pour la clé: ${cacheKey}`);
     return cached.data;
   }
 
-  console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] getPlaybackData appelé pour l'ID: ${id}`);
+  // If the ID starts with 'tt' or is purely numeric, it might be an IMDb/TMDb ID we added manually.
+  // For now, hardcode the Odyssey test bypass:
+  const isNumeric = /^\d+$/.test(id);
+  if (!forceJellyfin && (id === "tt33764258" || id.startsWith("tt") || isNumeric)) {
+    const iframeResult = {
+      id: id,
+      streamUrl: `https://player.videasy.net/movie/${id}?color=FFD700&overlay=true`,
+      duration: 0,
+      container: "iframe",
+      title: "Film (Embed)",
+      isDirect: true,
+      isIframeEmbed: true,
+      iframeSrc: `https://player.videasy.net/movie/${id}?color=FFD700&overlay=true`,
+      subtitles: [],
+      audios: []
+    };
+    playbackCache.set(cacheKey, { data: iframeResult, timestamp: Date.now() });
+    return iframeResult;
+  }
+
   const config = getJellyfinConfig();
   if (!config) {
     throw new Error("Serveur non configuré.");
@@ -1045,7 +1309,6 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   let activeId = id;
   // USER REQUIREMENT: Forcer temporairement Rocky III à utiliser UNIQUEMENT : ID = 8db5a60d8317cdd9ca66b81e52cad247
   if (id === "rocky-3" || id === "09d878060e061360dd6ba1a6f81fca03") {
-    console.warn(`[ROCKY III DIRECT OVERRIDE] Remplacement d'ID : de ${id} vers 8db5a60d8317cdd9ca66b81e52cad247`);
     activeId = "8db5a60d8317cdd9ca66b81e52cad247";
   }
 
@@ -1058,9 +1321,7 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   // 1. Get UserId dynamically
   let userId = cachedUserId || "";
   if (!userId) {
-    console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 3: Début de la récupération de l'utilisateur Jellyfin (User)`);
     const userFetchTimer = setTimeout(() => {
-      console.warn(`[ISOLATION DIAGNOSTIC] [${Date.now()}] ALERTE PENDING / TIMEOUT: La récupération de l'utilisateur Jellyfin (/Users) est toujours en attente (Pending) après 5 secondes.`);
     }, 5000);
 
     try {
@@ -1068,93 +1329,67 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
       clearTimeout(userFetchTimer);
       if (userId) {
         cachedUserId = userId; // Cache globally
-        console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 3: ID utilisateur Jellyfin obtenu: ${userId}`);
       }
     } catch (err: any) {
       clearTimeout(userFetchTimer);
-      console.error(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 3: Échec récupération utilisateur Jellyfin:`, err.message);
     }
   } else {
-    console.log(`[PLAYBACK CACHE] Utilisation de l'ID utilisateur Jellyfin en cache: ${userId}`);
   }
 
   if (!userId) {
     throw new Error("Impossible d'obtenir un UserId valide auprès de Jellyfin.");
   }
 
+  // NEW: Fetch item directly to get ProviderIds and bypass Jellyfin streaming logic entirely
+  try {
+    const itemRes = await fetch(`${config.url}/Users/${userId}/Items/${activeId}?api_key=${config.apiKey}`);
+    if (itemRes.ok) {
+      const itemData = await itemRes.json();
+      if (!forceJellyfin && itemData && itemData.ProviderIds) {
+        const tmdb = itemData.ProviderIds.Tmdb;
+        const imdb = itemData.ProviderIds.Imdb;
+        if (tmdb || imdb) {
+          const providerId = tmdb || imdb;
+          const iframeResult = {
+            id: activeId,
+            streamUrl: `https://player.videasy.net/movie/${providerId}?color=FFD700&overlay=true`,
+            duration: Math.round((itemData.RunTimeTicks || 0) / 10000000),
+            container: "iframe",
+            title: itemData.Name || "Film (Embed)",
+            isDirect: true,
+            isIframeEmbed: true,
+            iframeSrc: `https://player.videasy.net/movie/${providerId}?color=FFD700&overlay=true`,
+            subtitles: [],
+            audios: []
+          };
+          playbackCache.set(cacheKey, { data: iframeResult, timestamp: Date.now() });
+          return iframeResult;
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Error fetching item data for provider IDs:", err);
+  }
+
+
   let mediaSources: any[] = [];
 
-  // FAST PATH 1: Récupérer les sources média instantanément via l'API Items de l'utilisateur (évite le délai de 5s de PlaybackInfo)
-  try {
-    const itemUrl = `${config.url}/Users/${userId}/Items/${activeId}?api_key=${config.apiKey}`;
-    console.log(`[PLAYBACK FAST PATH] [${Date.now()}] Tentative de récupération rapide via Users Items: ${itemUrl}`);
-    const itemRes = await fetch(itemUrl, {
-      headers: {
-        "Accept": "application/json",
-        "X-Emby-Token": config.apiKey,
-        "Authorization": `MediaBrowser Client="ClassicoClient", Device="ModernBrowser", DeviceId="ModernBrowser", Version="1.0.0", Token="${config.apiKey}"`
-      }
-    });
-    if (itemRes.ok) {
-      const itemData: any = await itemRes.json();
-      mediaSources = itemData.MediaSources || [];
-      console.log(`[PLAYBACK FAST PATH] Récupération réussie de ${mediaSources.length} sources média via Users Items.`);
-    }
-  } catch (e: any) {
-    console.warn(`[PLAYBACK FAST PATH] Échec rapide: ${e.message}`);
-  }
-
-  // FAST PATH 2: Si le premier n'a pas fonctionné, essayer l'API Items publique directe sans UserId
-  if (mediaSources.length === 0) {
-    try {
-      const itemUrl2 = `${config.url}/Items/${activeId}?api_key=${config.apiKey}`;
-      console.log(`[PLAYBACK FAST PATH FALLBACK] Tentative rapide via Items public: ${itemUrl2}`);
-      const itemRes2 = await fetch(itemUrl2, {
-        headers: {
-          "Accept": "application/json",
-          "X-Emby-Token": config.apiKey,
-          "Authorization": `MediaBrowser Client="ClassicoClient", Device="ModernBrowser", DeviceId="ModernBrowser", Version="1.0.0", Token="${config.apiKey}"`
-        }
-      });
-      if (itemRes2.ok) {
-        const itemData: any = await itemRes2.json();
-        mediaSources = itemData.MediaSources || [];
-        console.log(`[PLAYBACK FAST PATH FALLBACK] Récupération réussie de ${mediaSources.length} sources média via Items public.`);
-      }
-    } catch (e: any) {
-      console.warn(`[PLAYBACK FAST PATH FALLBACK] Échec Items public: ${e.message}`);
-    }
-  }
-
-  // SLOW PATH: Si aucun des fast paths n'a fonctionné, lancer la requête lourde PlaybackInfo vers Jellyfin
-  if (mediaSources.length === 0) {
-    // Étape 1 : POST /Items/{id}/PlaybackInfo avec le DeviceProfile du navigateur pour déterminer le support de Lecture Directe
-    const pbUrl = `${config.url}/Items/${activeId}/PlaybackInfo?api_key=${config.apiKey}&userId=${userId}`;
-    console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 4 (Slow Fallback): Envoi de la requête PlaybackInfo vers Jellyfin. URL: ${pbUrl}`);
+  // SLOW PATH: Lancer directement la requête PlaybackInfo vers Jellyfin
+  // Étape 1 : POST /Items/{id}/PlaybackInfo avec le DeviceProfile du navigateur pour déterminer le support de Lecture Directe
+  const pbUrl = `${config.url}/Items/${activeId}/PlaybackInfo?api_key=${config.apiKey}&userId=${userId}`;
     const deviceProfile = {
+      UserId: userId,
+      EnableDirectPlay: false,
+      EnableDirectStream: false,
+      EnableTranscoding: true,
+      AllowVideoStreamCopy: false,
+      AllowAudioStreamCopy: false,
       DeviceProfile: {
         Name: "Modern Browser",
         MaxStreamingBitrate: lowQuality ? 600000 : 140000000,
         MaxStaticBitrate: lowQuality ? 600000 : 140000000,
         MusicStreamingBitrate: 320000,
-        DirectPlayProfiles: [
-          {
-            Container: "mp4,m4v,webm",
-            Type: "Video",
-            VideoCodec: "h264,vp8,vp9",
-            AudioCodec: "aac,mp3,opus"
-          },
-          {
-            Container: "webm",
-            Type: "Video",
-            VideoCodec: "vp8,vp9",
-            AudioCodec: "opus,vorbis"
-          },
-          {
-            Container: "aac,mp3,opus",
-            Type: "Audio"
-          }
-        ],
+        DirectPlayProfiles: [],
         TranscodingProfiles: [
           {
             Container: "ts",
@@ -1163,14 +1398,6 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
             VideoCodec: "h264",
             Context: "Streaming",
             Protocol: "hls"
-          },
-          {
-            Container: "mp4",
-            Type: "Video",
-            AudioCodec: "aac,mp3",
-            VideoCodec: "h264",
-            Context: "Static",
-            Protocol: "http"
           }
         ],
         ContainerProfiles: [],
@@ -1199,7 +1426,6 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
     };
 
     const pbFetchTimer = setTimeout(() => {
-      console.warn(`[ISOLATION DIAGNOSTIC] [${Date.now()}] ALERTE PENDING / TIMEOUT: L'appel PlaybackInfo vers Jellyfin est toujours en attente (Pending) après 5 secondes.`);
     }, 5000);
 
     let pbResponse;
@@ -1215,26 +1441,20 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
         body: JSON.stringify(deviceProfile)
       });
       clearTimeout(pbFetchTimer);
-      console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 5: Réponse PlaybackInfo reçue de Jellyfin. Status: ${pbResponse?.status}`);
       
       if (pbResponse && pbResponse.ok) {
         const pbContentType = pbResponse.headers.get("content-type") || "";
         if (pbContentType.toLowerCase().includes("application/json")) {
-          console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 5: Parsing du JSON PlaybackInfo...`);
           const pbData = await pbResponse.json();
-          console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 5: JSON PlaybackInfo parsé avec succès.`);
           mediaSources = pbData.MediaSources || [];
         }
       }
     } catch (err: any) {
       clearTimeout(pbFetchTimer);
-      console.error(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 5: Échec de la requête PlaybackInfo:`, err.message);
     }
-  }
 
   // Fallback robuste en cas d'échec de PlaybackInfo ou si aucune source média n'a été renvoyée
   if (mediaSources.length === 0) {
-    console.log(`[PLAYBACK FALLBACK] Tentative de récupération directe des sources média depuis l'API Items pour l'ID ${activeId}...`);
     try {
       const itemUrl = `${config.url}/Users/${userId}/Items/${activeId}?api_key=${config.apiKey}`;
       const itemRes = await fetch(itemUrl, {
@@ -1247,7 +1467,6 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
       if (itemRes.ok) {
         const itemData: any = await itemRes.json();
         mediaSources = itemData.MediaSources || [];
-        console.log(`[PLAYBACK FALLBACK] Récupération réussie de ${mediaSources.length} sources média via l'utilisateur.`);
       } else {
         const itemUrl2 = `${config.url}/Items/${activeId}?api_key=${config.apiKey}`;
         const itemRes2 = await fetch(itemUrl2, {
@@ -1260,7 +1479,6 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
         if (itemRes2.ok) {
           const itemData: any = await itemRes2.json();
           mediaSources = itemData.MediaSources || [];
-          console.log(`[PLAYBACK FALLBACK] Récupération réussie de ${mediaSources.length} sources média via l'API publique (No UserId).`);
         }
       }
     } catch (e: any) {
@@ -1291,7 +1509,6 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
 
   // FORCE OVERRIDE DERBY ROCKY III FOR PRIORITIZING 8db5a60d8317cdd9ca66b81e52cad247 AND IGNORES 4K/HEVC
   if (activeId === "8db5a60d8317cdd9ca66b81e52cad247" || id === "rocky-3" || id === "09d878060e061360dd6ba1a6f81fca03") {
-    console.log(`[ROCKY III SPECIAL PIPELINE] Filtrage rigoureux : élimination des formats lourds 4K/HEVC.`);
     
     // Filtre les sources pour écarter tout flux 4K (width >= 3840) ou encodé en HEVC/H265
     mediaSources = mediaSources.filter((src: any) => {
@@ -1303,7 +1520,6 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
       const is4K = width >= 3840;
       
       if (isHEVC || is4K) {
-        console.warn(`[ROCKY III SPECIAL PIPELINE] Rejet du flux source ${src.Id} (Codec: "${codec}", Résolution: ${width}px) car HEVC ou 4K détecté.`);
         return false;
       }
       return true;
@@ -1314,9 +1530,7 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
     if (targetSourceIndex !== -1) {
       const preferredSource = mediaSources.splice(targetSourceIndex, 1)[0];
       mediaSources.unshift(preferredSource);
-      console.log(`[ROCKY III SPECIAL PIPELINE] Source "8db5a60d8317cdd9ca66b81e52cad247" triée en priorité absolue.`);
     } else if (mediaSources.length > 0) {
-      console.log(`[ROCKY III SPECIAL PIPELINE] Forçage de l'ID de flux compatible vers "8db5a60d8317cdd9ca66b81e52cad247" (Id d'origine: ${mediaSources[0].Id})`);
       mediaSources[0].Id = "8db5a60d8317cdd9ca66b81e52cad247";
     }
   }
@@ -1324,7 +1538,6 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   // Étape 1a : Tolérance de panne avancée si le chemin de la source média pointe vers "movies_jellyfin_web" (répertoire mort)
   const firstSourcePath = (mediaSources[0]?.Path || "").toLowerCase();
   if (firstSourcePath.includes("movies_jellyfin_web")) {
-    console.warn(`[PLAYBACK PIPELINE] Chemin mort de Jellyfin détecté ("movies_jellyfin_web") pour l'ID ${activeId}. Recherche active d'un doublon sain...`);
     try {
       // Rechercher les métadonnées de l'ID actuel pour récupérer son titre exact
       const itemUrl = `${config.url}/Users/${userId}/Items/${activeId}?api_key=${config.apiKey}`;
@@ -1338,7 +1551,6 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
         const itemData: any = await itemRes.json();
         const movieTitle = itemData.Name;
         if (movieTitle) {
-          console.log(`[PLAYBACK PIPELINE] Recherche de doublons sains pour "${movieTitle}"...`);
           const searchUrl = `${config.url}/Items?recursive=true&includeItemTypes=Movie,Series&Language=en&searchTerm=${encodeURIComponent(movieTitle)}&fields=Path&api_key=${config.apiKey}`;
           const searchRes = await fetch(searchUrl, {
             headers: {
@@ -1352,14 +1564,12 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
             // Trouver une version qui NE contient PAS le répertoire corrompu movies_jellyfin_web
             const healthyDuplicate = alternateItems.find((itm: any) => {
               const itmPath = (itm.Path || "").toLowerCase();
-              return itm.Id !== activeId && !itmPath.includes("movies_jellyfin_web");
+              return itm.id !== activeId && !itmPath.includes("movies_jellyfin_web");
             });
 
             if (healthyDuplicate) {
-              console.log(`[PLAYBACK SYSTEM] Succès ! Redirection transparente vers le doublon sain de "${movieTitle}" (Nouveau ID: ${healthyDuplicate.Id}).`);
               return await getPlaybackData(healthyDuplicate.Id, forceTranscode, lowQuality);
             } else {
-              console.warn(`[PLAYBACK PIPELINE] Aucun doublon sain trouvé pour "${movieTitle}". En route pour le flux initial (risque d'erreur)...`);
             }
           }
         }
@@ -1386,12 +1596,11 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   // Cela garantit que les films n'ayant qu'un flux HEVC/4K entrent directement dans le pipeline optimisé.
   if (!hasNativeH264 && mediaSources.length > 0) {
     const baseSource = mediaSources[0];
-    console.log(`[PLAYBACK PIPELINE] Aucun flux H.264 natif trouvé. Virtualisation d'une source optimisée Web (1080p H.264) pour accélérer le chargement.`);
     const virtualSource = {
       ...baseSource,
       Id: `${baseSource.Id}-web-optimized`,
       Name: baseSource.Name ? `${baseSource.Name} [Optimisé Web 1080p H.264]` : "Optimisé Web 1080p H.264",
-      Container: "mp4",
+      Container: "ts",
       SupportsDirectPlay: false, // Forcer le transcodage pour transcoder le HEVC natif
       SupportsDirectStream: true,
       MediaStreams: (baseSource.MediaStreams || []).map((stream: any) => {
@@ -1465,9 +1674,6 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   const audioCodec = (audioStream?.Codec || "").toLowerCase();
   const container = (source.Container || "").toLowerCase();
 
-  console.log(`[PLAYBACK LOG] Film ID: ${activeId}`);
-  console.log(`[PLAYBACK LOG] Source choisie d'après les critères Web: "${source.Name || "Défaut"}" (Container: "${container}")`);
-  console.log(`[PLAYBACK LOG] Codec Vidéo: "${videoCodec}", Codec Audio: "${audioCodec}", Résolution: ${videoStream?.Width || 0}x${videoStream?.Height || 0}`);
 
   // Les navigateurs Web standard ne supportent nativement que les conteneurs MP4/WebM avec H264 et AAC/MP3/Opus.
   // Les conteneurs MKV/AVI/TS ou les codecs HEVC/H.265, AV1 (partiellement), DTS, TrueHD ou Dolby Vision (Dovi)
@@ -1490,7 +1696,6 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   const isWebOptimizedVirtual = !!(source.Id && source.Id.endsWith("-web-optimized"));
   const canDirectPlay = isBrowserFriendlyContainer && isBrowserFriendlyVideo && isBrowserFriendlyAudio && !isDolbyVision && !isWebOptimizedVirtual;
 
-  console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 6: Décision DirectPlay vs HLS prise. supportsDirect: ${supportsDirect}, canDirectPlay: ${canDirectPlay}, isBrowserFriendlyContainer: ${isBrowserFriendlyContainer}, isBrowserFriendlyVideo: ${isBrowserFriendlyVideo}, isBrowserFriendlyAudio: ${isBrowserFriendlyAudio}`);
 
   let chosenPath = "";
   let isDirect = false;
@@ -1500,7 +1705,6 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   if (canDirectPlay && !forceTranscode) {
     isDirect = true;
     chosenPath = `/Videos/${activeId}/stream?Static=true&MediaSourceId=${cleanedSourceId}`;
-    console.log(`[PLAYBACK LOG] DIRECT PLAY SELECTIONNE : Le fichier est 100% compatible nativement (Container: ${container}, Video: ${videoCodec}, Audio: ${audioCodec})`);
   }
 
   const isSourceH264 = videoCodec === "h264";
@@ -1516,19 +1720,9 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
   const hlsParams = new URLSearchParams({
     Static: "false",
     VideoCodec: "h264",
-    AudioCodec: "aac",
-    TranscodingMaxAudioChannels: "2",
-    SubtitleStreamIndex: "-1",
-    AudioSampleRate: "44100",
-    AudioBitrate: audioBitrate.toString(),
-    EnableH264High10Profile: "false",
-    Preset: "ultrafast",
-    SegmentLength: "3",
-    MinSegments: "1",
-    BreakOnNonKeyFrames: "True",
+    AudioCodec: "aac,mp3",
     MediaSourceId: cleanedSourceId,
     SegmentContainer: "ts",
-
     DeviceId: "ModernBrowser"
   });
 
@@ -1610,14 +1804,11 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
       }
 
       chosenPath = isRelative ? pathname + urlObj.search : urlObj.origin + pathname + urlObj.search;
-      console.log(`[PLAYBACK LOG] URL de transcodage native Jellyfin conservée (Direct Stream / Copy ou Transcodage natif respecté) : ${chosenPath}`);
     } catch (e) {
       chosenPath = `/Videos/${activeId}/master.m3u8?${hlsParams.toString()}`;
-      console.log(`[PLAYBACK LOG] Échec de parsing de TranscodingUrl. Fallback HLS standard : ${chosenPath}`);
     }
   } else {
     chosenPath = `/Videos/${activeId}/master.m3u8?${hlsParams.toString()}`;
-    console.log(`[PLAYBACK LOG] TranscodingUrl absente. URL HLS standard construite de zéro : ${chosenPath}`);
   }
 
   // Nettoyage de l'URL si elle contient l'hôte complet pour ne garder que le chemin relatif
@@ -1626,7 +1817,6 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
       const urlObj = new URL(chosenPath);
       chosenPath = urlObj.pathname + urlObj.search;
     } catch (e) {
-      console.warn("Erreur lors du nettoyage de l'URL absolue en relative:", e);
     }
   }
 
@@ -1645,7 +1835,7 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
 
   // Générer l'URL de proxy transparente : proxy classique par paramètre pour Direct Play, wildcard propre pour HLS
   const streamUrl = isDirect 
-    ? `/api/jellyfin/proxy/stream?path=${encodeURIComponent(chosenPath)}&id=${activeId}`
+    ? `${config.url}${chosenPath.startsWith("/") ? "" : "/"}${chosenPath}${chosenPath.includes("?") ? "&" : "?"}api_key=${config.apiKey}`
     : `/api/jellyfin/proxy${chosenPath}`;
 
   const subtitleStreams = streams.filter((s: any) => s.Type === "Subtitle");
@@ -1673,11 +1863,11 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
     codec: s.Codec || ""
   }));
 
-  console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] getPlaybackData complété avec succès. streamUrl: ${streamUrl}, chosenPath: ${chosenPath}`);
   
   const result = {
     id: activeId,
     streamUrl,
+    rawTranscodingUrl: source.TranscodingUrl || null,
     duration: source.RunTimeTicks ? Math.round(source.RunTimeTicks / 10000000) : 0,
     container: source.Container || "mp4",
     title: source.Name || "Film",
@@ -1698,8 +1888,9 @@ app.get("/api/playback/:id", async (req, res) => {
   const { id } = req.params;
   const forceTranscode = req.query.forceTranscode === "true";
   const lowQuality = req.query.lowQuality === "true";
+  const forceJellyfin = req.query.forceJellyfin === "true";
   try {
-    const data = await getPlaybackData(id, forceTranscode, lowQuality);
+    const data = await getPlaybackData(id, forceTranscode, lowQuality, forceJellyfin);
     res.json({
       id: data.id,
       streamUrl: data.streamUrl,
@@ -1710,6 +1901,8 @@ app.get("/api/playback/:id", async (req, res) => {
       videoCodec: data.videoCodec,
       audioCodec: data.audioCodec,
       chosenPath: data.chosenPath,
+      isIframeEmbed: data.isIframeEmbed,
+      iframeSrc: data.iframeSrc,
       subtitles: data.subtitles || [],
       audios: data.audios || []
     });
@@ -1742,12 +1935,6 @@ app.get("/api/playback-stream-debug", (req, res) => {
 
 // Secure proxy stream acting as a transparent tunnel SANS modification
 app.get(["/api/jellyfin/proxy/stream", "/api/jellyfin/proxy/*", "/stream", "/master.m3u8"], async (req, res) => {
-  console.log("[PROXY ENTRY RAW]", {
-    url: req.url,
-    path: req.path,
-    query: req.query
-  });
-
   const wildcardPath = (req.params as any)[0];
   const isWildcardPath = wildcardPath && wildcardPath !== "stream";
 
@@ -1760,10 +1947,8 @@ app.get(["/api/jellyfin/proxy/stream", "/api/jellyfin/proxy/*", "/stream", "/mas
     return res.status(400).send("Missing id or path for stream proxy");
   }
 
+  const perfId = Math.random().toString(36).substring(7);
   const reqStartTimestamp = Date.now();
-  console.log(`[ISOLATION DIAGNOSTIC] [${reqStartTimestamp}] Étape 1: Entrée dans la route Express /api/jellyfin/proxy/stream`);
-  console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 1: URL demandée: ${req.url} | Path: ${req.path}`);
-  console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 2: Validation des query params. Query: ${JSON.stringify(req.query)}`);
 
   const config = getJellyfinConfig();
   if (!config) {
@@ -1773,9 +1958,7 @@ app.get(["/api/jellyfin/proxy/stream", "/api/jellyfin/proxy/*", "/stream", "/mas
 
   // 3. Ajouter un log backend pour afficher la requête exacte reçue par /api/jellyfin/proxy/stream
   if (req.url.includes(".ts") || req.url.includes(".m3u8")) {
-      console.log(`[PROXY SEGMENT REQUEST] [${Date.now()}] URL: ${req.url}`);
   } else {
-      console.log(`[PROXY REQUEST RECEIVED] Method: ${req.method} | URL: ${req.url}`);
   }
 
   let targetPath = "";
@@ -1786,18 +1969,14 @@ app.get(["/api/jellyfin/proxy/stream", "/api/jellyfin/proxy/*", "/stream", "/mas
     const { path: chosenPath, id } = req.query;
     targetPath = chosenPath ? String(chosenPath) : "";
     if (!targetPath && id) {
-      console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Pas de path fourni, appel getPlaybackData pour l'ID: ${id}`);
       const timerPlayback = setTimeout(() => {
-        console.warn(`[ISOLATION DIAGNOSTIC] [${Date.now()}] ALERTE PENDING / TIMEOUT: L'appel getPlaybackData(${id}) est toujours suspendu après 5 secondes.`);
       }, 5000);
       try {
         const pbData = await getPlaybackData(String(id));
         clearTimeout(timerPlayback);
         targetPath = pbData.chosenPath;
-        console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] getPlaybackData résolu avec succès. targetPath: ${targetPath}`);
       } catch (e: any) {
         clearTimeout(timerPlayback);
-        console.error(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Échec de getPlaybackData: ${e.message}. Fallback manuel.`);
         targetPath = `/Videos/${id}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&`;
       }
     }
@@ -1807,31 +1986,21 @@ app.get(["/api/jellyfin/proxy/stream", "/api/jellyfin/proxy/*", "/stream", "/mas
     const { path: chosenPath, id } = req.query;
     targetPath = chosenPath ? String(chosenPath) : "";
     if (!targetPath && id) {
-      console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Pas de path fourni (else branch), appel getPlaybackData pour l'ID: ${id}`);
       const timerPlayback = setTimeout(() => {
-        console.warn(`[ISOLATION DIAGNOSTIC] [${Date.now()}] ALERTE PENDING / TIMEOUT: L'appel getPlaybackData(${id}) est toujours suspendu après 5 secondes.`);
       }, 5000);
       try {
         const pbData = await getPlaybackData(String(id));
         clearTimeout(timerPlayback);
         targetPath = pbData.chosenPath;
-        console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] getPlaybackData résolu avec succès (else branch). targetPath: ${targetPath}`);
       } catch (e: any) {
         clearTimeout(timerPlayback);
-        console.error(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Échec de getPlaybackData (else branch): ${e.message}. Fallback manuel.`);
         targetPath = `/Videos/${id}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&`;
       }
     }
   }
 
-  console.log("[PROXY TARGET RESOLVED]", {
-    targetPath,
-    rawId: req.query.id,
-    rawPath: req.query.path
-  });
 
   // 2. Vérifier que le paramètre path encodé est correct et n'est pas corrompu
-  console.log(`[PROXY PATH RESOLVED] brut: "${req.query.path || ""}" | cible finale résolue: "${targetPath}"`);
 
   if (!targetPath) {
     res.status(400).send("Paramètre de chemin (path) ou ID manquant.");
@@ -1874,7 +2043,6 @@ app.get(["/api/jellyfin/proxy/stream", "/api/jellyfin/proxy/*", "/stream", "/mas
     
     if (itemId && !urlObj.searchParams.has("MediaSourceId")) {
       urlObj.searchParams.set("MediaSourceId", itemId);
-      console.log(`[PROXY DEBUG] MediaSourceId auto-injecté à partir de l'ID d'item : ${itemId}`);
     }
 
     // Supprimer la version minuscule mediaSourceId pour empêcher les conflits/doublons d'arguments (Erreur 400)
@@ -1885,7 +2053,6 @@ app.get(["/api/jellyfin/proxy/stream", "/api/jellyfin/proxy/*", "/stream", "/mas
     }
     targetUrl = urlObj.toString();
   } catch (e: any) {
-    console.warn(`[PROXY WARNING] Échec de la fusion avancée d'URL: ${e.message}. Utilisation du fallback classique de query string.`);
     for (const [key, value] of Object.entries(req.query)) {
       if (key !== "path" && key !== "id" && value !== undefined) {
         if (!targetUrl.includes(`${key}=`)) {
@@ -1900,7 +2067,6 @@ app.get(["/api/jellyfin/proxy/stream", "/api/jellyfin/proxy/*", "/stream", "/mas
 
   // 6. Tester avec une URL directe Jellyfin pour confirmer que le problème vient bien du proxy
   // Nous l'affichons clairement dans les logs backend
-  console.log(`[PROXY DEBUG] DIRECT JELLYFIN TEST URL : ${targetUrl}`);
 
   let startTimeTicks = "0";
   try {
@@ -1911,10 +2077,6 @@ app.get(["/api/jellyfin/proxy/stream", "/api/jellyfin/proxy/*", "/stream", "/mas
     if (match) startTimeTicks = match[1];
   }
 
-  console.log(`[PROXY REQUEST] --- STREAM PROXY ENGINE ---`);
-  console.log(`[PROXY REQUEST] URL de destination Jellyfin : ${targetUrl}`);
-  console.log(`[PROXY REQUEST] StartTimeTicks extrait : ${startTimeTicks}`);
-  console.log(`[PROXY REQUEST] Header Range reçu du navigateur : ${req.headers.range || "Aucun Range"}`);
 
   latestStreamDebug = {
     timestamp: Date.now(),
@@ -1947,7 +2109,6 @@ app.get(["/api/jellyfin/proxy/stream", "/api/jellyfin/proxy/*", "/stream", "/mas
   const redirectToDirectStream = (reason: string) => {
     if (!res.headersSent) {
       const sanitizedUrlForLogs = targetUrl.replace(config.apiKey, "SECRET_API_KEY");
-      console.warn(`[PROXY FALLBACK COMPORTEMENT] Déclenchement de redirection directe : "${reason}". URL directe: ${sanitizedUrlForLogs}`);
       res.redirect(307, targetUrl);
     }
   };
@@ -1958,24 +2119,15 @@ app.get(["/api/jellyfin/proxy/stream", "/api/jellyfin/proxy/*", "/stream", "/mas
   };
 
   const onResponse = (response: http.IncomingMessage) => {
+    const ttfb = Date.now() - reqStartTimestamp;
+    
     const statusCode = response.statusCode || 200;
-    console.log("[HLS DEBUG]", {
-      url: targetUrl,
-      status: statusCode,
-      contentType: response.headers["content-type"],
-      contentLength: response.headers["content-length"],
-      contentRange: response.headers["content-range"]
-    });
-    console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 8: Réponse HTTP de Jellyfin reçue. Status Code: ${statusCode} | Headers: ${JSON.stringify(response.headers)}`);
 
     latestStreamDebug.statusCode = statusCode;
     latestStreamDebug.responseHeaders = response.headers;
     latestStreamDebug.jellyfinResponseRange = String(response.headers["content-range"] || "None");
 
     // 6. TEST DEBUG : journaliser l'état Jellyfin et les headers envoyés / reçus
-    console.log(`[PROXY DEBUG] Status Jellyfin: ${statusCode}`);
-    console.log(`[PROXY DEBUG] Headers envoyés à Jellyfin:`, JSON.stringify(headers));
-    console.log(`[PROXY DEBUG] Headers reçus de Jellyfin:`, JSON.stringify(response.headers));
 
     if (statusCode >= 400) {
       redirectToDirectStream(`Code erreur Jellyfin ${statusCode}`);
@@ -2001,7 +2153,7 @@ app.get(["/api/jellyfin/proxy/stream", "/api/jellyfin/proxy/*", "/stream", "/mas
       "Cache-Control": "no-cache",
       "Access-Control-Allow-Origin": proxyOrigin,
       "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS, POST, PUT, DELETE",
-      "Access-Control-Allow-Headers": "Authorization, Content-Type, Range, X-Emby-Token, X-MediaBrowser-Token, X-Requested-With, Origin, Accept",
+      "Access-Control-Allow-Headers": "*",
       "Access-Control-Expose-Headers": "Content-Length, Content-Range, Accept-Ranges, Content-Type",
       "Cross-Origin-Resource-Policy": "cross-origin",
       "X-Accel-Buffering": "no"
@@ -2038,7 +2190,6 @@ app.get(["/api/jellyfin/proxy/stream", "/api/jellyfin/proxy/*", "/stream", "/mas
     res.writeHead(response.statusCode || 200, responseHeaders);
     res.flushHeaders();
 
-    // 6. TEST DEBUG : Throttled logging to protect the event loop from high-frequency I/O overhead
     let totalBytesStreamed = 0;
     let lastLogTime = Date.now();
     let firstChunkReceived = false;
@@ -2046,41 +2197,30 @@ app.get(["/api/jellyfin/proxy/stream", "/api/jellyfin/proxy/*", "/stream", "/mas
     response.on("data", (chunk) => {
       if (!firstChunkReceived) {
         firstChunkReceived = true;
-        console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 10: Premier chunk de données reçu du stream upstream de Jellyfin. Taille: ${chunk.length} octets`);
-        console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 11: Flux envoyé côté client (premier bloc de données transféré avec succès).`);
+        const ttfbFirstOctet = Date.now() - reqStartTimestamp;
       }
-
       totalBytesStreamed += chunk.length;
       const now = Date.now();
       if (now - lastLogTime > 4000) {
-        console.log(`[PROXY DEBUG] Streaming en cours... Transféré : ${(totalBytesStreamed / (1024 * 1024)).toFixed(2)} Mo`);
         lastLogTime = now;
       }
     });
 
     response.on("end", () => {
-      console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Fin du flux de données Jellyfin.`);
-      console.log(`[PROXY DEBUG] Fin du flux Jellyfin.`);
+      const timeTotal = Date.now() - reqStartTimestamp;
     });
 
     response.on("error", (err) => {
-      console.log("[HLS STREAM ERROR]", err);
-      console.error(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Erreur sur le flux de lecture Jellyfin:`, err);
-      console.error(`[PROXY DEBUG] Erreur sur le flux de lecture Jellyfin:`, err);
     });
 
-    // 1. Le proxy doit utiliser streaming PIPE DIRECT (OBLIGATOIRE)
-    // Nous lisons le stream et l'injectons directement et sans modification dans la réponse Express.
-    console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 9: Début du streaming (Lancement de response.pipe(res))`);
     response.pipe(res);
   };
 
-  console.log(`[ISOLATION DIAGNOSTIC] [${Date.now()}] Étape 7: Début de l'appel HTTP vers Jellyfin (stream / master.m3u8). URL: ${targetUrl}`);
+  const timeToProxyStart = Date.now() - reqStartTimestamp;
   getWithRedirects(targetUrl, requestOptions, onResponse, onError, 5, currentReqRef);
 
   req.on("close", () => {
     if (currentReqRef.current) {
-      console.log("[PROXY STREAM] Client connection closed. Destroying remote request...");
       currentReqRef.current.destroy();
     }
   });
@@ -2252,7 +2392,6 @@ app.get("/api/jellyfin/subtitles/:itemId/:mediaSourceId/:index.vtt", async (req,
     `${config.url}/Videos/${itemId}/Subtitles/${index}/Stream?api_key=${config.apiKey}`
   );
 
-  console.log(`[SUBTITLE PROXY] Tentative de récupération de la piste ${index} (VTT/SRT) pour le film ${itemId}...`);
 
   let lastError: any = null;
   for (const targetUrl of urlsToTry) {
@@ -2268,7 +2407,6 @@ app.get("/api/jellyfin/subtitles/:itemId/:mediaSourceId/:index.vtt", async (req,
         const text = await response.text();
         // S'assurer que le contenu n'est pas une page d'erreur HTML ou vide
         if (text && !text.trim().startsWith("<!DOCTYPE")) {
-          console.log(`[SUBTITLE PROXY] Succès avec l'URL : ${targetUrl.replace(config.apiKey, "SECRET_KEY")}`);
           
           // CONVERSION GARANTIE AU FORMAT WEBVTT PROPRE
           const webVttContent = convertToWebVTT(text);
@@ -2298,15 +2436,12 @@ app.get("/api/jellyfin/subtitles/:itemId/:mediaSourceId/:index.vtt", async (req,
           return;
         }
       }
-      console.log(`[SUBTITLE PROXY] Autre format ou contenu pour : ${targetUrl.replace(config.apiKey, "SECRET_KEY")}`);
     } catch (err: any) {
       lastError = err;
-      console.log(`[SUBTITLE PROXY] Statut alternatif pour : ${targetUrl.replace(config.apiKey, "SECRET_KEY")}`);
     }
   }
 
   // Si on arrive ici, tous les essais ont échoué
-  console.log("[INFO] Subtitle proxy handled missing track cleanly.");
   let subtitleOriginFallback = req.headers.origin;
   if (!subtitleOriginFallback && req.headers.referer) {
     try {
@@ -2376,11 +2511,9 @@ async function startServer() {
   }
 
   serverInstance.listen(PORT, "0.0.0.0", () => {
-    console.log(`[CLASSICO SERVER] Back-end listening on port ${PORT} (${process.env.NODE_ENV !== "production" ? "Development with WebSockets" : "Production"})`);
     // Pre-warm caches immediately on server boot
     const startupConfig = getJellyfinConfig();
     if (startupConfig) {
-      console.log("[STARTUP] Warming up Jellyfin movies and hero cache in the background...");
       backgroundFetchMovies(startupConfig);
       backgroundFetchHero(startupConfig);
     }

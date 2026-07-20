@@ -25,6 +25,9 @@ const keepAliveHttpsAgent = new https.Agent({
   rejectUnauthorized: false,
 });
 
+import { importedMoviesData } from './src/data/imported_movies';
+let globalImportedMovies = [...importedMoviesData];
+
 const app = express();
 const PORT = 3000;
 const CONFIG_PATH = path.join(process.cwd(), "jellyfin-config.json");
@@ -604,7 +607,7 @@ async function enrichWithTmdb(movies: any[], fetchMissing: boolean = false): Pro
         const batch = missingTmdbIds.slice(i, i + 10);
         await Promise.all(batch.map(async (tmdbId) => {
           try {
-            const res = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?language=en-US`, {
+            const res = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?append_to_response=credits,images&include_image_language=en,null&language=en-US`, {
               headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
             });
             if (res.ok) {
@@ -626,6 +629,7 @@ async function enrichWithTmdb(movies: any[], fetchMissing: boolean = false): Pro
     const tmdbId = m.providerIds?.Tmdb;
     const t = tmdbId ? tmdbCache[tmdbId] : null;
     if (t) {
+      const logoObj = t.images?.logos?.find((l: any) => l.iso_639_1 === 'en') || t.images?.logos?.[0];
       return { 
         ...m, 
         posterUrl: t.poster_path ? `https://image.tmdb.org/t/p/w500${t.poster_path}` : m.posterUrl, 
@@ -635,6 +639,8 @@ async function enrichWithTmdb(movies: any[], fetchMissing: boolean = false): Pro
         releaseDate: t.release_date || m.releaseDate, 
         genre: t.genres?.map((g: any) => g.name) || m.genre, 
         rating: t.vote_average ? t.vote_average.toFixed(1) : m.rating,
+        hasLogo: !!logoObj || m.hasLogo,
+        logoUrl: logoObj ? `https://image.tmdb.org/t/p/w500${logoObj.file_path}` : m.logoUrl,
         tmdbId: tmdbId
       };
     }
@@ -955,12 +961,7 @@ app.get("/api/jellyfin/movies", async (req, res) => {
   if (cachedMovies) {
     // Send response immediately! (Extremely fast, <10ms)
     
-    let importedMovies = [];
-    try {
-      if (fs.existsSync(path.join(process.cwd(), "imported_movies.json"))) {
-        importedMovies = JSON.parse(fs.readFileSync(path.join(process.cwd(), "imported_movies.json"), "utf-8"));
-      }
-    } catch (e) {}
+    let importedMovies = globalImportedMovies;
     res.json({
       success: true,
       movies: [...importedMovies, ...cachedMovies]
@@ -995,12 +996,7 @@ app.get("/api/jellyfin/movies", async (req, res) => {
 
     // Send response to client immediately! (< 2 seconds!)
     
-    let importedMovies = [];
-    try {
-      if (fs.existsSync(path.join(process.cwd(), "imported_movies.json"))) {
-        importedMovies = JSON.parse(fs.readFileSync(path.join(process.cwd(), "imported_movies.json"), "utf-8"));
-      }
-    } catch (e) {}
+    let importedMovies = globalImportedMovies;
     res.json({
       success: true,
       movies: [...importedMovies, ...fastMovies]
@@ -1041,12 +1037,7 @@ app.get("/api/jellyfin/hero", async (req, res) => {
 
   // 3. If we have cached hero items
   if (cachedHeroes) {
-    let importedMovies = [];
-    try {
-      if (fs.existsSync(path.join(process.cwd(), "imported_movies.json"))) {
-        importedMovies = JSON.parse(fs.readFileSync(path.join(process.cwd(), "imported_movies.json"), "utf-8"));
-      }
-    } catch (e) {}
+    let importedMovies = globalImportedMovies;
 
     const allHeroes = [...importedMovies.reverse(), ...cachedHeroes].slice(0, 5);
     res.json({
@@ -1074,12 +1065,7 @@ app.get("/api/jellyfin/hero", async (req, res) => {
     setCached(cacheKey, formattedHeroes, 3600000);
     fs.writeFileSync(HERO_CACHE_PATH, JSON.stringify(formattedHeroes, null, 2), "utf-8");
 
-    let importedMovies = [];
-    try {
-      if (fs.existsSync(path.join(process.cwd(), "imported_movies.json"))) {
-        importedMovies = JSON.parse(fs.readFileSync(path.join(process.cwd(), "imported_movies.json"), "utf-8"));
-      }
-    } catch (e) {}
+    let importedMovies = globalImportedMovies;
 
     const allHeroes = [...importedMovies.reverse(), ...formattedHeroes].slice(0, 5);
 

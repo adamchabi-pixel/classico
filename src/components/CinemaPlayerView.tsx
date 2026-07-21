@@ -748,6 +748,33 @@ export default function CinemaPlayerView({
         // Fallback if prefetch was null or failed (now always runs since we cleared it)
         if (!data) {
           const isNumeric = /^\d+$/.test(movieId);
+          
+          // Look up the movie in allMoviesData to get its tmdbId or imdbId
+          let actualTmdbId = movieId;
+          const matchedMovie = allMoviesData.find(m => m.id === movieId);
+          if (matchedMovie) {
+            actualTmdbId = matchedMovie.tmdbId || matchedMovie.imdbId || (matchedMovie.providerIds?.Tmdb) || (matchedMovie.providerIds?.Imdb) || movieId;
+          }
+          
+          if (!forceJellyfin) {
+            // ALWAYS use videasy now, even for jellyfin uuids, by using the looked up tmdbId
+            const iframeResult = {
+              id: movieId,
+              streamUrl: `https://player.videasy.net/movie/${actualTmdbId}?color=FFD700&overlay=true`,
+              duration: 0,
+              container: "iframe",
+              title: "Film (Embed)",
+              isDirect: true,
+              isIframeEmbed: true,
+              iframeSrc: `https://player.videasy.net/movie/${actualTmdbId}?color=FFD700&overlay=true`,
+              subtitles: [],
+              audios: []
+            };
+            setPlaybackInfo(iframeResult);
+            setIsLoading(false);
+            return;
+          }
+          
           if (!forceJellyfin && (movieId.startsWith("tt") || isNumeric)) {
             const iframeResult = {
               id: movieId,
@@ -768,7 +795,7 @@ export default function CinemaPlayerView({
 
           const needsTranscodeParam = forceTranscode || playbackAttempts > 0 || isLowQuality;
           
-          const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
+          const isNetlify = false; // Forced false to bypass Jellyfin
           
           if (isNetlify) {
             const serverUrl = localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud";
@@ -887,7 +914,7 @@ export default function CinemaPlayerView({
 
         if (active) {
           if (data && data.streamUrl) {
-            const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
+            const isNetlify = false; // Forced false to bypass Jellyfin
             if (!isNetlify) {
               data = {
                 ...data,
@@ -958,7 +985,7 @@ export default function CinemaPlayerView({
               }
             }, 1500 * nextAttempt);
           } else {
-            const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
+            const isNetlify = false; // Forced false to bypass Jellyfin
             const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
             const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
             
@@ -1062,7 +1089,7 @@ export default function CinemaPlayerView({
       
       // Only convert to transcoding if we ACTUALLY need a non-default audio or burned in subtitles
       if (playbackInfo.isDirect && (isChangingAudio || needsBurnIn)) {
-        const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
+        const isNetlify = false; // Forced false to bypass Jellyfin
         const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : "";
         const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
         const hlsParams = `Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&SegmentLength=3&MinSegments=1&BreakOnNonKeyFrames=True&VideoBitrate=140000000&MaxVideoBitrate=140000000`;
@@ -1291,7 +1318,7 @@ export default function CinemaPlayerView({
                 return;
               }
               if (data.fatal) {
-                const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
+                const isNetlify = false; // Forced false to bypass Jellyfin
                 const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
                 const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
                 const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&SegmentLength=3&MinSegments=1&BreakOnNonKeyFrames=True&VideoBitrate=140000000&MaxVideoBitrate=140000000`;
@@ -1527,7 +1554,7 @@ export default function CinemaPlayerView({
               savedRestoreTimeRef.current = progress;
             }
             const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&SegmentLength=3&MinSegments=1&BreakOnNonKeyFrames=True&VideoBitrate=140000000&MaxVideoBitrate=140000000`;
-            const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
+            const isNetlify = false; // Forced false to bypass Jellyfin
             const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
             const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
             const fallbackUrl = isNetlify ? `${serverUrl}${fallbackPath}&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}` : formatHlsUrl(`/api/jellyfin/proxy${fallbackPath}&DeviceId=${deviceId}&MediaSourceId=${movieId}`, movieId, deviceId, apiKey);

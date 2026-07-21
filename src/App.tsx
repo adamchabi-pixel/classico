@@ -7,6 +7,8 @@ import {
   Star, CheckCircle, AlertCircle, RefreshCw, X, Shield, Menu, Settings, Loader2
 } from "lucide-react";
 import { COLLECTIONS as RAW_COLLECTIONS, Movie, Collection } from "./data";
+import { allMoviesData } from "./data/all_movies";
+import { heroMoviesData } from "./data/hero_movies";
 const COLLECTIONS: Collection[] = [...RAW_COLLECTIONS].sort((a, b) => { if (a.id === "trending-now") return -1; if (b.id === "trending-now") return 1; return a.title.localeCompare(b.title); });
 
 import MovieCard from "./components/MovieCard";
@@ -756,7 +758,7 @@ export default function App() {
   const [history, setHistory] = useState<string[]>([]);
   const [progressData, setProgressData] = useState<Record<string, number>>({});
   const [startAsPlaying, setStartAsPlaying] = useState(false);
-  const [jellyfinHeroMovies, setJellyfinHeroMovies] = useState<any[]>([]);
+  const [jellyfinHeroMovies, setJellyfinHeroMovies] = useState<any[]>(heroMoviesData.heroes as any);
   const [currentHeroIndex, setCurrentHeroIndex] = useState<number>(0);
   const [direction, setDirection] = useState<number>(1);
   const jellyfinHeroMovie = jellyfinHeroMovies[currentHeroIndex] || null;
@@ -774,9 +776,9 @@ export default function App() {
     "christopher-nolan": true, // Start with Christopher Nolan collection unfolded so users see films immediately
   });
 
-  const [jellyfinMovies, setJellyfinMovies] = useState<Movie[]>([]);
+  const [jellyfinMovies, setJellyfinMovies] = useState<Movie[]>(allMoviesData as any);
   const [jellyfinSearchQuery, setJellyfinSearchQuery] = useState("");
-  const [isJellyfinLoading, setIsJellyfinLoading] = useState(true);
+  const [isJellyfinLoading, setIsJellyfinLoading] = useState(false);
   const [isJellyfinError, setIsJellyfinError] = useState("");
 
   // Force scroll to top when initial page loading completes to prevent browser layout-shift scroll drops
@@ -1094,84 +1096,9 @@ export default function App() {
   };
 
   // Load library movies from backend
-  const loadJellyfinLibrary = async () => {
-    setIsJellyfinLoading(true);
-    setIsJellyfinError("");
-    try {
-      const res = await fetch("/api/jellyfin/movies");
-      if (!res.ok) {
-        throw new Error(`Server returned HTTP ${res.status}`);
-      }
-      const data = await res.json();
-      if (data.success) {
-        setJellyfinMovies(data.movies || []);
+  const loadJellyfinLibrary = async () => {}; // Removed: Using static data
 
-        // SWR (Stale-While-Revalidate): Schedule a quiet, non-blocking background revalidation
-        // to retrieve full details (directors, actors) after the initial fast UI paint is complete.
-        setTimeout(async () => {
-          try {
-            const revalidateRes = await fetch("/api/jellyfin/movies?revalidate=true");
-            if (revalidateRes.ok) {
-              const revalidateData = await revalidateRes.json();
-              if (revalidateData.success && Array.isArray(revalidateData.movies) && revalidateData.movies.length > 0) {
-                setJellyfinMovies(revalidateData.movies);
-              }
-            }
-          } catch (bgErr) {
-            console.log("Background revalidation skipped or failed.");
-          }
-        }, 3000);
-      } else {
-        setIsJellyfinError(data.error || "Unable to retrieve your movies.");
-      }
-    } catch (err: any) {
-      setIsJellyfinError("Network error communicating with the media server.");
-    } finally {
-      setIsJellyfinLoading(false);
-    }
-  };
-
-  const loadJellyfinHeroMovie = async () => {
-    setIsJellyfinHeroLoading(true);
-    let attempts = 0;
-    const maxAttempts = 3;
-
-    const tryFetchHero = async () => {
-      try {
-        const res = await fetch("/api/jellyfin/hero");
-        if (!res.ok) {
-          throw new Error(`Server returned HTTP ${res.status}`);
-        }
-        const data = await res.json();
-        if (data.success) {
-          if (data.heroes && data.heroes.length > 0) {
-            setJellyfinHeroMovies(data.heroes);
-          } else if (data.hero) {
-            setJellyfinHeroMovies([data.hero]);
-          } else {
-            setJellyfinHeroMovies([]);
-          }
-          setCurrentHeroIndex(0);
-          setIsJellyfinHeroLoading(false);
-        } else {
-          setJellyfinHeroMovies([]);
-          setIsJellyfinHeroLoading(false);
-        }
-      } catch (err) {
-        console.warn(`Jellyfin Hero load attempt ${attempts + 1} failed:`, err);
-        if (attempts < maxAttempts - 1) {
-          attempts++;
-          setTimeout(tryFetchHero, 1500 * attempts);
-        } else {
-          console.warn("Jellyfin Hero load error:", err);
-          setJellyfinHeroMovies([]);
-          setIsJellyfinHeroLoading(false);
-        }
-      }
-    };
-
-    tryFetchHero();
-  };
+  const loadJellyfinHeroMovie = async () => {};
 
   // Reset title display preferences when user slides to a different hero film
   useEffect(() => {
@@ -1315,76 +1242,8 @@ export default function App() {
       let attempts = 0;
       const maxAttempts = 3;
       
-      const tryFetch = async () => {
-        try {
-          const isNetlify = typeof window !== "undefined" && window.location && window.location.hostname && (!window.location.hostname.includes("localhost") && !window.location.hostname.includes("127.0.0.1") && !window.location.hostname.includes("run.app"));
-          const defaultUrl = "https://jellyfin-jacklumber00.siren.mygiga.cloud";
-          const defaultApiKey = "a2aac09e434e4bcc897c1b181ca197eb";
-
-          const localUrl = localStorage.getItem("classico_jellyfin_url");
-          const localKey = localStorage.getItem("classico_jellyfin_apikey");
-
-          if (isNetlify || !localUrl || !localKey) {
-            localStorage.setItem("classico_jellyfin_url", defaultUrl);
-            localStorage.setItem("classico_jellyfin_apikey", defaultApiKey);
-          }
-
-          const targetUrl = localStorage.getItem("classico_jellyfin_url") || defaultUrl;
-          const targetKey = localStorage.getItem("classico_jellyfin_apikey") || defaultApiKey;
-
-          // Perform auto-configuration on server
-          const restoreRes = await fetch("/api/jellyfin/config", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ url: targetUrl, apiKey: targetKey })
-          });
-
-          if (!restoreRes.ok) throw new Error("Auto-configuration request failed");
-          const restoreData = await restoreRes.json();
-
-          if (restoreData.success) {
-            setJellyfinConfig({ configured: true, url: restoreData.url });
-            localStorage.setItem("classico_jellyfin_url", restoreData.url);
-            localStorage.setItem("classico_jellyfin_apikey", targetKey);
-
-            setIsJellyfinLoading(true);
-            try {
-              const libRes = await fetch("/api/jellyfin/movies");
-              if (!libRes.ok) throw new Error("Could not fetch movies");
-              const libData = await libRes.json();
-              if (libData.success) {
-                setJellyfinMovies(libData.movies || []);
-              } else {
-                setIsJellyfinError(libData.error || "Unable to read movies.");
-              }
-            } catch (libErr) {
-              console.warn("Failed to load library movies on check:", libErr);
-              setIsJellyfinError("Unable to connect to Jellyfin.");
-            } finally {
-              setIsJellyfinLoading(false);
-            }
-          } else {
-            // Fallback gracefully and set configured to true with targetUrl
-            setJellyfinConfig({ configured: true, url: targetUrl });
-            setIsJellyfinLoading(false);
-          }
-        } catch (err) {
-          console.warn(`Jellyfin connection check attempt ${attempts + 1} failed:`, err);
-          if (attempts < maxAttempts - 1) {
-            attempts++;
-            setTimeout(tryFetch, 1500 * attempts);
-          } else {
-            console.warn("Jellyfin connection check error:", err);
-            // Bulletproof fallback: set configured to true to unblock the screen immediately
-            const defaultUrl = "https://jellyfin-jacklumber00.siren.mygiga.cloud";
-            setJellyfinConfig({ configured: true, url: defaultUrl });
-            setIsJellyfinLoading(false);
-            setIsJellyfinHeroLoading(false);
-          }
-        }
-      };
-      
-      tryFetch();
+      // tryFetch removed: Using static Videasy data
+      setJellyfinConfig({ configured: true, url: "https://videasy.net" });
     };
     checkJellyfinSetup();
 

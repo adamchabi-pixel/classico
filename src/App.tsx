@@ -1115,14 +1115,7 @@ export default function App() {
     return () => clearInterval(interval);
   }, [jellyfinHeroMovies.length]);
 
-  // Load Jellyfin Hero whenever config status updates
-  useEffect(() => {
-    if (jellyfinConfig?.configured) {
-      loadJellyfinHeroMovie();
-    } else {
-      setJellyfinHeroMovies([]);
-    }
-  }, [jellyfinConfig?.configured]);
+// Load Jellyfin Hero effect removed
 
   // Listen for background full library updates (especially useful on deployed/Netlify environments)
   useEffect(() => {

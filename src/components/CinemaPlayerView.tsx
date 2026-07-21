@@ -218,6 +218,7 @@ export default function CinemaPlayerView({
 
   const [isLoading, setIsLoading] = useState(true);
   const [isStreamLoading, setIsStreamLoading] = useState(true);
+  const [isIframeLoading, setIsIframeLoading] = useState(true);
   const [isActuallyPlaying, setIsActuallyPlaying] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
@@ -729,6 +730,7 @@ export default function CinemaPlayerView({
         return;
       }
       setIsLoading(true);
+      setIsIframeLoading(true);
       setIsStreamLoading(true);
       setIsActuallyPlaying(false);
       trackEventFired("metadataStart", "Début de récupération des métadonnées");
@@ -1730,12 +1732,19 @@ export default function CinemaPlayerView({
         </div>
       </div>
 
-      {isLoading || isStreamLoading ? (
-        <div className="text-amber-500 flex flex-col items-center gap-4">
+      {/* Loader overlay */}
+      {(isLoading || isStreamLoading || (playbackInfo?.isIframeEmbed && isIframeLoading)) && (
+        <div className="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center gap-4 text-amber-500">
           <Loader2 className="w-10 h-10 animate-spin" />
+          <div className="text-sm font-mono tracking-widest text-amber-500/80 uppercase">
+            Connexion au serveur...
+          </div>
         </div>
-      ) : playbackInfo?.iframeSrc ? (
-        <div className="absolute inset-0 w-full h-full bg-black z-40 pointer-events-auto flex items-center justify-center">
+      )}
+      
+      {/* Actual player/iframe */}
+      {playbackInfo?.iframeSrc ? (
+        <div className={`absolute inset-0 w-full h-full bg-black z-40 pointer-events-auto flex items-center justify-center ${isIframeLoading ? 'opacity-0' : 'opacity-100'}`}>
           <iframe
             src={playbackInfo.iframeSrc}
             allowFullScreen={true}
@@ -1745,13 +1754,14 @@ export default function CinemaPlayerView({
             webkitAllowFullScreen={true}
             // @ts-ignore
             mozAllowFullScreen={true}
+            onLoad={() => setIsIframeLoading(false)}
           ></iframe>
         </div>
-      ) : (
-        <div className="text-rose-500 font-mono text-xs p-4 bg-black/80 rounded border border-rose-500/30">
+      ) : !isLoading && !isStreamLoading ? (
+        <div className="absolute inset-0 flex items-center justify-center text-rose-500 font-mono text-xs p-4 bg-black/80 z-30">
           Source introuvable.
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

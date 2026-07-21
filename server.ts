@@ -26,6 +26,8 @@ const keepAliveHttpsAgent = new https.Agent({
 });
 
 import { importedMoviesData } from './src/data/imported_movies';
+import { allMoviesData } from './src/data/all_movies';
+import { heroMoviesData } from './src/data/hero_movies';
 let globalImportedMovies = [...importedMoviesData];
 function getGlobalImportedMovies() {
     return [...importedMoviesData];
@@ -230,29 +232,15 @@ function getJellyfinConfig() {
 
 // 1. Get current connection status (Without leaking the sensitive API key!)
 app.get("/api/jellyfin/config", (req, res) => {
-  const config = getJellyfinConfig();
-  if (config) {
-    res.json({
-      configured: true,
-      url: config.url
-    });
-  } else {
-    res.json({
-      configured: false
-    });
-  }
+  res.json({
+    configured: true,
+    url: "CLASSICO Static Library"
+  });
 });
 
 // 2. Disconnect Jellyfin (Delete the local secure JSON file)
 app.post("/api/jellyfin/disconnect", (req, res) => {
-  try {
-    if (fs.existsSync(CONFIG_PATH)) {
-      fs.unlinkSync(CONFIG_PATH);
-    }
-    res.json({ success: true });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
-  }
+  res.json({ success: true });
 });
 
 // 2b. Recalculate categories (Clear server-side query caches)
@@ -937,162 +925,19 @@ app.get("/api/admin/movies/test-odyssey", async (req, res) => {
 });
 
 // 4. List library movies from connected Jellyfin with persistent file and memory cache (SWR model)
-app.get("/api/jellyfin/movies", async (req, res) => {
+app.get("/api/jellyfin/movies", (req, res) => {
   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
-
-  const config = getJellyfinConfig();
-  if (!config) {
-    res.status(401).json({ success: false, error: "Serveur non configuré." });
-    return;
-  }
-
-  const cacheKey = "movies-list";
-  
-  // 1. Check in-memory cache
-  let cachedMovies = getCached(cacheKey);
-  
-  // 2. If memory cache empty, try persistent disk cache
-  if (!cachedMovies && fs.existsSync(MOVIES_CACHE_PATH)) {
-    try {
-      const fileContent = fs.readFileSync(MOVIES_CACHE_PATH, "utf-8");
-      cachedMovies = JSON.parse(fileContent);
-      // Populate memory cache
-      setCached(cacheKey, cachedMovies, 3600000); // 1 hour
-      
-      // Async pre-warm images in background
-      prewarmImageCache(cachedMovies);
-    } catch (e) {
-      console.error("Error reading movies disk cache:", e);
-    }
-  }
-
-  // 3. If we have cached movies (memory or disk)
-  if (cachedMovies) {
-    // Send response immediately! (Extremely fast, <10ms)
-    
-    let importedMovies = getGlobalImportedMovies();
-    res.json({
-      success: true,
-      movies: [...importedMovies, ...cachedMovies]
-    });
-
-
-    // Check if the cache is stale (older than 1 hour) and trigger background revalidation
-    let mtime = 0;
-    if (fs.existsSync(MOVIES_CACHE_PATH)) {
-      mtime = fs.statSync(MOVIES_CACHE_PATH).mtimeMs;
-    }
-    const age = Date.now() - mtime;
-    if (age > 3600000) { // 1 hour
-      backgroundFetchMovies(config);
-    } else {
-      // If fresh, make sure images are pre-warmed anyway
-      prewarmImageCache(cachedMovies);
-    }
-    return;
-  }
-
-  // 4. If no cache exists at all, perform a FAST fetch synchronously to respond in under 2 seconds!
-  try {
-    const fastMovies = await fetchAndCacheMovies(config, false);
-    
-    // Save the fast version to memory && disk immediately so the client can render the UI instantly
-    setCached(cacheKey, fastMovies, 3600000);
-    try { fs.writeFileSync(MOVIES_CACHE_PATH, JSON.stringify(fastMovies, null, 2), "utf-8");
-
-     } catch (e) { console.warn("Could not write cache:", e.message); }
-// Async pre-warm images in background
-    prewarmImageCache(fastMovies);
-
-    // Send response to client immediately! (< 2 seconds!)
-    
-    let importedMovies = getGlobalImportedMovies();
-    res.json({
-      success: true,
-      movies: [...importedMovies, ...fastMovies]
-    });
-
-
-    // Quietly fire a background full revalidation fetch to get complete metadata (actors, taglines, directors)
-    backgroundFetchMovies(config);
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
-  }
+  res.json({ success: true, movies: allMoviesData });
 });
 
 // 4ab. Fetch dynamic Jellyfin Hero banner data with SWR caching model
-app.get("/api/jellyfin/hero", async (req, res) => {
+app.get("/api/jellyfin/hero", (req, res) => {
   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
-  const config = getJellyfinConfig();
-  if (!config) {
-    res.json({ success: false, error: "Serveur non configuré." });
-    return;
-  }
-
-  const cacheKey = "hero-list";
-
-  // 1. Check in-memory cache
-  let cachedHeroes = getCached(cacheKey);
-
-  // 2. If memory cache empty, try disk cache
-  if (!cachedHeroes && fs.existsSync(HERO_CACHE_PATH)) {
-    try {
-      const fileContent = fs.readFileSync(HERO_CACHE_PATH, "utf-8");
-      cachedHeroes = JSON.parse(fileContent);
-      // Populate memory cache
-      setCached(cacheKey, cachedHeroes, 3600000);
-    } catch (e) {
-      console.error("Error reading hero disk cache:", e);
-    }
-  }
-
-  // 3. If we have cached hero items
-  if (cachedHeroes) {
-    let importedMovies = getGlobalImportedMovies();
-
-    const allHeroes = [...importedMovies.reverse(), ...cachedHeroes].slice(0, 5);
-    res.json({
-      success: true,
-      heroes: allHeroes,
-      hero: allHeroes[0]
-    });
-
-    // Check if stale (older than 1 hour) and trigger background revalidation
-    let mtime = 0;
-    if (fs.existsSync(HERO_CACHE_PATH)) {
-      mtime = fs.statSync(HERO_CACHE_PATH).mtimeMs;
-    }
-    const age = Date.now() - mtime;
-    if (age > 3600000) { // 1 hour
-      backgroundFetchHero(config);
-    }
-    return;
-  }
-
-  // 4. If no cache exists at all, fetch synchronously
-  try {
-    const formattedHeroes = await fetchAndCacheHero(config);
-    // Save to memory && disk
-    setCached(cacheKey, formattedHeroes, 3600000);
-    try { fs.writeFileSync(HERO_CACHE_PATH, JSON.stringify(formattedHeroes, null, 2), "utf-8");
-
-     } catch (e) { console.warn("Could not write cache:", e.message); }
-let importedMovies = getGlobalImportedMovies();
-
-    const allHeroes = [...importedMovies.reverse(), ...formattedHeroes].slice(0, 5);
-
-    res.json({
-      success: true,
-      heroes: allHeroes,
-      hero: allHeroes[0]
-    });
-  } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
-  }
+  res.json({ success: true, heroes: heroMoviesData.heroes, hero: heroMoviesData.hero });
 });
 
 // 4b. Clear Jellyfin cache on demand when config is saved or manually triggered
@@ -1905,32 +1750,25 @@ async function getPlaybackData(id: string, forceTranscode?: boolean, lowQuality?
 }
 
 // Single central playback route
-app.get("/api/playback/:id", async (req, res) => {
+app.get("/api/playback/:id", (req, res) => {
   const { id } = req.params;
-  const forceTranscode = req.query.forceTranscode === "true";
-  const lowQuality = req.query.lowQuality === "true";
-  const forceJellyfin = req.query.forceJellyfin === "true";
-  try {
-    const data = await getPlaybackData(id, forceTranscode, lowQuality, forceJellyfin);
-    res.json({
-      id: data.id,
-      streamUrl: data.streamUrl,
-      duration: data.duration,
-      container: data.container,
-      title: data.title,
-      isDirect: data.isDirect,
-      videoCodec: data.videoCodec,
-      audioCodec: data.audioCodec,
-      chosenPath: data.chosenPath,
-      isIframeEmbed: data.isIframeEmbed,
-      iframeSrc: data.iframeSrc,
-      subtitles: data.subtitles || [],
-      audios: data.audios || []
-    });
-  } catch (err: any) {
-    console.error("Playback route fetch error:", err.message);
-    res.status(500).json({ success: false, error: err.message });
-  }
+  const isImdb = id.startsWith('tt');
+  const iframeSrc = "https://player.videasy.net/movie/" + id + "?color=FFD700&overlay=true";
+  res.json({
+    id: id,
+    streamUrl: "",
+    duration: 0,
+    container: "iframe",
+    title: "Video",
+    isDirect: true,
+    videoCodec: "",
+    audioCodec: "",
+    chosenPath: "",
+    isIframeEmbed: true,
+    iframeSrc: iframeSrc,
+    subtitles: [],
+    audios: []
+  });
 });
 
 // Playback error logger for remote diagnostics

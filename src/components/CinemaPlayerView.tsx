@@ -6,6 +6,7 @@ import {
   Maximize2, ArrowLeft, Loader2, Sparkles, AlertCircle, Captions, Lock, Menu, Cast, Settings, ChevronRight, ChevronLeft
 } from "lucide-react";
 import EmbedPlayer from "./EmbedPlayer";
+import { allMoviesData } from "../data/all_movies";
 
 interface JfSubtitleCue {
   start: number;
@@ -722,6 +723,7 @@ export default function CinemaPlayerView({
     }
 
     let active = true;
+    console.log("fetchPlayback triggered", {movieId, forceTranscode, playbackAttempts, isLowQuality, forceJellyfin});
     const fetchPlayback = async () => {
       if (!movieId || movieId === "undefined") {
         setIsLoading(false);
@@ -760,6 +762,7 @@ export default function CinemaPlayerView({
           
           if (!forceJellyfin) {
             // ALWAYS use videasy now, even for jellyfin uuids, by using the looked up tmdbId
+            console.log("Videasy ID resolution", {movieId, actualTmdbId, matchedMovie});
             const iframeResult = {
               id: movieId,
               streamUrl: `https://player.videasy.net/movie/${actualTmdbId}?color=FFD700&overlay=true`,
@@ -774,26 +777,13 @@ export default function CinemaPlayerView({
             };
             setPlaybackInfo(iframeResult);
             setIsLoading(false);
+            setIsStreamLoading(false); // Make sure to disable stream loading
+            // Fallback timeout in case onLoad doesn't fire
+            
             return;
           }
           
-          if (!forceJellyfin && (movieId.startsWith("tt") || isNumeric)) {
-            const iframeResult = {
-              id: movieId,
-              streamUrl: `https://player.videasy.net/movie/${movieId}?color=FFD700&overlay=true`,
-              duration: 0,
-              container: "iframe",
-              title: "Film (Embed)",
-              isDirect: true,
-              isIframeEmbed: true,
-              iframeSrc: `https://player.videasy.net/movie/${movieId}?color=FFD700&overlay=true`,
-              subtitles: [],
-              audios: []
-            };
-            setPlaybackInfo(iframeResult);
-            setIsLoading(false);
-            return;
-          }
+// Unreachable iframe fallback removed
 
           const needsTranscodeParam = forceTranscode || playbackAttempts > 0 || isLowQuality;
           
@@ -1016,6 +1006,7 @@ export default function CinemaPlayerView({
       } finally {
         if (active) {
           setIsLoading(false);
+          setIsStreamLoading(false);
         }
       }
     };
@@ -1384,6 +1375,7 @@ export default function CinemaPlayerView({
     }
   };
 
+  
   // 5. VIDEO SOURCE TRANSITION MANAGER WITH SEAMLESS HLS.JS INTEGRATION
   useEffect(() => {
     if (isLoading) return;
@@ -1706,7 +1698,7 @@ export default function CinemaPlayerView({
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col justify-center items-center select-none overflow-hidden cursor-default">
       {/* UPPER DECK (GO BACK) */}
-      <div className="absolute top-0 left-0 right-0 p-6 pt-[calc(1.5rem+env(safe-area-inset-top))] flex items-center justify-between z-50 pointer-events-none">
+      <div className="absolute top-0 left-0 right-0 p-6 pt-[calc(1.5rem+env(safe-area-inset-top))] flex items-center justify-between z-[60] pointer-events-none">
         <button
           onClick={() => {
             if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
@@ -1719,6 +1711,11 @@ export default function CinemaPlayerView({
         </button>
         
         <div className="flex items-center gap-4">
+          {movieTitle && (
+            <div className="pointer-events-auto hidden sm:flex px-4 py-2 rounded-full bg-black/50 text-white/90 backdrop-blur-md items-center justify-center">
+              <span className="text-sm font-medium">{movieTitle}</span>
+            </div>
+          )}
           <button
             onClick={() => {
               alert("Pour partager l'écran sur votre TV :\n\n• Chrome (PC/Mac) : Cliquez sur le menu (⋮) puis 'Caster...'\n• iPhone/iPad : Utilisez la recopie de l'écran depuis le Centre de contrôle\n• Android : Utilisez 'Smart View' ou 'Diffuser l\'écran'");
@@ -1744,17 +1741,18 @@ export default function CinemaPlayerView({
       
       {/* Actual player/iframe */}
       {playbackInfo?.iframeSrc ? (
-        <div className={`absolute inset-0 w-full h-full bg-black z-40 pointer-events-auto flex items-center justify-center ${isIframeLoading ? 'opacity-0' : 'opacity-100'}`}>
+        <div className="absolute inset-0 w-full h-full bg-black z-40 pointer-events-auto flex items-center justify-center">
           <iframe
             src={playbackInfo.iframeSrc}
             allowFullScreen={true}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+            onLoad={() => setIsIframeLoading(false)}
             className="absolute inset-0 w-full h-full border-0"
             // @ts-ignore
-            webkitAllowFullScreen={true}
+            webkitallowfullscreen="true"
             // @ts-ignore
-            mozAllowFullScreen={true}
-            onLoad={() => setIsIframeLoading(false)}
+            mozallowfullscreen="true"
+            
           ></iframe>
         </div>
       ) : !isLoading && !isStreamLoading ? (

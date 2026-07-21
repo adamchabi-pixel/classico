@@ -38,7 +38,7 @@ export const heroMoviesData = {
         "Ferdinand Kingsley"
       ],
       "isIframeEmbed": true,
-      "iframeSrc": "https://player.videasy.net/movie/tt8814476?color=FFD700&overlay=true"
+      "iframeSrc": "https://player.videasy.to/movie/tt8814476"
     },
     {
       "hasLogo": true,
@@ -77,7 +77,7 @@ export const heroMoviesData = {
         "Jarreth J. Merz"
       ],
       "isIframeEmbed": true,
-      "iframeSrc": "https://player.videasy.net/movie/tt33764258?color=FFD700&overlay=true"
+      "iframeSrc": "https://player.videasy.to/movie/tt33764258"
     },
     {
       "hasLogo": true,
@@ -117,7 +117,7 @@ export const heroMoviesData = {
         "Jay Hernandez"
       ],
       "isIframeEmbed": true,
-      "iframeSrc": "https://player.videasy.net/movie/tt29355505?color=FFD700&overlay=true"
+      "iframeSrc": "https://player.videasy.to/movie/tt29355505"
     },
     {
       "hasLogo": true,
@@ -157,7 +157,7 @@ export const heroMoviesData = {
         "Sione Milford"
       ],
       "isIframeEmbed": true,
-      "iframeSrc": "https://player.videasy.net/movie/tt27419466?color=FFD700&overlay=true"
+      "iframeSrc": "https://player.videasy.to/movie/tt27419466"
     },
     {
       "hasLogo": true,
@@ -198,7 +198,7 @@ export const heroMoviesData = {
         "George Lucas"
       ],
       "isIframeEmbed": true,
-      "iframeSrc": "https://player.videasy.net/movie/tt32890033?color=FFD700&overlay=true"
+      "iframeSrc": "https://player.videasy.to/movie/tt32890033"
     }
   ],
   "hero": {
@@ -238,6 +238,6 @@ export const heroMoviesData = {
       "Ferdinand Kingsley"
     ],
     "isIframeEmbed": true,
-    "iframeSrc": "https://player.videasy.net/movie/tt8814476?color=FFD700&overlay=true"
+    "iframeSrc": "https://player.videasy.to/movie/tt8814476"
   }
 };

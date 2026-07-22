@@ -208,7 +208,7 @@ export function AdminWishlist({ onAdded, categories = [], allMovies = [] }: { on
               type="text" 
               value={modMovieId}
               onChange={e => setModMovieId(e.target.value)}
-              placeholder="Search by name..."
+              placeholder="Rechercher par nom..."
               list="admin-movie-list"
               className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-white focus:outline-none focus:border-[#D4AF37]"
             />

@@ -1,10 +1,18 @@
 const fs = require('fs');
-let lines = fs.readFileSync('server.ts', 'utf-8').split('\n');
+let code = fs.readFileSync('server.ts', 'utf-8');
 
-let startDelete = 853; // line 854 is index 853: "      if (findRes.ok) {"
-let endDelete = 902; // line 903 is index 902: "});"
+code = code.replace(
+  'import express from "express";\\\\nimport compression from "compression";',
+  'import express from "express";\\nimport compression from "compression";'
+);
+code = code.replace(
+  'const app = express();\\\\napp.use(compression());',
+  'const app = express();\\napp.use(compression());'
+);
 
-lines.splice(startDelete, endDelete - startDelete + 1);
+// Actually, maybe it's just one slash? Let's just use regex.
+code = code.replace(/import express from "express";\\nimport compression from "compression";/g, 'import express from "express";\\nimport compression from "compression";');
+code = code.replace(/const app = express\(\);\\napp\.use\(compression\(\)\);/g, 'const app = express();\\napp.use(compression());');
 
-fs.writeFileSync('server.ts', lines.join('\n'), 'utf-8');
-console.log("Fixed server.ts syntax.");
+fs.writeFileSync('server.ts', code, 'utf-8');
+console.log("Fixed server literal slash n");

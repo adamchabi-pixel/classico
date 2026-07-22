@@ -1,58 +1,89 @@
 const fs = require('fs');
+
 let code = fs.readFileSync('src/components/MovieModal.tsx', 'utf-8');
 
-const regex = /<motion\.h2[\s\S]*?<p className="text-amber-400 font-mono text-sm tracking-widest drop-shadow-md">\s*\{movie\.director \? movie\.director : "Unknown Director"\} &bull; \{movie\.year\}\s*<\/p>/;
+// I will just replace from line 96 to 101 with a simple hero section.
+// Looking at what's missing, it's the backdrop image, the play button, and the title.
 
-const newCode = `{movie.hasLogo && movie.logoUrl ? (
-                  <motion.img
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.2 }}
-                    src={movie.logoUrl}
-                    alt={movie.title}
-                    className="max-w-[200px] sm:max-w-[300px] max-h-[100px] object-contain drop-shadow-2xl"
-                  />
-                ) : (
-                  <motion.h2
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.2 }}
-                    className="text-4xl sm:text-5xl font-cinzel font-bold text-white tracking-widest uppercase drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
-                  >
-                    {movie.title}
-                  </motion.h2>
-                )}
-                {movie.tagline && (
-                  <p className="text-white font-sans text-sm md:text-base leading-relaxed max-w-xl font-light opacity-95 mt-1 mb-2">
-                    {movie.tagline}
-                  </p>
-                )}
-                
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-mono tracking-widest text-zinc-300 pt-1 uppercase">
-                  <span className="text-amber-400 font-extrabold flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded shadow-sm">
-                    <Star className="w-3.5 h-3.5 fill-current text-amber-500" />
-                    {movie.rating || movie.voteAverage}
-                  </span>
-                  {movie.isTv && movie.seasons && (
+const newHero = `          {/* Top Back Button */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 left-4 z-20 bg-black/60 hover:bg-black/80 text-white p-2.5 rounded-full border border-white/20 backdrop-blur-md transition-all active:scale-95"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          
+          {/* Top Hero Section */}
+          <div className="relative w-full h-64 sm:h-96 md:h-[400px]">
+            <img
+              src={movie.backdropUrl || movie.posterUrl}
+              alt={movie.title}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/40 to-transparent" />
+            
+            {/* Title & Play Button Overlay */}
+            <div className="absolute inset-x-0 bottom-0 p-6 sm:p-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+              <div className="space-y-3">
+                <motion.h2 
+                  layoutId={\`title-\${movie.id}\`}
+                  className="text-4xl sm:text-5xl font-cinzel font-bold text-white tracking-widest uppercase drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
+                >
+                  {movie.title}
+                </motion.h2>
+                <p className="text-amber-400 font-mono text-sm tracking-widest drop-shadow-md">
+                  {movie.director} &bull; {movie.year}
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => onPlay(movie.id)}
+                  className="bg-amber-500 hover:bg-amber-400 text-black px-6 py-3 rounded-xl font-bold font-display uppercase tracking-widest flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(245,158,11,0.4)]"
+                >
+                  <Play className="w-5 h-5 fill-current" />
+                  {checkingJellyfin ? (
                     <>
-                      <span>•</span>
-                      <span>{movie.seasons.length} Seasons</span>
+                      <Loader2 className="w-4 h-4 animate-spin opacity-70" />
+                      Loading
                     </>
+                  ) : (
+                    "Play Now"
                   )}
-                  {movie.originalLanguage && (
-                    <>
-                      <span>•</span>
-                      <span>{movie.originalLanguage.toUpperCase()}</span>
-                    </>
-                  )}
-                  <span>•</span>
-                  <span className="text-zinc-400">{Array.isArray(movie.genre) ? movie.genre.join(", ") : movie.genre}</span>
+                </button>
+              </div>
+            </div>
+          </div>`;
+
+// Replace lines 96-101.
+// We can use a regex or string replacement.
+const badSection = `<motion.div
+          layoutId={\`card-container-\${movie.id}\`}
+          initial={{ opacity: 0, scale: 0.95, y: 30 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 30 }}
+          transition={{ type: "spring", damping: 25, stiffness: 200 }}
+          className={\`relative w-full max-w-4xl bg-stone-950 rounded-2xl overflow-hidden shadow-2xl border border-neutral-800/80 max-h-[92vh] flex flex-col z-10\`}
+        >
+          {/* Top Back Button */}
+              
+                  </div>
                 </div>
-                
-                <p className="text-zinc-300 text-xs sm:text-sm leading-relaxed max-w-2xl font-sans font-light line-clamp-3 sm:line-clamp-4 mt-2">
-                  {movie.description}
-                </p>`;
+              </div>
 
-code = code.replace(regex, newCode);
+              {/* Movie Details Block */}`;
+
+const replaceWith = `<motion.div
+          layoutId={\`card-container-\${movie.id}\`}
+          initial={{ opacity: 0, scale: 0.95, y: 30 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 30 }}
+          transition={{ type: "spring", damping: 25, stiffness: 200 }}
+          className={\`relative w-full max-w-4xl bg-stone-950 rounded-2xl overflow-hidden shadow-2xl border border-neutral-800/80 max-h-[92vh] flex flex-col z-10 overflow-y-auto\`}
+        >
+${newHero}
+              {/* Movie Details Block */}`;
+
+code = code.replace(badSection, replaceWith);
 fs.writeFileSync('src/components/MovieModal.tsx', code, 'utf-8');
-console.log("Patched MovieModal hero.");
+console.log("Restored MovieModal.tsx hero section");

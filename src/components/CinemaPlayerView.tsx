@@ -104,9 +104,6 @@ export function formatHlsUrl(url: string, id: string, deviceId?: string, apiKey?
 }
 
 interface CinemaPlayerViewProps {
-  isTv?: boolean;
-  season?: number;
-  episode?: number;
   movieId: string;
   movieTitle: string;
   movieDuration?: string;
@@ -171,9 +168,6 @@ const TrackName = ({ track }: { track: any }) => {
 };
 
 export default function CinemaPlayerView({
-  isTv,
-  season,
-  episode,
   movieId,
   movieTitle,
   movieDuration,
@@ -776,17 +770,8 @@ export default function CinemaPlayerView({
             if (finalTmdbId.startsWith('tt') && matchedMovie?.tmdbId) {
                 finalTmdbId = matchedMovie.tmdbId;
             }
-            
-            let iframeUrl = "";
-            let cleanId = finalTmdbId;
-            if (cleanId.endsWith('-tv')) cleanId = cleanId.replace('-tv', '');
-            if (isTv && season && episode) {
-              iframeUrl = `https://player.videasy.net/tv/${cleanId}/${season}/${episode}?color=FFD700&overlay=true`;
-            } else {
-              iframeUrl = `https://player.videasy.net/movie/${cleanId}?color=FFD700&overlay=true`;
-            }
             const newServers = [
-              { name: "Videasy (Premium)", url: iframeUrl }
+              { name: "Videasy (Premium)", url: `https://player.videasy.net/movie/${finalTmdbId}?color=FFD700&overlay=true` }
             ];
             setAvailableServers(newServers);
             

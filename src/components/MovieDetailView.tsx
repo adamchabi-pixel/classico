@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Plus, Play, ChevronDown, Award, Users, Film, ArrowLeft, Star, Clock, Heart, X, User, ChevronLeft, ChevronRight } from "lucide-react";
+import { Play, ChevronDown, Award, Users, Film, ArrowLeft, Star, Clock, Heart } from "lucide-react";
 import { Movie } from "../data";
 
 interface MovieDetailViewProps {
@@ -13,65 +13,9 @@ export default function MovieDetailView({
   movie,
   onBack,
   onPlay,
-  onSimilarClick,
-}: MovieDetailViewProps) {
-  const [fullMovie, setFullMovie] = React.useState<Movie>(movie);
-  const [selectedSeason, setSelectedSeason] = React.useState(fullMovie.seasons && fullMovie.seasons.length > 0 ? fullMovie.seasons[0].season_number : 1);
-  const [episodes, setEpisodes] = React.useState<any[]>([]);
-  const [isSeasonDropdownOpen, setIsSeasonDropdownOpen] = React.useState(false);
-    
-  React.useEffect(() => {
-    fetch(`/api/movie/${movie.providerIds?.Tmdb ? (movie.isTv ? movie.providerIds.Tmdb + "-tv" : movie.providerIds.Tmdb) : (movie.tmdbId ? (movie.isTv ? movie.tmdbId + "-tv" : movie.tmdbId) : movie.id)}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.movie) {
-          setFullMovie(prev => ({...prev, ...data.movie}));
-        }
-      })
-      .catch(console.error);
-  }, [movie.id]);
-  const [lastWatched, setLastWatched] = React.useState<{season: number, episode: number} | null>(null);
-
-  React.useEffect(() => {
-    if (fullMovie.isTv) {
-      try {
-        const tvState = JSON.parse(localStorage.getItem("classico_tv_state") || "{}");
-        if (tvState[movie.id]) {
-          setLastWatched(tvState[movie.id]);
-          if (!selectedSeason || fullMovie.seasons?.length && selectedSeason === fullMovie.seasons[0].season_number) {
-            setSelectedSeason(tvState[movie.id].season);
-          }
-        }
-      } catch (e) {}
-    }
-  }, [fullMovie.id, fullMovie.isTv]);
-
-  React.useEffect(() => {
-    if (fullMovie.isTv && selectedSeason) {
-      fetch(`/api/tv/${fullMovie.id}/season/${selectedSeason}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            setEpisodes(data.episodes);
-          }
-        });
-    }
-  }, [fullMovie.id, fullMovie.isTv, selectedSeason]);
-  React.useEffect(() => {
-    if (fullMovie.seasons && fullMovie.seasons.length > 0 && !fullMovie.seasons.find((s: any) => s.season_number === selectedSeason)) {
-      setSelectedSeason(fullMovie.seasons[0].season_number);
-    }
-  }, [fullMovie.seasons]);
   
-  const handlePlayEpisode = (seasonNum: number, episodeNum: number) => {
-    try {
-      const tvState = JSON.parse(localStorage.getItem("classico_tv_state") || "{}");
-      tvState[movie.id] = { season: seasonNum, episode: episodeNum };
-      localStorage.setItem("classico_tv_state", JSON.stringify(tvState));
-      setLastWatched({ season: seasonNum, episode: episodeNum });
-    } catch (e) {}
-    onPlay(fullMovie.id + "-S" + seasonNum + "E" + episodeNum);
-  };
+  
+}: MovieDetailViewProps) {
   const formatDuration = (val: number | string) => {
     if (!val) return "";
     let minutes = typeof val === 'string' ? parseInt(val.replace(/\D/g, ''), 10) : val;
@@ -81,13 +25,19 @@ export default function MovieDetailView({
     if (h > 0) return `${h}h ${m > 0 ? m + 'm' : ''}`;
     return `${m}m`;
   };
-  const [expandedSection, setExpandedSection] = useState<"casting" | null>(null);
-  const [showTrailerModal, setShowTrailerModal] = useState(false);
+  const [expandedSection, setExpandedSection] = useState<"synopsis" | "casting" | "trailer" | null>("synopsis");
 
+  const toggleSection = (section: "synopsis" | "casting" | "trailer") => {
+    if (expandedSection === section) {
+      setExpandedSection(null);
+    } else {
+      setExpandedSection(section);
+    }
+  };
 
   // Safe backdrop selection
-  const backdrop = fullMovie.backdropUrl || "/src/assets/images/classico_hero_backdrop_1781395618793.jpg";
-  const poster = fullMovie.posterUrl || "";
+  const backdrop = movie.backdropUrl || "/src/assets/images/classico_hero_backdrop_1781395618793.jpg";
+  const poster = movie.posterUrl || "";
 
   return (
     <div className="min-h-screen bg-stone-950 text-stone-100 font-sans antialiased pb-20">
@@ -103,13 +53,13 @@ export default function MovieDetailView({
       </div>
 
       {/* 2. SPECTACULAR NETFLIX-STYLE HERO SECTION */}
-      <div className="relative w-full min-h-[75vh] md:min-h-[85vh] [@media(max-height:500px)_and_(orientation:landscape)]:min-h-0 [@media(max-height:500px)_and_(orientation:landscape)]:h-[100vh] bg-black overflow-hidden flex flex-col justify-end pt-32 sm:pt-40 [@media(max-height:500px)_and_(orientation:landscape)]:justify-center [@media(max-height:500px)_and_(orientation:landscape)]:pt-10">
+      <div className="relative w-full h-[55vh] md:h-[75vh] min-h-[500px] [@media(max-height:500px)_and_(orientation:landscape)]:min-h-0 [@media(max-height:500px)_and_(orientation:landscape)]:h-[100vh] bg-black overflow-hidden flex items-end [@media(max-height:500px)_and_(orientation:landscape)]:items-center [@media(max-height:500px)_and_(orientation:landscape)]:pt-10">
         
         {/* Blurry panoramic backdrop with absolute dark mask */}
         <div className="absolute inset-0 z-0">
           <img
             src={backdrop}
-            alt={fullMovie.title}
+            alt={movie.title}
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover pointer-events-none"
           />
@@ -117,256 +67,229 @@ export default function MovieDetailView({
         </div>
 
         {/* Hero Content Area */}
-        <div className="relative z-10 max-w-[2000px] mx-auto w-full px-4 sm:px-8 pb-8 sm:pb-12 [@media(max-height:500px)_and_(orientation:landscape)]:pb-2 flex flex-col [@media(max-height:500px)_and_(orientation:landscape)]:flex-row items-start [@media(max-height:500px)_and_(orientation:landscape)]:items-center gap-4 sm:gap-6 [@media(max-height:500px)_and_(orientation:landscape)]:gap-6 text-left [@media(max-height:500px)_and_(orientation:landscape)]:h-auto ">
+        <div className="relative z-10 max-w-[2000px] mx-auto w-full px-4 sm:px-8 pb-10 sm:pb-16 [@media(max-height:500px)_and_(orientation:landscape)]:pb-2 flex flex-col [@media(max-height:500px)_and_(orientation:landscape)]:flex-row items-start [@media(max-height:500px)_and_(orientation:landscape)]:items-center gap-4 sm:gap-6 [@media(max-height:500px)_and_(orientation:landscape)]:gap-6 text-left [@media(max-height:500px)_and_(orientation:landscape)]:h-auto">
           
-          <img src={poster} alt={fullMovie.title} className="hidden [@media(max-height:500px)_and_(orientation:landscape)]:block h-[80vh] max-h-[280px] w-auto object-contain rounded-lg shadow-2xl shrink-0" />
+          <img src={poster} alt={movie.title} className="hidden [@media(max-height:500px)_and_(orientation:landscape)]:block h-[80vh] max-h-[280px] w-auto object-contain rounded-lg shadow-2xl shrink-0" />
 
           {/* Core Text & CTAs Details Box */}
           <div className="flex flex-col items-start max-w-3xl space-y-3.5 [@media(max-height:500px)_and_(orientation:landscape)]:space-y-2 [@media(max-height:500px)_and_(orientation:landscape)]:h-[80vh] [@media(max-height:500px)_and_(orientation:landscape)]:max-h-[280px] [@media(max-height:500px)_and_(orientation:landscape)]:overflow-y-auto [@media(max-height:500px)_and_(orientation:landscape)]:pr-2 no-scrollbar">
             <div className="flex flex-wrap items-center gap-2">
               <span className="bg-zinc-900/80 border border-zinc-700 text-zinc-300 px-2.5 py-0.5 rounded text-[11px] font-mono tracking-widest uppercase shadow-sm">
-                {fullMovie.year}
+                {movie.year}
               </span>
               <span className="bg-zinc-900/80 border border-zinc-700 text-zinc-300 px-2.5 py-0.5 rounded text-[11px] font-mono tracking-widest uppercase shadow-sm">
-                {formatDuration(fullMovie.duration)}
+                {formatDuration(movie.duration)}
               </span>
             </div>
 
-            {fullMovie.hasLogo && fullMovie.logoUrl ? (
-              <img src={fullMovie.logoUrl} alt={fullMovie.title} className="max-w-[200px] sm:max-w-[300px] max-h-[100px] object-contain drop-shadow-2xl" />
-            ) : (
-              <h1 className="text-4xl sm:text-5xl md:text-6xl [@media(max-height:500px)_and_(orientation:landscape)]:text-3xl font-forum font-bold tracking-wider text-white uppercase drop-shadow-xl leading-tight">
-                {fullMovie.title}
-              </h1>
-            )}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl [@media(max-height:500px)_and_(orientation:landscape)]:text-3xl font-forum font-bold tracking-wider text-white uppercase drop-shadow-xl leading-tight">
+              {movie.title}
+            </h1>
 
-            {fullMovie.tagline && (
-              <p className="text-white font-sans text-sm md:text-base leading-relaxed max-w-xl font-light opacity-95">
-                {fullMovie.tagline}
+            {movie.tagline && (
+              <p className="text-zinc-300 font-sans text-sm md:text-base leading-relaxed max-w-xl italic font-light opacity-90">
+                "{movie.tagline}"
               </p>
             )}
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-mono tracking-widest text-zinc-300 pt-1 uppercase">
               <span className="text-amber-400 font-extrabold flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded shadow-sm">
                 <Star className="w-3.5 h-3.5 fill-current text-amber-500" />
-                {fullMovie.rating || fullMovie.voteAverage}
+                {movie.rating}
               </span>
-              {fullMovie.isTv && fullMovie.seasons && (
-                <>
-                  <span>•</span>
-                  <span>{fullMovie.seasons.length} Seasons</span>
-                </>
-              )}
-              {fullMovie.originalLanguage && (
-                <>
-                  <span>•</span>
-                  <span>{fullMovie.originalLanguage.toUpperCase()}</span>
-                </>
-              )}
               <span>•</span>
-              <span className="text-zinc-400">{Array.isArray(fullMovie.genre) ? fullMovie.genre.join(", ") : fullMovie.genre}</span>
+              <span>De {movie.director}</span>
+              <span>•</span>
+              <span className="text-zinc-400">{movie.genre.join(", ")}</span>
             </div>
-            
-            <p className="text-zinc-300 text-[11px] sm:text-xs leading-relaxed max-w-2xl font-sans font-light line-clamp-3 mt-2">
-              {fullMovie.description}
-            </p>
 
             {/* Main Interactive CTA Button Area */}
             <div className="flex items-center gap-3.5 pt-3 [@media(max-height:500px)_and_(orientation:landscape)]:pt-1">
-                <button
-                  onClick={() => {
-                    if (fullMovie.isTv) {
-                      const s = lastWatched ? lastWatched.season : (selectedSeason || 1);
-                      const e = lastWatched ? lastWatched.episode : 1;
-                      handlePlayEpisode(s, e);
-                    } else {
-                      onPlay(fullMovie.id);
-                    }
-                  }}
-                  className="inline-flex items-center gap-2.5 gold-button px-6 py-3 sm:px-8 sm:py-3.5 [@media(max-height:500px)_and_(orientation:landscape)]:px-4 [@media(max-height:500px)_and_(orientation:landscape)]:py-2 rounded-full text-[13px] [@media(max-height:500px)_and_(orientation:landscape)]:text-[11px] tracking-widest uppercase transition-all duration-200 active:scale-95 cursor-pointer font-bold"
-                >
-                  <Play className="w-4 h-4 fill-current" />
-                  {fullMovie.isTv ? (lastWatched ? `PLAY S${String(lastWatched.season).padStart(2, '0')}E${String(lastWatched.episode).padStart(2, '0')}` : `PLAY S${String(selectedSeason || 1).padStart(2, '0')}E01`) : 'Play'}
-                </button>
-                
-                <button onClick={() => setShowTrailerModal(true)} className="inline-flex items-center gap-2.5 bg-zinc-800/80 hover:bg-zinc-700/80 text-white px-6 py-3 sm:px-8 sm:py-3.5 [@media(max-height:500px)_and_(orientation:landscape)]:px-4 [@media(max-height:500px)_and_(orientation:landscape)]:py-2 rounded-full text-[13px] [@media(max-height:500px)_and_(orientation:landscape)]:text-[11px] tracking-widest uppercase transition-all duration-200 active:scale-95 cursor-pointer font-bold border border-zinc-700/50 hover:border-zinc-500/50">
-                  <Film className="w-4 h-4" />
-                  TRAILER
-                </button>
-                <button onClick={() => console.log('Added to list')} className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-neutral-800/80 hover:bg-neutral-700/80 text-white rounded-full transition-all active:scale-95 cursor-pointer border border-neutral-700/50 hover:border-neutral-500/50 shrink-0">
-                  <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
-                </button>
-              </div>
+              <button
+                onClick={() => onPlay(movie.id)}
+                className="inline-flex items-center gap-2.5 gold-button px-6 py-3 sm:px-8 sm:py-3.5 [@media(max-height:500px)_and_(orientation:landscape)]:px-4 [@media(max-height:500px)_and_(orientation:landscape)]:py-2 rounded-full text-[13px] [@media(max-height:500px)_and_(orientation:landscape)]:text-[11px] tracking-widest uppercase transition-all duration-200 active:scale-95 cursor-pointer font-bold"
+              >
+                <Play className="w-4 h-4 fill-current" />
+                Play
+              </button>
+
               
-              {/* NEW CASTING BUTTON LOCATION */}
-              {fullMovie.castDetails && fullMovie.castDetails.length > 0 && (
-                <button 
-                  onClick={() => setExpandedSection(expandedSection === 'casting' ? null : 'casting')}
-                  className="mt-3 sm:mt-4 px-3 py-1.5 sm:px-4 sm:py-2 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-300 text-[10px] sm:text-[11px] font-bold tracking-widest uppercase transition-colors flex items-center justify-center gap-2 rounded-lg cursor-pointer border border-zinc-800/50 backdrop-blur-sm w-fit"
-                >
-                  CASTING
-                  <ChevronDown className={`w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform ${expandedSection === 'casting' ? 'rotate-180' : ''}`} />
-                </button>
-              )}
+            </div>
 
             {/* Synopsis for landscape mode */}
             <p className="hidden [@media(max-height:500px)_and_(orientation:landscape)]:block text-zinc-300 text-[11px] leading-relaxed font-sans font-light pt-2">
-              {fullMovie.description}
+              {movie.description}
             </p>
           </div>
 
         </div>
       </div>
-      {fullMovie.isTv && (
-        <div className="max-w-4xl mx-auto px-4 sm:px-8 mt-4 space-y-4 text-left">
-          <div className="flex items-center justify-between border-b border-zinc-800 pb-1 mb-2 relative z-20">
-            <h3 className="text-lg font-bold text-white uppercase tracking-widest">Episodes</h3>
-            <div className="relative">
-              <button 
-                onClick={() => setIsSeasonDropdownOpen(!isSeasonDropdownOpen)}
-                className="flex items-center gap-2 text-zinc-300 hover:text-white bg-zinc-900/50 hover:bg-zinc-800 px-4 py-2 rounded-lg transition-colors border border-zinc-800 hover:border-zinc-700 font-bold text-sm tracking-widest uppercase cursor-pointer"
-              >
-                Season {selectedSeason} <ChevronDown className={`w-4 h-4 transition-transform ${isSeasonDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-              
-              {isSeasonDropdownOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setIsSeasonDropdownOpen(false)} />
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl z-50 overflow-hidden">
-                    <div className="max-h-[300px] overflow-y-auto no-scrollbar py-1">
-                      {fullMovie.seasons?.map((s: any) => (
-                        <button
-                          key={s.season_number}
-                          onClick={() => {
-                            setSelectedSeason(s.season_number);
-                            setIsSeasonDropdownOpen(false);
-                          }}
-                          className={`w-full text-left px-4 py-3 text-sm font-bold tracking-widest uppercase transition-colors hover:bg-zinc-800 ${selectedSeason === s.season_number ? 'text-amber-400 bg-amber-500/10' : 'text-zinc-300'}`}
+      {/* 3. MINIMALIST COLLAPSIBLE ACCORDION PANELS */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-8 mt-12 space-y-4 text-left">
+        
+        {/* Accordion List */}
+        <div className="border border-zinc-900 bg-neutral-950/40 rounded-2xl overflow-hidden divide-y divide-zinc-900">
+          
+          {/* SECTION A: SYNOPSIS */}
+          <div className="flex flex-col">
+            <button
+              onClick={() => toggleSection("synopsis")}
+              className="flex items-center justify-between p-5 text-left w-full hover:bg-neutral-900/40 transition-colors cursor-pointer group"
+            >
+              <span className="flex items-center gap-3 font-forum text-base sm:text-lg font-bold uppercase tracking-wider text-[#f4ecd8] group-hover:text-white transition-colors duration-250">
+                <Film className="w-5 h-5 text-[#f4ecd8] shadow-[0_0_8px_rgba(244,236,216,0.3)] animate-pulse" />
+                Synopsis
+              </span>
+              <ChevronDown
+                className={`w-5 h-5 text-zinc-500 group-hover:text-[#f4ecd8] transition-transform duration-300 ${
+                  expandedSection === "synopsis" ? "transform rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            <AnimatePresence initial={false}>
+              {expandedSection === "synopsis" && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-6 pt-0 text-sm sm:text-base text-zinc-300 leading-relaxed font-sans font-light">
+                    {movie.description}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+                    {/* SECTION B: CASTING */}
+          <div className="flex flex-col">
+            <button
+              onClick={() => toggleSection("casting")}
+              className="flex items-center justify-between p-5 text-left w-full hover:bg-neutral-900/40 transition-colors cursor-pointer group"
+            >
+              <span className="flex items-center gap-3 font-forum text-base sm:text-lg font-bold uppercase tracking-wider text-[#D4AF37] group-hover:text-[#e8ce7a] transition-colors duration-250">
+                <Users className="w-5 h-5 text-[#D4AF37] shadow-[0_0_8px_rgba(212,175,55,0.3)]" />
+                Cast
+              </span>
+              <ChevronDown
+                className={`w-5 h-5 text-zinc-500 group-hover:text-[#D4AF37] transition-transform duration-300 ${
+                  expandedSection === "casting" ? "transform rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            <AnimatePresence initial={false}>
+              {expandedSection === "casting" && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-6 pt-0 space-y-4">
+                    <p className="text-xs font-mono uppercase tracking-wider text-[#D4AF37]">Main Cast:</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {movie.cast.map((actor, idx) => (
+                        <div
+                          key={`${actor}-${idx}`}
+                          className="flex items-center gap-3 bg-neutral-900/60 border border-[#D4AF37]/20 p-3.5 rounded-xl text-zinc-300 text-sm font-sans"
                         >
-                          Season {s.season_number}
-                        </button>
+                          <div className="w-8 h-8 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center text-xs font-mono font-bold text-[#D4AF37] border border-[#D4AF37]/30 shadow-sm">
+                            {actor.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                          </div>
+                          <span className="font-medium tracking-wide text-zinc-200">{actor}</span>
+                        </div>
                       ))}
                     </div>
                   </div>
-                </>
+                </motion.div>
               )}
-            </div>
+            </AnimatePresence>
           </div>
-          <div className="flex flex-col gap-4 relative z-10">
-            {episodes.length > 0 ? (
-              episodes.map((ep, i) => (
-                <button
-                  key={ep.episode_number}
-                  onClick={() => handlePlayEpisode(selectedSeason, ep.episode_number)}
-                  className="group flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-zinc-900/30 hover:bg-zinc-800/80 rounded-xl p-3 transition-colors text-left border border-transparent hover:border-zinc-700/50"
-                >
-                  <div className="relative shrink-0 w-full sm:w-40 aspect-video rounded-lg overflow-hidden bg-zinc-800">
-                    {ep.stillUrl ? (
-                      <img src={ep.stillUrl} alt={ep.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-zinc-600">
-                        <Film className="w-6 h-6" />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors" />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="w-10 h-10 rounded-full bg-black/60 flex items-center justify-center border border-white/20">
-                        <Play className="w-4 h-4 text-white fill-current ml-0.5" />
-                      </div>
-                    </div>
-                    {ep.runtime > 0 && (
-                      <div className="absolute bottom-1.5 right-1.5 bg-black/80 px-1.5 py-0.5 rounded text-[10px] font-bold text-white">
-                        {ep.runtime}m
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-4 mb-1">
-                      <h4 className="text-sm font-bold text-zinc-100 group-hover:text-amber-400 transition-colors truncate">
-                        {ep.episode_number}. {ep.name}
-                      </h4>
-                    </div>
-                    <p className="text-xs text-zinc-400 line-clamp-3 leading-relaxed mt-1">
-                      {ep.overview || "No description available."}
-                    </p>
-                  </div>
-                </button>
-              ))
-            ) : (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-amber-500"></div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
-      {/* CASTING SECTION */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-8 mt-2 sm:mt-4 text-left">
-        {expandedSection === 'casting' && fullMovie.castDetails && fullMovie.castDetails.length > 0 && (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3 pt-2">
-            {fullMovie.castDetails.map((actor, idx) => (
-              <div key={idx} className="bg-zinc-900/80 border border-zinc-800 rounded-xl overflow-hidden flex flex-col">
-                <div className="aspect-[2/3] bg-zinc-800 w-full relative">
-                  {actor.imageUrl ? (
-                    <img src={actor.imageUrl} alt={actor.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-zinc-600">
-                      <User className="w-10 h-10" />
+          {/* SECTION C: TRAILER */}
+          <div className="flex flex-col">
+            <button
+              onClick={() => toggleSection("trailer")}
+              className="flex items-center justify-between p-5 text-left w-full hover:bg-neutral-900/40 transition-colors cursor-pointer group"
+            >
+              <span className="flex items-center gap-3 font-forum text-base sm:text-lg font-bold uppercase tracking-wider text-[#f4ecd8] group-hover:text-white transition-colors duration-250">
+                <Film className="w-5 h-5 text-[#f4ecd8] shadow-[0_0_8px_rgba(244,236,216,0.3)]" />
+                Trailer
+              </span>
+              <ChevronDown
+                className={`w-5 h-5 text-zinc-500 group-hover:text-[#f4ecd8] transition-transform duration-300 ${
+                  expandedSection === "trailer" ? "transform rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            <AnimatePresence initial={false}>
+              {expandedSection === "trailer" && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-6 pt-0 space-y-4">
+                    <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-zinc-900 bg-black flex items-center justify-center">
+                      
+                      {/* Premium Ambient Loop Animation or static image */}
+                      <div className="absolute inset-0 z-0">
+                        <img
+                          src={backdrop}
+                          alt="Trailer Preview"
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover opacity-30 animate-pulse pointer-events-none"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black" />
+                      </div>
+
+                       {/* Animated Play Symbol representing modern cinema player placeholder */}
+                      <div className="relative z-10 text-center space-y-3.5 p-4">
+                        <div className="w-16 h-16 rounded-full bg-[#f4ecd8]/10 border border-[#f4ecd8]/30 flex items-center justify-center mx-auto animate-bounce duration-1000">
+                          <Play className="w-6 h-6 text-[#f4ecd8] fill-current ml-0.5" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs font-mono uppercase tracking-[3px] text-[#f4ecd8] font-bold">QUICK CINEMATIC PREVIEW</p>
+                          <p className="text-xs text-zinc-400 font-sans max-w-sm mx-auto leading-normal">
+                            Official high-definition trailer prepared by the studio. Click the main button to play the full movie.
+                          </p>
+                        </div>
+                        {movie.isJellyfin ? (
+                          <button
+                            onClick={() => onPlay(movie.id)}
+                            className="bg-zinc-900 hover:bg-[#f4ecd8] hover:text-black border border-zinc-800 text-white text-[11px] font-mono font-bold uppercase tracking-wider py-2 px-4 rounded-lg transition-all duration-200 cursor-pointer"
+                          >
+                            Play Full Movie
+                          </button>
+                        ) : (
+                          <button
+                            disabled
+                            className="bg-zinc-900/50 border border-zinc-800/50 text-zinc-600 text-[11px] font-mono font-bold uppercase tracking-wider py-2 px-4 rounded-lg cursor-not-allowed"
+                          >
+                            Bientôt Disponible
+                          </button>
+                        )}
+                      </div>
+
                     </div>
-                  )}
-                </div>
-                <div className="p-1.5 sm:p-2 flex flex-col text-center">
-                  <span className="font-bold text-white text-[11px] sm:text-xs truncate">{actor.role || 'Role'}</span>
-                  <span className="text-zinc-400 text-[9px] sm:text-[10px] truncate mt-0.5">{actor.name}</span>
-                </div>
-              </div>
-            ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-        )}
+
+        </div>
+
       </div>
 
-      {/* SIMILAR CONTENT (MOVIES ONLY) */}
-      {!fullMovie.isTv && fullMovie.similar && fullMovie.similar.length > 0 && (
-        <div className="max-w-[2000px] w-full mx-auto px-4 sm:px-8 mt-6 sm:mt-12 mb-20 space-y-2 text-left">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm sm:text-base font-bold text-white uppercase tracking-widest">Similar Content</h3>
-            <div className="flex gap-2">
-              <button onClick={() => { const el = document.getElementById('similar-scroll'); if (el) el.scrollBy({ left: -300, behavior: 'smooth' }); }} className="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center hover:bg-zinc-800 transition-colors cursor-pointer text-white"><ChevronLeft className="w-5 h-5" /></button>
-              <button onClick={() => { const el = document.getElementById('similar-scroll'); if (el) el.scrollBy({ left: 300, behavior: 'smooth' }); }} className="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center hover:bg-zinc-800 transition-colors cursor-pointer text-white"><ChevronRight className="w-5 h-5" /></button>
-            </div>
-          </div>
-          <div id="similar-scroll" className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 no-scrollbar scroll-smooth">
-            {fullMovie.similar.map((sim) => (
-              <button
-                key={sim.id}
-                onClick={() => {
-                  window.scrollTo(0, 0);
-                  if (onSimilarClick) {
-                    onSimilarClick(sim.id);
-                  } else {
-                    window.location.hash = "/movie/" + sim.id;
-                  }
-                }}
-                className="shrink-0 w-32 sm:w-40 group cursor-pointer text-left"
-              >
-                <div className="aspect-[2/3] rounded-xl overflow-hidden bg-zinc-900 relative border border-zinc-800/50 group-hover:border-zinc-500/50 transition-colors">
-                  {sim.posterUrl ? (
-                    <img src={sim.posterUrl} alt={sim.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Film className="w-8 h-8 text-zinc-700" />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-                </div>
-                <h4 className="text-white font-bold text-sm truncate mt-2 group-hover:text-amber-400 transition-colors">{sim.title}</h4>
-                <p className="text-zinc-500 text-xs">{sim.year || 'N/A'}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

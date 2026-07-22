@@ -1117,10 +1117,10 @@ export default function App() {
         loadJellyfinLibrary();
         setTimeout(() => setTestOdysseySuccess(null), 5000);
       } else {
-        alert("Error during test: " + data.error);
+        alert("Erreur lors du test: " + data.error);
       }
     } catch (err) {
-      alert("Network error during test");
+      alert("Erreur réseau lors du test");
     } finally {
       setIsTestingOdyssey(false);
     }
@@ -1244,7 +1244,7 @@ export default function App() {
   };
 
   const handleDisconnectJellyfin = async () => {
-    if (!window.confirm("Do you want to disconnect this server from CLASSICO?")) return;
+    if (!window.confirm("Voulez-vous déconnecter ce serveur de CLASSICO ?")) return;
     try {
       const res = await fetch("/api/jellyfin/disconnect", { method: "POST" });
       const data = await res.json();
@@ -1424,10 +1424,6 @@ export default function App() {
     tmdbCache.forEach(m => {
       if (!map.has(m.id)) {
         map.set(m.id, m);
-      } else {
-        // Merge in missing details (like seasons)
-        const existing = map.get(m.id)!;
-        map.set(m.id, { ...existing, ...m });
       }
     });
 
@@ -1501,31 +1497,12 @@ export default function App() {
     tmdbSearchResults.forEach(tmdbMovie => {
       // Check if we already have this TMDB id in local (local might use imdbId as id, but tmdbMovie has tmdbId)
       // We check both id and tmdbId
-      const existsLocal = merged.some(m => String(m.tmdbId) === String(tmdbMovie.tmdbId) || String(m.id) === String(tmdbMovie.id) || String(m.imdbId) === String(tmdbMovie.tmdbId) || (m.providerIds && m.providerIds.Tmdb && String(m.providerIds.Tmdb) === String(tmdbMovie.tmdbId)));
+      const existsLocal = merged.some(m => String(m.tmdbId) === String(tmdbMovie.tmdbId) || String(m.id) === String(tmdbMovie.id) || String(m.imdbId) === String(tmdbMovie.tmdbId));
       if (!existsLocal) {
         merged.push(tmdbMovie);
       }
     });
     
-    
-    const lowerQuery = searchQuery.toLowerCase().trim();
-    merged.sort((a, b) => {
-      const aTitle = (a.title || "").toLowerCase();
-      const bTitle = (b.title || "").toLowerCase();
-      const aExact = aTitle === lowerQuery;
-      const bExact = bTitle === lowerQuery;
-      
-      if (aExact && !bExact) return -1;
-      if (!aExact && bExact) return 1;
-      
-      const aStarts = aTitle.startsWith(lowerQuery);
-      const bStarts = bTitle.startsWith(lowerQuery);
-      if (aStarts && !bStarts) return -1;
-      if (!aStarts && bStarts) return 1;
-      
-      return 0; // preserve original order (tmdb is already popularity sorted)
-    });
-
     return merged;
   }, [searchQuery, allMovies, tmdbSearchResults]);
 
@@ -1535,10 +1512,6 @@ export default function App() {
       targetId = routePath.slice("/movie/".length);
     } else if (routePath.startsWith("/player/")) {
       targetId = routePath.slice("/player/".length);
-    }
-    const tvMatch = targetId.match(/^(.*-tv)-S\d+E\d+$/);
-    if (tvMatch) {
-      targetId = tvMatch[1];
     }
     return targetId;
   }, [routePath]);
@@ -1550,7 +1523,7 @@ export default function App() {
 
   // Fetch missing movie data if navigated directly
   useEffect(() => {
-    if (targetMovieId && (!activeMovie || !activeMovie.director || activeMovie.tagline === undefined || (activeMovie.isTv && !activeMovie.seasons))) {
+    if (targetMovieId && (!activeMovie || !activeMovie.director)) {
       fetch(`/api/movie/${targetMovieId}`)
         .then(res => res.json())
         .then(data => {
@@ -1579,29 +1552,14 @@ export default function App() {
         fallbackTitle="Interruption de la lecture du film"
         onReset={() => navigateTo("/movie/" + pId)}
       >
-        {(() => {
-          let actualId = pId;
-          let season, episode;
-          const tvMatch = pId.match(/^(.*-tv)-S(\d+)E(\d+)$/);
-          if (tvMatch) {
-            actualId = tvMatch[1];
-            season = parseInt(tvMatch[2]);
-            episode = parseInt(tvMatch[3]);
-          }
-          return (
-            <CinemaPlayerView
-              movieId={actualId}
-              isTv={!!tvMatch}
-              season={season}
-              episode={episode}
-              movieTitle={activeMovie?.title || "Cult Classic"}
-              movieDuration={activeMovie?.duration}
-              moviePoster={activeMovie?.posterUrl || (activeMovie as any)?.poster}
-              movieBackdrop={activeMovie?.backdropUrl || (activeMovie as any)?.backdrop}
-              onClose={() => navigateTo("/movie/" + actualId)}
-            />
-          );
-        })()}
+        <CinemaPlayerView
+          movieId={pId}
+          movieTitle={activeMovie?.title || "Cult Classic"}
+          movieDuration={activeMovie?.duration}
+          moviePoster={activeMovie?.posterUrl || (activeMovie as any)?.poster}
+          movieBackdrop={activeMovie?.backdropUrl || (activeMovie as any)?.backdrop}
+          onClose={() => navigateTo("/movie/" + pId)}
+        />
       </ErrorBoundary>
     );
   }
@@ -2429,7 +2387,6 @@ export default function App() {
                 <MovieDetailView
                   movie={activeMovie}
                   onBack={goBackOrHome}
-                  onSimilarClick={(id) => navigateTo("/movie/" + id)}
                   onPlay={(id) => {
                     (window as any).moviePlayClickTime = performance.now();
                     console.log("%c[CHRONO LECTEUR] Clic sur le film : 0.000s (Début du flux via Détails)", "color: #a855f7; font-weight: bold; font-size: 13px;");
@@ -2471,7 +2428,7 @@ export default function App() {
                             {/* Profile Header */}
               <div className="pb-4 border-b border-zinc-800">
                 <h2 className="text-3xl sm:text-4xl font-cinzel font-bold text-white uppercase tracking-widest">
-                  My Profile
+                  Mon Profil
                 </h2>
               </div>
 

@@ -60,26 +60,15 @@ export function AdminWishlist({ onAdded, categories = [], allMovies = [] }: { on
   };
 
   const handleCollectionMod = async (action: string) => {
-    if (action !== "delete_collection" && (!modCollection || modCollection === "none" || !modMovieId)) return;
-    if (action === "delete_collection" && (!modCollection || modCollection === "none")) return;
-    
-    let resolvedMovieId = modMovieId;
-    if (action !== "delete_collection") {
-      const matchedMovie = allMovies.find(m => m.title.toLowerCase() === modMovieId.trim().toLowerCase());
-      if (matchedMovie) {
-        resolvedMovieId = matchedMovie.id;
-      }
+    if (action !== "delete_collection" && !modMovieId.trim()) {
+      alert("Veuillez entrer un ID de film.");
+      return;
     }
-
     try {
       const res = await fetch("/api/admin/collections/modify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action,
-          collectionId: modCollection,
-          movieId: resolvedMovieId
-        })
+        body: JSON.stringify({ action, collectionId: modCollection, movieId: modMovieId })
       });
       const data = await res.json();
       if (data.success) {

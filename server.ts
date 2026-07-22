@@ -1,5 +1,4 @@
 import express from "express";
-import compression from "compression";
 import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
@@ -36,7 +35,6 @@ function getGlobalImportedMovies() {
 
 
 const app = express();
-app.use(compression());
 const PORT = 3000;
 const CONFIG_PATH = path.join(process.cwd(), "jellyfin-config.json");
 
@@ -766,70 +764,11 @@ app.get("/api/admin/collections/modifications", (req, res) => {
 });
 
 
-app.get("/api/movie/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const TMDB_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs";
-    
-    // Determine if it's IMDB or TMDB ID
-    let tmdbId = id;
-    if (id.startsWith('tt')) {
-      const findUrl = `https://api.themoviedb.org/3/find/${id}?external_source=imdb_id`;
-      const findRes = await fetch(findUrl, { headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }});
-      if (findRes.ok) {
-        const findData = await findRes.json();
-        if (findData.movie_results && findData.movie_results.length > 0) {
-          tmdbId = String(findData.movie_results[0].id);
-        }
-      }
-    }
-    
-    const movieUrl = `https://api.themoviedb.org/3/movie/${tmdbId}?append_to_response=credits,images&include_image_language=en,null&language=en-US`;
-    const movieRes = await fetch(movieUrl, { headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }});
-    
-    if (!movieRes.ok) throw new Error("TMDB details failed");
-    const m = await movieRes.json();
-    
-    const director = m.credits?.crew?.find((c: any) => c.job === "Director")?.name || "Unknown";
-    const cast = m.credits?.cast?.slice(0, 3).map((c: any) => c.name) || [];
-    let logoUrl = "";
-    if (m.images?.logos && m.images.logos.length > 0) {
-      const bestLogo = m.images.logos.find((l: any) => l.iso_639_1 === "en") || m.images.logos[0];
-      logoUrl = `https://image.tmdb.org/t/p/w500${bestLogo.file_path}`;
-    }
-    
-    const movieData = {
-      hasLogo: !!logoUrl,
-      logoUrl: logoUrl,
-      id: String(m.id),
-      tmdbId: String(m.id),
-      imdbId: m.imdb_id || String(m.id),
-      title: m.title,
-      originalTitle: m.original_title,
-      description: m.overview,
-      posterUrl: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : "",
-      backdropUrl: m.backdrop_path ? `https://image.tmdb.org/t/p/original${m.backdrop_path}` : "",
-      year: m.release_date ? parseInt(m.release_date.substring(0, 4)) : new Date().getFullYear(),
-      duration: m.runtime || 120,
-      director: director,
-      cast: cast,
-      genre: m.genres ? m.genres.map((g: any) => g.name) : ["Movie"],
-      voteAverage: m.vote_average,
-      isIframeEmbed: true,
-      iframeSrc: `https://player.videasy.net/movie/${m.id}?color=FFD700&overlay=true`
-    };
-    
-    res.json({ success: true, movie: movieData });
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-
 app.get("/api/search", async (req, res) => {
   try {
     const { query } = req.query;
     if (!query) return res.json({ success: true, results: [] });
+
     const TMDB_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs";
     
     const searchUrl = `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(query as string)}&language=en-US&page=1`;
@@ -840,48 +779,25 @@ app.get("/api/search", async (req, res) => {
     if (!searchRes.ok) throw new Error("TMDB search failed");
     const searchData = await searchRes.json();
     
-    // Fetch details (including credits) for up to 10 results to get the director
-    const topResults = searchData.results.slice(0, 12);
-    const enrichedResults = await Promise.all(topResults.map(async (m: any) => {
-      let director = "Unknown";
-      let cast = [];
-      try {
-        const detailUrl = `https://api.themoviedb.org/3/movie/${m.id}?append_to_response=credits`;
-        const detailRes = await fetch(detailUrl, {
-          headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
-        });
-        if (detailRes.ok) {
-          const detailData = await detailRes.json();
-          director = detailData.credits?.crew?.find((c: any) => c.job === "Director")?.name || "Unknown";
-          cast = detailData.credits?.cast?.slice(0, 3).map((c: any) => c.name) || [];
-        }
-      } catch (e) {
-        console.warn("Failed to fetch details for search result", m.id);
-      }
-      
-      return {
-        id: String(m.id),
-        tmdbId: String(m.id),
-        title: m.title,
-        originalTitle: m.original_title,
-        description: m.overview,
-        posterUrl: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : "",
-        backdropUrl: m.backdrop_path ? `https://image.tmdb.org/t/p/w780${m.backdrop_path}` : "",
-        year: m.release_date ? parseInt(m.release_date.substring(0, 4)) : new Date().getFullYear(),
-        voteAverage: m.vote_average,
-        director,
-        cast,
-        isIframeEmbed: true,
-        iframeSrc: `https://player.videasy.net/movie/${m.id}?color=FFD700&overlay=true`
-      };
+    const results = searchData.results.map((m) => ({
+      id: String(m.id),
+      tmdbId: String(m.id),
+      title: m.title,
+      originalTitle: m.original_title,
+      description: m.overview,
+      posterUrl: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : "",
+      backdropUrl: m.backdrop_path ? `https://image.tmdb.org/t/p/w780${m.backdrop_path}` : "",
+      year: m.release_date ? parseInt(m.release_date.substring(0, 4)) : new Date().getFullYear(),
+      voteAverage: m.vote_average,
+      isIframeEmbed: true,
+      iframeSrc: `https://player.videasy.net/movie/${m.id}?color=FFD700&overlay=true`
     }));
-    
-    res.json({ success: true, results: enrichedResults });
+
+    res.json({ success: true, results });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 });
-
 
 app.post("/api/admin/collections/modify", express.json(), (req, res) => {
   const { action, collectionId, movieId } = req.body;
@@ -1132,43 +1048,32 @@ app.get("/api/admin/movies/test-odyssey", async (req, res) => {
 });
 
 // 4. List library movies from connected Jellyfin with persistent file and memory cache (SWR model)
-// 4. List library movies from connected Jellyfin with persistent file and memory cache (SWR model)
-let cachedMergedMovies = null;
-let lastImportedMtime = 0;
-
 app.get("/api/jellyfin/movies", (req, res) => {
-  res.setHeader("Cache-Control", "public, max-age=60, s-maxage=120, stale-while-revalidate=3600");
-  res.setHeader("Vary", "Accept-Encoding");
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
   
+  let mergedMovies = [...allMoviesData];
   try {
     const DB_PATH = path.join(process.cwd(), "imported_movies.json");
-    let currentMtime = 0;
     if (fs.existsSync(DB_PATH)) {
-      currentMtime = fs.statSync(DB_PATH).mtimeMs;
+      const imported = JSON.parse(fs.readFileSync(DB_PATH, "utf-8"));
+      mergedMovies = [...imported, ...mergedMovies];
     }
-    
-    if (!cachedMergedMovies || currentMtime > lastImportedMtime) {
-      let mergedMovies = [...allMoviesData];
-      if (currentMtime > 0) {
-        const imported = JSON.parse(fs.readFileSync(DB_PATH, "utf-8"));
-        mergedMovies = [...imported, ...mergedMovies];
-      }
-      
-      const map = new Map();
-      for (const m of mergedMovies) {
-        if (!map.has(m.id)) {
-          map.set(m.id, m);
-        }
-      }
-      cachedMergedMovies = Array.from(map.values());
-      lastImportedMtime = currentMtime;
-    }
-    
-    res.json({ success: true, movies: cachedMergedMovies });
   } catch(e) {
-    console.error("Error generating movies:", e);
-    res.json({ success: true, movies: allMoviesData });
+    console.error("Error reading imported_movies.json:", e);
   }
+  
+  // Deduplicate by ID (first occurrence wins, so imported overrides allMoviesData)
+  const map = new Map();
+  for (const m of mergedMovies) {
+    if (!map.has(m.id)) {
+      map.set(m.id, m);
+    }
+  }
+  mergedMovies = Array.from(map.values());
+  
+  res.json({ success: true, movies: mergedMovies });
 });
 
 // 4ab. Fetch dynamic Jellyfin Hero banner data with SWR caching model

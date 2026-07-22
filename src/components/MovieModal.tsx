@@ -120,7 +120,7 @@ export default function MovieModal({
                   {movie.title}
                 </motion.h2>
                 <p className="text-amber-400 font-mono text-sm tracking-widest drop-shadow-md">
-                  {movie.director ? movie.director : "Unknown Director"} &bull; {movie.year}
+                  {movie.director} &bull; {movie.year}
                 </p>
               </div>
               
@@ -193,7 +193,7 @@ export default function MovieModal({
                     {/* Director */}
                     <div className="space-y-1 py-1 border-b border-zinc-800/60">
                       <span className="text-zinc-400 block text-xs">Director</span>
-                      <span className="text-white font-semibold font-display text-base">{movie.director || "Unknown Director"}</span>
+                      <span className="text-white font-semibold font-display text-base">{movie.director}</span>
                     </div>
 
                     {/* Duration */}
@@ -215,7 +215,7 @@ export default function MovieModal({
                     <div className="space-y-2 pt-1">
                       <span className="text-zinc-400 block text-xs">Genres</span>
                       <div className="flex overflow-x-auto no-scrollbar flex-nowrap md:flex-wrap gap-1.5 pb-1 md:pb-0">
-                        {(Array.isArray(movie.genre) ? movie.genre : []).map((g, idx) => (
+                        {movie.genre.map((g, idx) => (
                           <span key={idx} className="whitespace-nowrap bg-zinc-800/60 text-zinc-300 text-[11px] font-mono px-2 py-1 md:px-2.5 md:py-1 rounded-md border border-zinc-700/30">
                             {g}
                           </span>

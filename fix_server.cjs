@@ -1,18 +1,51 @@
-const fs = require('fs');
-let code = fs.readFileSync('server.ts', 'utf-8');
+const fs = require("fs");
+let content = fs.readFileSync("server.ts", "utf-8");
 
-code = code.replace(
-  'import express from "express";\\\\nimport compression from "compression";',
-  'import express from "express";\\nimport compression from "compression";'
-);
-code = code.replace(
-  'const app = express();\\\\napp.use(compression());',
-  'const app = express();\\napp.use(compression());'
-);
+const startStr = "if (response.headers[\"content-length\"]) {";
+const endStr = "response.pipe(res);";
 
-// Actually, maybe it's just one slash? Let's just use regex.
-code = code.replace(/import express from "express";\\nimport compression from "compression";/g, 'import express from "express";\\nimport compression from "compression";');
-code = code.replace(/const app = express\(\);\\napp\.use\(compression\(\)\);/g, 'const app = express();\\napp.use(compression());');
+const startIdx = content.indexOf(startStr);
+const endIdx = content.indexOf(endStr, startIdx) + endStr.length;
 
-fs.writeFileSync('server.ts', code, 'utf-8');
-console.log("Fixed server literal slash n");
+const replacement = `if (response.headers["content-length"]) {
+      responseHeaders["Content-Length"] = response.headers["content-length"];
+    }
+
+    if (response.headers["connection"]) {
+      responseHeaders["Connection"] = response.headers["connection"];
+    }
+
+    // Forward exact 206 status code for Range or 200/other
+    res.writeHead(response.statusCode || 200, responseHeaders);
+    res.flushHeaders();
+
+    let totalBytesStreamed = 0;
+    let lastLogTime = Date.now();
+    let firstChunkReceived = false;
+
+    response.on("data", (chunk) => {
+      if (!firstChunkReceived) {
+        firstChunkReceived = true;
+        const ttfbFirstOctet = Date.now() - reqStartTimestamp;
+        console.log(\`[PERF_MEASURE] [\${perfId}] FIRST_OCTET | T+\${ttfbFirstOctet}ms | Jellyfin started sending data. Chunk size: \${chunk.length}\`);
+      }
+      totalBytesStreamed += chunk.length;
+      const now = Date.now();
+      if (now - lastLogTime > 4000) {
+        lastLogTime = now;
+      }
+    });
+
+    response.on("end", () => {
+      const timeTotal = Date.now() - reqStartTimestamp;
+      console.log(\`[PERF_MEASURE] [\${perfId}] END | T+\${timeTotal}ms | Finished sending stream to browser.\`);
+    });
+
+    response.on("error", (err) => {
+      console.error(\`[PERF_MEASURE] [\${perfId}] ERROR |\`, err);
+    });
+
+    response.pipe(res);`;
+
+content = content.substring(0, startIdx) + replacement + content.substring(endIdx);
+fs.writeFileSync("server.ts", content);

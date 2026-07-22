@@ -1,30 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 
-// Singleton observer to share across all cards for massive performance gain
-let sharedObserver: IntersectionObserver | null = null;
-const callbacks = new WeakMap<Element, (isIntersecting: boolean) => void>();
-
-function getObserver() {
-  if (typeof window === "undefined") return null;
-  if (!sharedObserver) {
-    sharedObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const callback = callbacks.get(entry.target);
-          if (callback) {
-            callback(entry.isIntersecting);
-          }
-        });
-      },
-      {
-        rootMargin: "600px", // Preload slightly more
-        threshold: 0.01,
-      }
-    );
-  }
-  return sharedObserver;
-}
-
 interface LazyVirtualCardProps {
   children: React.ReactNode;
   key?: string;
@@ -36,20 +11,28 @@ export default function LazyVirtualCard({ children, className }: LazyVirtualCard
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    
-    callbacks.set(el, setIsIntersecting);
-    const observer = getObserver();
-    if (observer) {
-      observer.observe(el);
-    }
-    
-    return () => {
-      if (observer && el) {
-        observer.unobserve(el);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsIntersecting(true);
+          // Once it has loaded, we can unobserve if we want to keep it or keep observing if we want true memory-unloading virtualization.
+          // True memory-unloading virtualization (dynamic mounts/unmounts) is best for infinite rows of hundreds of movies to reach 95+ Lighthouse score!
+        } else {
+          setIsIntersecting(false);
+        }
+      },
+      {
+        rootMargin: "400px", // Preload items 400px (approx 2 cards) before they scroll into view
+        threshold: 0.01,
       }
-      callbacks.delete(el);
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
     };
   }, []);
 
@@ -62,7 +45,8 @@ export default function LazyVirtualCard({ children, className }: LazyVirtualCard
       {isIntersecting ? (
         children
       ) : (
-        <div className="w-full h-full rounded-xl bg-neutral-900 border border-neutral-800/40 opacity-30" />
+        // Highly optimized, lightweight placeholder skeleton that matches the exact visual dimensions
+        <div className="w-full h-full rounded-xl bg-neutral-900 border border-neutral-800/40 opacity-30 animate-pulse" />
       )}
     </div>
   );

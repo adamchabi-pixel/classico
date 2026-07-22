@@ -105,6 +105,7 @@ export default function MovieDetailView({
 
             {/* Main Interactive CTA Button Area */}
             <div className="flex items-center gap-3.5 pt-3 [@media(max-height:500px)_and_(orientation:landscape)]:pt-1">
+              {movie.isJellyfin ? (
               <button
                 onClick={() => onPlay(movie.id)}
                 className="inline-flex items-center gap-2.5 gold-button px-6 py-3 sm:px-8 sm:py-3.5 [@media(max-height:500px)_and_(orientation:landscape)]:px-4 [@media(max-height:500px)_and_(orientation:landscape)]:py-2 rounded-full text-[13px] [@media(max-height:500px)_and_(orientation:landscape)]:text-[11px] tracking-widest uppercase transition-all duration-200 active:scale-95 cursor-pointer font-bold"
@@ -112,6 +113,11 @@ export default function MovieDetailView({
                 <Play className="w-4 h-4 fill-current" />
                 Play
               </button>
+            ) : (
+              <div className="inline-flex items-center gap-2.5 bg-neutral-900/60 border border-zinc-800 text-zinc-500 px-6 py-3 sm:px-8 sm:py-3.5 rounded-full text-[13px] tracking-widest uppercase font-bold cursor-not-allowed">
+                <span className="whitespace-nowrap">Non dispo sur Jellyfin</span>
+              </div>
+            )}
 
               
             </div>

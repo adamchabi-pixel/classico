@@ -14,9 +14,9 @@ const COLLECTIONS: Collection[] = [...RAW_COLLECTIONS].sort((a, b) => { if (a.id
 
 import MovieCard from "./components/MovieCard";
 import { AdminWishlist } from "./components/AdminWishlist";
-const MovieModal = React.lazy(() => import("./components/MovieModal"));
+import MovieModal from "./components/MovieModal";
 import MovieDetailView from "./components/MovieDetailView";
-const CinemaPlayerView = React.lazy(() => import("./components/CinemaPlayerView"));
+import CinemaPlayerView from "./components/CinemaPlayerView";
 import ErrorBoundary from "./components/ErrorBoundary";
 import LazyVirtualCard from "./components/LazyVirtualCard";
 import HeroSkeleton from "./components/HeroSkeleton";
@@ -898,7 +898,7 @@ export default function App() {
       if (m.director && m.director.trim() !== "" && !/unknown|inconnu|divers|various|various directors/i.test(m.director)) {
         const dName = m.director.trim();
         // Skip directors already in main sagas (Quentin Tarantino and Christopher Nolan)
-        if (!/tarantino|nolan|avildsen|stallone|stalonne|fincher|wingard|wingrad|coogler|spielberg/i.test(dName)) {
+        if (!/tarantino|nolan|avildsen|stallone|stalonne|fincher/i.test(dName)) {
           if (!directorGroups[dName]) {
             directorGroups[dName] = [];
           }
@@ -1006,11 +1006,11 @@ export default function App() {
     });
 
     
-    let filteredCollections = finalCollections.filter(c => !mods.deletedCollections.some(d => d === c.id || d === c.title || d === c.title.toLowerCase().replace(/\s+/g, "-")));
+    let filteredCollections = finalCollections.filter(c => !mods.deletedCollections.includes(c.id) && !mods.deletedCollections.includes(c.title));
     
     return filteredCollections.map((col) => {
       // Apply manual movie additions from mods (assuming movie exists in jellyfinMovies or allMoviesData)
-      let customAdded = (mods.addedMovies[col.id] || []).map(id => jellyfinMovies.find(m => String(m.id) === String(id)) || tmdbCache.find(m => String(m.id) === String(id))).filter(Boolean);
+      let customAdded = (mods.addedMovies[col.id] || []).map(id => jellyfinMovies.find(m => String(m.id) === String(id))).filter(Boolean);
       col.movies = [...col.movies, ...customAdded];
       
       // Apply manual movie removals
@@ -1395,16 +1395,6 @@ export default function App() {
   }, [selectedMovie]);
 
   // Filter movies globally based on search query
-  const [tmdbSearchResults, setTmdbSearchResults] = useState<Movie[]>([]);
-  const [tmdbCache, setTmdbCache] = useState<Movie[]>(() => {
-    try {
-      const stored = localStorage.getItem("classico_tmdb_cache");
-      return stored ? JSON.parse(stored) : [];
-    } catch (e) {
-      return [];
-    }
-  });
-
   const allMovies = React.useMemo(() => {
     const map = new Map<string, Movie>();
     
@@ -1419,16 +1409,9 @@ export default function App() {
         map.set(m.id, { ...m, isJellyfin: true });
       }
     });
-    
-    // Add TMDB cache movies
-    tmdbCache.forEach(m => {
-      if (!map.has(m.id)) {
-        map.set(m.id, m);
-      }
-    });
 
     return Array.from(map.values());
-  }, [mappedCollections, jellyfinMovies, tmdbCache]);
+  }, [mappedCollections, jellyfinMovies]);
 
     const unmatchedMovies = React.useMemo(() => {
     if (!jellyfinMovies || jellyfinMovies.length === 0) return [];
@@ -1450,7 +1433,15 @@ export default function App() {
     });
   }, [allMovies, mappedCollections]);
 
-
+  const [tmdbSearchResults, setTmdbSearchResults] = useState<Movie[]>([]);
+  const [tmdbCache, setTmdbCache] = useState<Movie[]>(() => {
+    try {
+      const stored = localStorage.getItem("classico_tmdb_cache");
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      return [];
+    }
+  });
   const [isSearchingTmdb, setIsSearchingTmdb] = useState(false);
   
   useEffect(() => {
@@ -1506,40 +1497,16 @@ export default function App() {
     return merged;
   }, [searchQuery, allMovies, tmdbSearchResults]);
 
-  const targetMovieId = React.useMemo(() => {
+  const activeMovie = React.useMemo(() => {
     let targetId = "";
     if (routePath.startsWith("/movie/")) {
       targetId = routePath.slice("/movie/".length);
     } else if (routePath.startsWith("/player/")) {
       targetId = routePath.slice("/player/".length);
     }
-    return targetId;
-  }, [routePath]);
-
-  const activeMovie = React.useMemo(() => {
-    if (!targetMovieId) return null;
-    return allMovies.find(m => m.id === targetMovieId) || null;
-  }, [targetMovieId, allMovies]);
-
-  // Fetch missing movie data if navigated directly
-  useEffect(() => {
-    if (targetMovieId && (!activeMovie || !activeMovie.director)) {
-      fetch(`/api/movie/${targetMovieId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.movie) {
-            setTmdbCache(prev => {
-              const map = new Map(prev.map(m => [m.id, m]));
-              map.set(data.movie.id, data.movie);
-              const newCache = Array.from(map.values());
-              localStorage.setItem("classico_tmdb_cache", JSON.stringify(newCache));
-              return newCache;
-            });
-          }
-        })
-        .catch(err => console.error("Error fetching missing movie data:", err));
-    }
-  }, [targetMovieId, activeMovie]);
+    if (!targetId) return null;
+    return allMovies.find(m => m.id === targetId) || null;
+  }, [routePath, allMovies]);
 
   // Intercept and return the standalone full-screen cinema view with zero overlay UI
   if (activeTab === "player") {
@@ -2192,7 +2159,7 @@ export default function App() {
                           }}
                           className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar pt-4 px-1 pb-6 sm:pb-10"
                         >
-                          {collection.movies.slice(0, 40).map((movie, idx) => (
+                          {collection.movies.map((movie, idx) => (
                             <LazyVirtualCard 
                               key={`${collection.id}-${movie.id}`}
                               className={collection.id === "trending-now" ? "w-[200px] min-[400px]:w-[240px] sm:w-[300px] aspect-[2/3] mr-12 sm:mr-20" : undefined}
@@ -2211,7 +2178,68 @@ export default function App() {
                   ))}
                 </div>
 
-                {/* OTHER BANGERS Section Removed */}
+                {/* OTHER BANGERS Section */}
+                {unmatchedMovies.length > 0 && (
+                  <div className="space-y-4 text-left pt-6 sm:pt-8 border-t border-zinc-700/60 mt-8">
+                    <div className="flex flex-row items-center sm:items-end justify-between gap-2 sm:gap-3 border-b border-zinc-900 pb-2 sm:pb-3">
+                      <div className="space-y-0.5 max-w-[80%]">
+                        <span className="text-[8px] sm:text-[9px] font-mono tracking-[2px] sm:tracking-[3px] text-zinc-500 uppercase font-bold">
+                          UNCATEGORIZED • {unmatchedMovies.length} MOVIES
+                        </span>
+                        <h3 className="text-base sm:text-2xl font-cinzel font-bold text-white uppercase tracking-widest leading-tight truncate">
+                          OTHER BANGERS
+                        </h3>
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className="relative group/carousel"
+                      onMouseEnter={() => { hoveredCarousels.current["other-bangers"] = true; }}
+                      onMouseLeave={() => { hoveredCarousels.current["other-bangers"] = false; }}
+                    >
+                      <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-stone-950 to-transparent z-10 pointer-events-none" />
+                      <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-stone-950 to-transparent z-10 pointer-events-none" />
+                      
+                      <div className="absolute inset-y-0 left-2 flex items-center z-20 opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 pointer-events-none">
+                        <button
+                          onClick={() => scrollCarousel("other-bangers", "left")}
+                          className="bg-black/80 hover:bg-zinc-900 border border-zinc-800 text-stone-200 hover:text-amber-400 p-2 rounded-full shadow-lg transition-all duration-150 pointer-events-auto active:scale-95 cursor-pointer"
+                          title="Previous"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                      </div>
+                      
+                      <div className="absolute inset-y-0 right-2 flex items-center z-20 opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 pointer-events-none">
+                        <button
+                          onClick={() => scrollCarousel("other-bangers", "right")}
+                          className="bg-black/80 hover:bg-zinc-900 border border-zinc-800 text-stone-200 hover:text-amber-400 p-2 rounded-full shadow-lg transition-all duration-150 pointer-events-auto active:scale-95 cursor-pointer"
+                          title="Next"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div
+                        id={`carousel-container-other-bangers`}
+                        ref={(el) => {
+                          carouselRefs.current["other-bangers"] = el;
+                        }}
+                        className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar pt-4 px-1 pb-6 sm:pb-10"
+                      >
+                        {unmatchedMovies.map((movie) => (
+                          <LazyVirtualCard key={`other-bangers-${movie.id}`}>
+                            <MovieCard
+                              movie={movie}
+                              onSelect={(m) => handleOpenMovie(m, false)}
+                              onPlay={(m) => handleOpenMovie(m, true)}
+                            />
+                          </LazyVirtualCard>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
                   </>
                 )}
               </div>

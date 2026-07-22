@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Search, Play, Film, Info, Heart, Award, 
-  ChevronLeft, ChevronRight, ChevronDown, User, Tv, Clock, 
+  ChevronLeft, ChevronRight, ChevronDown, User,
+  Key, Tv, Clock, 
   Sparkles, History, Compass, FilmIcon, BookmarkCheck,
   Star, CheckCircle, AlertCircle, RefreshCw, X, Shield, Menu, Settings, Loader2
 } from "lucide-react";
@@ -12,9 +13,10 @@ import { heroMoviesData } from "./data/hero_movies";
 const COLLECTIONS: Collection[] = [...RAW_COLLECTIONS].sort((a, b) => { if (a.id === "trending-now") return -1; if (b.id === "trending-now") return 1; return a.title.localeCompare(b.title); });
 
 import MovieCard from "./components/MovieCard";
-import MovieModal from "./components/MovieModal";
+import { AdminWishlist } from "./components/AdminWishlist";
+const MovieModal = React.lazy(() => import("./components/MovieModal"));
 import MovieDetailView from "./components/MovieDetailView";
-import CinemaPlayerView from "./components/CinemaPlayerView";
+const CinemaPlayerView = React.lazy(() => import("./components/CinemaPlayerView"));
 import ErrorBoundary from "./components/ErrorBoundary";
 import LazyVirtualCard from "./components/LazyVirtualCard";
 import HeroSkeleton from "./components/HeroSkeleton";
@@ -740,7 +742,6 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
-  const [showWishlistModal, setShowWishlistModal] = useState(false);
   const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
 
   useEffect(() => {
@@ -797,6 +798,8 @@ export default function App() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionError, setConnectionError] = useState("");
   const [isRecalculating, setIsRecalculating] = useState(false);
+
+  const [collectionMods, setCollectionMods] = useState({ deletedCollections: [], addedMovies: {}, removedMovies: {} });
 
   // Dynamically map movies into collections & genres by checking server presence
   const mappedCollections = React.useMemo(() => {
@@ -895,7 +898,7 @@ export default function App() {
       if (m.director && m.director.trim() !== "" && !/unknown|inconnu|divers|various|various directors/i.test(m.director)) {
         const dName = m.director.trim();
         // Skip directors already in main sagas (Quentin Tarantino and Christopher Nolan)
-        if (!/tarantino|nolan|avildsen|stallone|stalonne|fincher/i.test(dName)) {
+        if (!/tarantino|nolan|avildsen|stallone|stalonne|fincher|wingard|wingrad|coogler|spielberg/i.test(dName)) {
           if (!directorGroups[dName]) {
             directorGroups[dName] = [];
           }
@@ -973,13 +976,49 @@ export default function App() {
       };
     }).filter((g) => g.movies.length > 0);
 
-    const finalCollections = [
+        const finalCollections = [
       ...curatedSagaCollections,
       ...dynamicFranchiseCollections,
       ...dynamicDirectorCollections
     ];
 
-    return finalCollections.map((col) => {
+    // APPLY COLLECTION MODS
+    const mods = collectionMods || { deletedCollections: [], addedMovies: {}, removedMovies: {} };
+    
+    // INJECT CUSTOM CATEGORY MOVIES
+    jellyfinMovies.forEach(m => {
+      if (m.customCategory && m.customCategory !== "none") {
+        let target = finalCollections.find(c => c.title === m.customCategory);
+        if (target) {
+          // Avoid duplicate pushing
+          if (!target.movies.some(existing => existing.id === m.id)) {
+            target.movies.push({ ...m, isJellyfin: true });
+          }
+        } else {
+          finalCollections.push({
+            id: `custom-${m.customCategory.toLowerCase().replace(/[^a-z]/g, '-')}`,
+            title: m.customCategory,
+            description: "Catégorie Personnalisée",
+            movies: [{ ...m, isJellyfin: true }]
+          });
+        }
+      }
+    });
+
+    
+    let filteredCollections = finalCollections.filter(c => !mods.deletedCollections.some(d => d === c.id || d === c.title || d === c.title.toLowerCase().replace(/\s+/g, "-")));
+    
+    return filteredCollections.map((col) => {
+      // Apply manual movie additions from mods (assuming movie exists in jellyfinMovies or allMoviesData)
+      let customAdded = (mods.addedMovies[col.id] || []).map(id => jellyfinMovies.find(m => String(m.id) === String(id)) || tmdbCache.find(m => String(m.id) === String(id))).filter(Boolean);
+      col.movies = [...col.movies, ...customAdded];
+      
+      // Apply manual movie removals
+      if (mods.removedMovies[col.id]) {
+        col.movies = col.movies.filter(m => !mods.removedMovies[col.id].includes(String(m.id)));
+      }
+      
+
       // Nettoyer et éliminer tout doublon de film (doublons par ID ou par titre identique)
       const seenIds = new Set<string>();
       const seenTitles = new Set<string>();
@@ -999,7 +1038,7 @@ export default function App() {
         movies: uniqueMovies
       };
     }).filter((col) => col.movies.length > 0);
-  }, [jellyfinMovies]);
+  }, [jellyfinMovies, collectionMods]);
 
   // SAGA COMPLETENESS CHECKLIST VALIDATION ENGINE
   const sagaCompletenessList = React.useMemo(() => {
@@ -1056,7 +1095,14 @@ export default function App() {
 
 
   const [isTestingOdyssey, setIsTestingOdyssey] = useState(false);
-  const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
+    const [showPinPrompt, setShowPinPrompt] = useState(false);
+  const [pinInput, setPinInput] = useState("");
+  const [isAdminUnlocked, setIsAdminUnlockedState] = useState(() => localStorage.getItem("classico_admin_unlocked") === "true");
+    
+  const setIsAdminUnlocked = (val: boolean) => {
+    setIsAdminUnlockedState(val);
+    localStorage.setItem("classico_admin_unlocked", String(val));
+  };
   const [testOdysseySuccess, setTestOdysseySuccess] = useState<string | null>(null);
 
   const handleTestOdyssey = async () => {
@@ -1071,10 +1117,10 @@ export default function App() {
         loadJellyfinLibrary();
         setTimeout(() => setTestOdysseySuccess(null), 5000);
       } else {
-        alert("Erreur lors du test: " + data.error);
+        alert("Error during test: " + data.error);
       }
     } catch (err) {
-      alert("Erreur réseau lors du test");
+      alert("Network error during test");
     } finally {
       setIsTestingOdyssey(false);
     }
@@ -1096,7 +1142,30 @@ export default function App() {
   };
 
   // Load library movies from backend
-  const loadJellyfinLibrary = async () => {}; // Removed: Using static data
+    const loadJellyfinLibrary = async () => {
+    try {
+      const res = await fetch("/api/jellyfin/movies");
+      const data = await res.json();
+      if (data.success) {
+        setJellyfinMovies(data.movies);
+        const heroImports = data.movies.filter((m: any) => m.isHero);
+        if (heroImports.length > 0) {
+          const combinedHeroes = [...heroImports, ...heroMoviesData.heroes];
+          const uniqueHeroes = Array.from(new Map(combinedHeroes.map(m => [m.id, m])).values());
+          setJellyfinHeroMovies(uniqueHeroes);
+        }
+        
+        // Load mods
+        fetch("/api/admin/collections/modifications").then(r => r.json()).then(mdata => {
+          if (mdata.success) setCollectionMods(mdata.modifications);
+        }).catch(()=>{});
+      }
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    loadJellyfinLibrary();
+  }, []);
 
   const loadJellyfinHeroMovie = async () => {};
 
@@ -1175,7 +1244,7 @@ export default function App() {
   };
 
   const handleDisconnectJellyfin = async () => {
-    if (!window.confirm("Voulez-vous déconnecter ce serveur de CLASSICO ?")) return;
+    if (!window.confirm("Do you want to disconnect this server from CLASSICO?")) return;
     try {
       const res = await fetch("/api/jellyfin/disconnect", { method: "POST" });
       const data = await res.json();
@@ -1326,6 +1395,16 @@ export default function App() {
   }, [selectedMovie]);
 
   // Filter movies globally based on search query
+  const [tmdbSearchResults, setTmdbSearchResults] = useState<Movie[]>([]);
+  const [tmdbCache, setTmdbCache] = useState<Movie[]>(() => {
+    try {
+      const stored = localStorage.getItem("classico_tmdb_cache");
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
   const allMovies = React.useMemo(() => {
     const map = new Map<string, Movie>();
     
@@ -1340,9 +1419,20 @@ export default function App() {
         map.set(m.id, { ...m, isJellyfin: true });
       }
     });
+    
+    // Add TMDB cache movies
+    tmdbCache.forEach(m => {
+      if (!map.has(m.id)) {
+        map.set(m.id, m);
+      } else {
+        // Merge in missing details (like seasons)
+        const existing = map.get(m.id)!;
+        map.set(m.id, { ...existing, ...m });
+      }
+    });
 
     return Array.from(map.values());
-  }, [mappedCollections, jellyfinMovies]);
+  }, [mappedCollections, jellyfinMovies, tmdbCache]);
 
     const unmatchedMovies = React.useMemo(() => {
     if (!jellyfinMovies || jellyfinMovies.length === 0) return [];
@@ -1350,7 +1440,7 @@ export default function App() {
     const inCollections = new Set<string>();
     mappedCollections.forEach(c => c.movies.forEach(m => inCollections.add(m.id)));
 
-    return jellyfinMovies.filter(m => {
+    return allMovies.filter(m => {
       if (inCollections.has(m.id)) return false;
       const t = m.title.toLowerCase();
       if (t.includes("john wick")) return false;
@@ -1362,26 +1452,121 @@ export default function App() {
       if (t.includes("memories of murder")) return false;
       return true;
     });
-  }, [jellyfinMovies, mappedCollections]);
+  }, [allMovies, mappedCollections]);
 
-  const searchedMovies = searchQuery.trim() === ""
-    ? []
-    : allMovies.filter(m => 
+
+  const [isSearchingTmdb, setIsSearchingTmdb] = useState(false);
+  
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setTmdbSearchResults([]);
+      return;
+    }
+    
+    setIsSearchingTmdb(true);
+    const delayDebounceFn = setTimeout(() => {
+      fetch(`/api/search?query=${encodeURIComponent(searchQuery)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setTmdbSearchResults(data.results);
+            setTmdbCache(prev => {
+              const map = new Map(prev.map(m => [m.id, m]));
+              data.results.forEach((m: Movie) => map.set(m.id, m));
+              const newCache = Array.from(map.values());
+              localStorage.setItem("classico_tmdb_cache", JSON.stringify(newCache));
+              return newCache;
+            });
+          }
+        })
+        .finally(() => setIsSearchingTmdb(false));
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
+
+  const searchedMovies = React.useMemo(() => {
+    if (searchQuery.trim() === "") return [];
+    
+    const localMatches = allMovies.filter(m => 
         (m.title && m.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (m.director && m.director.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (m.genre && m.genre.some(g => g.toLowerCase().includes(searchQuery.toLowerCase())))
-      );
+    );
+    
+    // Merge local and TMDB, avoiding duplicates by id
+    const merged = [...localMatches];
+    const localIds = new Set(localMatches.map(m => String(m.id)));
+    
+    tmdbSearchResults.forEach(tmdbMovie => {
+      // Check if we already have this TMDB id in local (local might use imdbId as id, but tmdbMovie has tmdbId)
+      // We check both id and tmdbId
+      const existsLocal = merged.some(m => String(m.tmdbId) === String(tmdbMovie.tmdbId) || String(m.id) === String(tmdbMovie.id) || String(m.imdbId) === String(tmdbMovie.tmdbId) || (m.providerIds && m.providerIds.Tmdb && String(m.providerIds.Tmdb) === String(tmdbMovie.tmdbId)));
+      if (!existsLocal) {
+        merged.push(tmdbMovie);
+      }
+    });
+    
+    
+    const lowerQuery = searchQuery.toLowerCase().trim();
+    merged.sort((a, b) => {
+      const aTitle = (a.title || "").toLowerCase();
+      const bTitle = (b.title || "").toLowerCase();
+      const aExact = aTitle === lowerQuery;
+      const bExact = bTitle === lowerQuery;
+      
+      if (aExact && !bExact) return -1;
+      if (!aExact && bExact) return 1;
+      
+      const aStarts = aTitle.startsWith(lowerQuery);
+      const bStarts = bTitle.startsWith(lowerQuery);
+      if (aStarts && !bStarts) return -1;
+      if (!aStarts && bStarts) return 1;
+      
+      return 0; // preserve original order (tmdb is already popularity sorted)
+    });
 
-  const activeMovie = React.useMemo(() => {
+    return merged;
+  }, [searchQuery, allMovies, tmdbSearchResults]);
+
+  const targetMovieId = React.useMemo(() => {
     let targetId = "";
     if (routePath.startsWith("/movie/")) {
       targetId = routePath.slice("/movie/".length);
     } else if (routePath.startsWith("/player/")) {
       targetId = routePath.slice("/player/".length);
     }
-    if (!targetId) return null;
-    return allMovies.find(m => m.id === targetId) || null;
-  }, [routePath, allMovies]);
+    const tvMatch = targetId.match(/^(.*-tv)-S\d+E\d+$/);
+    if (tvMatch) {
+      targetId = tvMatch[1];
+    }
+    return targetId;
+  }, [routePath]);
+
+  const activeMovie = React.useMemo(() => {
+    if (!targetMovieId) return null;
+    return allMovies.find(m => m.id === targetMovieId) || null;
+  }, [targetMovieId, allMovies]);
+
+  // Fetch missing movie data if navigated directly
+  useEffect(() => {
+    if (targetMovieId && (!activeMovie || !activeMovie.director || activeMovie.tagline === undefined || (activeMovie.isTv && !activeMovie.seasons))) {
+      fetch(`/api/movie/${targetMovieId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.movie) {
+            setTmdbCache(prev => {
+              const map = new Map(prev.map(m => [m.id, m]));
+              map.set(data.movie.id, data.movie);
+              const newCache = Array.from(map.values());
+              localStorage.setItem("classico_tmdb_cache", JSON.stringify(newCache));
+              return newCache;
+            });
+          }
+        })
+        .catch(err => console.error("Error fetching missing movie data:", err));
+    }
+  }, [targetMovieId, activeMovie]);
 
   // Intercept and return the standalone full-screen cinema view with zero overlay UI
   if (activeTab === "player") {
@@ -1394,14 +1579,29 @@ export default function App() {
         fallbackTitle="Interruption de la lecture du film"
         onReset={() => navigateTo("/movie/" + pId)}
       >
-        <CinemaPlayerView
-          movieId={pId}
-          movieTitle={activeMovie?.title || "Cult Classic"}
-          movieDuration={activeMovie?.duration}
-          moviePoster={activeMovie?.posterUrl || (activeMovie as any)?.poster}
-          movieBackdrop={activeMovie?.backdropUrl || (activeMovie as any)?.backdrop}
-          onClose={() => navigateTo("/movie/" + pId)}
-        />
+        {(() => {
+          let actualId = pId;
+          let season, episode;
+          const tvMatch = pId.match(/^(.*-tv)-S(\d+)E(\d+)$/);
+          if (tvMatch) {
+            actualId = tvMatch[1];
+            season = parseInt(tvMatch[2]);
+            episode = parseInt(tvMatch[3]);
+          }
+          return (
+            <CinemaPlayerView
+              movieId={actualId}
+              isTv={!!tvMatch}
+              season={season}
+              episode={episode}
+              movieTitle={activeMovie?.title || "Cult Classic"}
+              movieDuration={activeMovie?.duration}
+              moviePoster={activeMovie?.posterUrl || (activeMovie as any)?.poster}
+              movieBackdrop={activeMovie?.backdropUrl || (activeMovie as any)?.backdrop}
+              onClose={() => navigateTo("/movie/" + actualId)}
+            />
+          );
+        })()}
       </ErrorBoundary>
     );
   }
@@ -1484,7 +1684,7 @@ export default function App() {
               {[
                 { id: "accueil", label: "Home", icon: Compass },
                 { id: "collections", label: "Library", icon: FilmIcon },
-                { id: "wishlist", label: "Wishlist", icon: BookmarkCheck },
+                
                 { id: "profil", label: "My Profile", icon: User }
               ].map((tab) => {
                 const IconComp = tab.icon;
@@ -1494,10 +1694,7 @@ export default function App() {
                     id={`nav-tab-${tab.id}`}
                     key={tab.id}
                     onClick={() => {
-                      if (tab.id === "wishlist") {
-                        setShowWishlistModal(true);
-                        return;
-                      }
+                      
                       navigateTo(tab.id === "accueil" ? "/" : `/${tab.id}`);
                       setSearchQuery("");
                     }}
@@ -1535,7 +1732,7 @@ export default function App() {
                 {[
                   { id: "accueil", label: "Home", icon: Compass },
                   { id: "collections", label: "Library", icon: FilmIcon },
-                  { id: "wishlist", label: "Wishlist", icon: BookmarkCheck },
+                  
                   { id: "profil", label: "My Profile", icon: User }
                 ].map((tab) => {
                   const IconComp = tab.icon;
@@ -1545,10 +1742,7 @@ export default function App() {
                       key={tab.id}
                       onClick={() => {
                         setIsMobileMenuOpen(false);
-                        if (tab.id === "wishlist") {
-                          setShowWishlistModal(true);
-                          return;
-                        }
+                        
                         navigateTo(tab.id === "accueil" ? "/" : `/${tab.id}`);
                         setSearchQuery("");
                       }}
@@ -2040,7 +2234,7 @@ export default function App() {
                           }}
                           className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar pt-4 px-1 pb-6 sm:pb-10"
                         >
-                          {collection.movies.map((movie, idx) => (
+                          {collection.movies.slice(0, 40).map((movie, idx) => (
                             <LazyVirtualCard 
                               key={`${collection.id}-${movie.id}`}
                               className={collection.id === "trending-now" ? "w-[200px] min-[400px]:w-[240px] sm:w-[300px] aspect-[2/3] mr-12 sm:mr-20" : undefined}
@@ -2059,68 +2253,7 @@ export default function App() {
                   ))}
                 </div>
 
-                {/* OTHER BANGERS Section */}
-                {unmatchedMovies.length > 0 && (
-                  <div className="space-y-4 text-left pt-6 sm:pt-8 border-t border-zinc-700/60 mt-8">
-                    <div className="flex flex-row items-center sm:items-end justify-between gap-2 sm:gap-3 border-b border-zinc-900 pb-2 sm:pb-3">
-                      <div className="space-y-0.5 max-w-[80%]">
-                        <span className="text-[8px] sm:text-[9px] font-mono tracking-[2px] sm:tracking-[3px] text-zinc-500 uppercase font-bold">
-                          UNCATEGORIZED • {unmatchedMovies.length} MOVIES
-                        </span>
-                        <h3 className="text-base sm:text-2xl font-cinzel font-bold text-white uppercase tracking-widest leading-tight truncate">
-                          OTHER BANGERS
-                        </h3>
-                      </div>
-                    </div>
-                    
-                    <div 
-                      className="relative group/carousel"
-                      onMouseEnter={() => { hoveredCarousels.current["other-bangers"] = true; }}
-                      onMouseLeave={() => { hoveredCarousels.current["other-bangers"] = false; }}
-                    >
-                      <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-stone-950 to-transparent z-10 pointer-events-none" />
-                      <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-stone-950 to-transparent z-10 pointer-events-none" />
-                      
-                      <div className="absolute inset-y-0 left-2 flex items-center z-20 opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 pointer-events-none">
-                        <button
-                          onClick={() => scrollCarousel("other-bangers", "left")}
-                          className="bg-black/80 hover:bg-zinc-900 border border-zinc-800 text-stone-200 hover:text-amber-400 p-2 rounded-full shadow-lg transition-all duration-150 pointer-events-auto active:scale-95 cursor-pointer"
-                          title="Previous"
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                        </button>
-                      </div>
-                      
-                      <div className="absolute inset-y-0 right-2 flex items-center z-20 opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 pointer-events-none">
-                        <button
-                          onClick={() => scrollCarousel("other-bangers", "right")}
-                          className="bg-black/80 hover:bg-zinc-900 border border-zinc-800 text-stone-200 hover:text-amber-400 p-2 rounded-full shadow-lg transition-all duration-150 pointer-events-auto active:scale-95 cursor-pointer"
-                          title="Next"
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      <div
-                        id={`carousel-container-other-bangers`}
-                        ref={(el) => {
-                          carouselRefs.current["other-bangers"] = el;
-                        }}
-                        className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar pt-4 px-1 pb-6 sm:pb-10"
-                      >
-                        {unmatchedMovies.map((movie) => (
-                          <LazyVirtualCard key={`other-bangers-${movie.id}`}>
-                            <MovieCard
-                              movie={movie}
-                              onSelect={(m) => handleOpenMovie(m, false)}
-                              onPlay={(m) => handleOpenMovie(m, true)}
-                            />
-                          </LazyVirtualCard>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
+                {/* OTHER BANGERS Section Removed */}
                   </>
                 )}
               </div>
@@ -2296,6 +2429,7 @@ export default function App() {
                 <MovieDetailView
                   movie={activeMovie}
                   onBack={goBackOrHome}
+                  onSimilarClick={(id) => navigateTo("/movie/" + id)}
                   onPlay={(id) => {
                     (window as any).moviePlayClickTime = performance.now();
                     console.log("%c[CHRONO LECTEUR] Clic sur le film : 0.000s (Début du flux via Détails)", "color: #a855f7; font-weight: bold; font-size: 13px;");
@@ -2314,8 +2448,6 @@ export default function App() {
                     (window as any).playbackPrefetches = prefetches;
                     navigateTo("/player/" + id);
                   }}
-                  isBookmarked={watchlist.includes(activeMovie.id)}
-                  onToggleBookmark={() => handleToggleWatchlist(activeMovie.id)}
                 />
               ) : (
                 <div className="py-20 text-center max-w-sm mx-auto space-y-4">
@@ -2323,7 +2455,8 @@ export default function App() {
                 </div>
               )}
             </motion.div>
-          ) : activeTab === "profil" ? (
+          ) :
+          activeTab === "profil" ? (
             /* ========================================================== */
             /* VIEW C: MON PROFIL & WATCHLIST PERSISTENCE                   */
             /* ========================================================== */
@@ -2335,76 +2468,23 @@ export default function App() {
               className="max-w-[2000px] mx-auto px-4 sm:px-8 py-8 space-y-12"
             >
               
+                            {/* Profile Header */}
+              <div className="pb-4 border-b border-zinc-800">
+                <h2 className="text-3xl sm:text-4xl font-cinzel font-bold text-white uppercase tracking-widest">
+                  My Profile
+                </h2>
+              </div>
+
+              {isAdminUnlocked && (
+                <AdminWishlist onAdded={() => { loadJellyfinLibrary(); }} categories={mappedCollections.map(c => c.title)} allMovies={allMovies} />
+              )}
+
               {/* Profile Card Deck */}
               <div className="space-y-8 text-left">
                 
                 {/* Film Library & Watchlists */}
                 <div className="space-y-12">
                   
-                  {/* Imported Movies Row */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-display font-bold uppercase tracking-wider text-white flex items-center gap-2 border-b border-zinc-800 pb-2">
-                      <Film className="w-4 h-4 text-indigo-500" />
-                      Mes Films Ajoutés ({allMovies.filter(m => m.isIframeEmbed).length})
-                    </h3>
-                    {allMovies.filter(m => m.isIframeEmbed).length > 0 ? (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-8 justify-items-center">
-                        {allMovies
-                          .filter(m => m.isIframeEmbed)
-                          .map((movie, idx) => (
-                            <LazyVirtualCard key={`${movie.id}-imported-${idx}`}>
-                              <MovieCard
-                                movie={movie}
-                                onSelect={(m) => handleOpenMovie(m, false)}
-                                onPlay={(m) => handleOpenMovie(m, true)}
-                              />
-                            </LazyVirtualCard>
-                          ))
-                        }
-                      </div>
-                    ) : (
-                      <p className="text-zinc-500 text-sm">Aucun film ajouté pour le moment.</p>
-                    )}
-                  </div>
-
-                  {/* Watchlist Row displaying bookmarked films */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-display font-bold uppercase tracking-wider text-white flex items-center gap-2 border-b border-zinc-800 pb-2">
-                      <Heart className="w-4 h-4 text-rose-500 fill-rose-500 animate-pulse" />
-                      My Watchlist ({watchlist.length})
-                    </h3>
-
-                    {watchlist.length > 0 ? (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-8 justify-items-center">
-                        {allMovies
-                          .filter(m => watchlist.includes(m.id))
-                          .map((movie, idx) => (
-                            <LazyVirtualCard key={`${movie.id}-watchlist-${idx}`}>
-                              <MovieCard
-                                movie={movie}
-                                onSelect={(m) => handleOpenMovie(m, false)}
-                                onPlay={(m) => handleOpenMovie(m, true)}
-                              />
-                            </LazyVirtualCard>
-                          ))
-                        }
-                      </div>
-                    ) : (
-                      <div className="py-12 bg-neutral-900/40 p-6 rounded-xl border border-dashed border-zinc-800 text-center space-y-3">
-                        <p className="text-sm text-zinc-400">Your watchlist is empty right now.</p>
-                        <p className="text-xs text-zinc-500 max-w-sm mx-auto">
-                          Click the "Add to my List" button or use the details view of any movie to save it here.
-                        </p>
-                        <button
-                          onClick={() => setActiveTab("accueil")}
-                          className="gold-button px-5 py-2.5 rounded-lg text-xs transition-transform hover:scale-103 active:scale-95 cursor-pointer"
-                        >
-                          EXPLORE HOME
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
                   {/* Watch History displaying viewed films */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-display font-bold uppercase tracking-wider text-white flex items-center gap-2 border-b border-zinc-800/80 pb-2">
@@ -2451,9 +2531,55 @@ export default function App() {
         <p className="max-w-md mx-auto leading-relaxed text-[11px] text-zinc-400/80">
           CLASSICO is a streaming site dedicated to cult movies and legendary cinema collections. All images, metadata, and playback simulators are purely artistic and fictional.
         </p>
-        <p className="text-zinc-600 font-sans tracking-wide text-[10px] pt-2">
-          © {new Date().getFullYear()} CLASSICO Streaming Inc. • All rights reserved.
-        </p>
+        <div className="flex items-center justify-center gap-4 text-[10px] pt-2">
+          <p className="text-zinc-600 font-sans tracking-wide">
+            © {new Date().getFullYear()} CLASSICO Streaming Inc. • All rights reserved.
+          </p>
+          
+          {showPinPrompt ? (
+            <div className="flex items-center gap-2">
+              <input 
+                type="password"
+                value={pinInput}
+                onChange={e => setPinInput(e.target.value)}
+                placeholder="PIN"
+                className="bg-zinc-900 border border-zinc-700 text-white text-[10px] rounded px-2 py-1 w-16 focus:outline-none focus:border-[#D4AF37]"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    if (pinInput === "0698") {
+                      setIsAdminUnlocked(true);
+                      setShowPinPrompt(false);
+                      setPinInput("");
+                    } else {
+                      alert("Code incorrect.");
+                      setPinInput("");
+                    }
+                  }
+                }}
+              />
+              <button onClick={() => setShowPinPrompt(false)} className="text-zinc-500 hover:text-white">
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                if (isAdminUnlocked) {
+                  setIsAdminUnlocked(false);
+                } else {
+                  setShowPinPrompt(true);
+                  setPinInput("");
+                }
+              }}
+              className={`transition-opacity duration-500 hover:opacity-100 ${isAdminUnlocked ? "text-[#D4AF37] opacity-80" : "text-zinc-600 opacity-40 hover:text-white hover:opacity-100"}`}
+              title="Admin"
+            >
+              <Key className="w-4 h-4" />
+            </button>
+          )}
+
+        </div>
       </footer>
 
       {/* ========================================================== */}
@@ -2477,54 +2603,11 @@ export default function App() {
             } catch (e) {}
           }
         }}
-        isBookmarked={selectedMovie ? watchlist.includes(selectedMovie.id) : false}
-        onToggleBookmark={() => selectedMovie && handleToggleWatchlist(selectedMovie.id)}
       />
 
 
 
 
-      {/* WISHLIST MODAL */}
-      <AnimatePresence>
-        {showWishlistModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-            onClick={() => setShowWishlistModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 10 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 10 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-md bg-zinc-950 border border-[#D4AF37]/50 rounded-2xl p-8 shadow-[0_0_30px_rgba(212,175,55,0.15)] text-center flex flex-col items-center gap-4"
-            >
-              <button
-                onClick={() => setShowWishlistModal(false)}
-                className="absolute top-4 right-4 text-zinc-500 hover:text-[#D4AF37] transition-colors p-1"
-              >
-                <X className="w-5 h-5" />
-              </button>
-              
-              <div className="w-16 h-16 rounded-full bg-[#D4AF37]/10 flex items-center justify-center border border-[#D4AF37]/30 mb-2">
-                <BookmarkCheck className="w-8 h-8 text-[#D4AF37]" />
-              </div>
-              
-              <h2 className="text-xl sm:text-2xl font-cinzel font-bold text-white uppercase tracking-widest">
-                Under Construction
-              </h2>
-              
-              <p className="text-zinc-300 font-sans text-sm sm:text-base leading-relaxed">
-                The Wishlist is under construction! 🍿<br/><br/>
-                Soon, you will be able to request your favorite movies directly here.
-              </p>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+      </div>
   );
 }

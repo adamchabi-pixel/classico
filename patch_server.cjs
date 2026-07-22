@@ -1,50 +1,47 @@
 const fs = require('fs');
+let code = fs.readFileSync('server.ts', 'utf-8');
 
-let code = fs.readFileSync('server.ts', 'utf8');
+// Replace language=fr-FR with language=en-US everywhere
+code = code.replace(/language=fr-FR/g, 'language=en-US');
 
-const target = `  if (!userId) {
-    throw new Error("Impossible d'obtenir un UserId valide auprès de Jellyfin.");
-  }`;
-
-const replacement = `  if (!userId) {
-    throw new Error("Impossible d'obtenir un UserId valide auprès de Jellyfin.");
-  }
-
-  // NEW: Fetch item directly to get ProviderIds and bypass Jellyfin streaming logic entirely
-  try {
-    const itemRes = await fetch(\`\${config.url}/Users/\${userId}/Items/\${activeId}?api_key=\${config.apiKey}\`);
-    if (itemRes.ok) {
-      const itemData = await itemRes.json();
-      if (itemData && itemData.ProviderIds) {
-        const tmdb = itemData.ProviderIds.Tmdb;
-        const imdb = itemData.ProviderIds.Imdb;
-        if (tmdb || imdb) {
-          const providerId = tmdb || imdb;
-          const iframeResult = {
-            id: activeId,
-            streamUrl: \`https://vidsrc.sbs/embed/movie/\${providerId}\`,
-            duration: Math.round((itemData.RunTimeTicks || 0) / 10000000),
-            container: "iframe",
-            title: itemData.Name || "Film (Embed)",
-            isDirect: true,
-            isIframeEmbed: true,
-            iframeSrc: \`https://vidsrc.sbs/embed/movie/\${providerId}\`,
-            subtitles: [],
-            audios: []
-          };
-          playbackCache.set(cacheKey, { data: iframeResult, timestamp: Date.now() });
-          return iframeResult;
+// In /api/movie/:id, add slug resolution
+const tmdbBlock = `
+    let tmdbId = actualId;
+    if (actualId.startsWith('tt')) {
+      const findUrl = \`https://api.themoviedb.org/3/find/\${actualId}?external_source=imdb_id\`;
+      const findRes = await fetch(findUrl, { headers: { "Authorization": \`Bearer \${TMDB_ACCESS_TOKEN}\`, "Accept": "application/json" }});
+      if (findRes.ok) {
+        const findData = await findRes.json();
+        if (findData.movie_results && findData.movie_results.length > 0) {
+          tmdbId = String(findData.movie_results[0].id);
+        } else if (findData.tv_results && findData.tv_results.length > 0) {
+          tmdbId = String(findData.tv_results[0].id);
+        }
+      }
+    } else if (isNaN(Number(actualId))) {
+      // It's a string slug, let's look it up in allMoviesData
+      const localMovie = allMoviesData.find(m => m.id === actualId);
+      if (localMovie) {
+        const query = encodeURIComponent(localMovie.title);
+        const searchUrl = isTv 
+          ? \`https://api.themoviedb.org/3/search/tv?query=\${query}&first_air_date_year=\${localMovie.year}&language=en-US\`
+          : \`https://api.themoviedb.org/3/search/movie?query=\${query}&year=\${localMovie.year}&language=en-US\`;
+        
+        const searchRes = await fetch(searchUrl, { headers: { "Authorization": \`Bearer \${TMDB_ACCESS_TOKEN}\`, "Accept": "application/json" }});
+        if (searchRes.ok) {
+          const data = await searchRes.json();
+          if (data.results && data.results.length > 0) {
+            tmdbId = String(data.results[0].id);
+          }
         }
       }
     }
-  } catch (err) {
-    console.error("Error fetching item data for provider IDs:", err);
-  }`;
+`;
 
-if (code.includes(target)) {
-  code = code.replace(target, replacement);
-  fs.writeFileSync('server.ts', code);
-  console.log("Successfully patched server.ts");
-} else {
-  console.log("Target not found in server.ts");
-}
+code = code.replace(
+  /let tmdbId = actualId;[\s\S]*?if \(actualId\.startsWith\('tt'\)\) \{[\s\S]*?\}\n    \}/,
+  tmdbBlock
+);
+
+fs.writeFileSync('server.ts', code, 'utf-8');
+console.log("Patched server.ts");

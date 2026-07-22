@@ -3,15 +3,13 @@ import { motion, AnimatePresence } from "motion/react";
 import { 
   X, Play, Star, Clock, User, Film, Info, 
   Volume2, VolumeX, Pause, RotateCcw, Captions,
-  Maximize2, Check, Plus, AlertCircle, Sparkles, ArrowLeft
+  Maximize2, Check, Plus, AlertCircle, Sparkles, ArrowLeft, Loader2
 } from "lucide-react";
 import { Movie } from "../data";
 
 interface MovieModalProps {
   movie: Movie | null;
   onClose: () => void;
-  isBookmarked: boolean;
-  onToggleBookmark: () => void;
   startAsPlaying?: boolean;
   onPlay: (id: string) => void;
 }
@@ -19,8 +17,8 @@ interface MovieModalProps {
 export default function MovieModal({ 
   movie, 
   onClose, 
-  isBookmarked, 
-  onToggleBookmark,
+   
+  
   startAsPlaying = false,
   onPlay 
 }: MovieModalProps) {
@@ -97,84 +95,93 @@ export default function MovieModal({
         >
           {/* Top Back Button */}
           <button
-            id="close-modal-btn"
             onClick={onClose}
-            className="absolute top-4 left-4 sm:top-6 sm:left-6 z-40 bg-black/40 hover:bg-black/70 backdrop-blur-sm text-white hover:text-amber-400 p-2.5 rounded-full border border-neutral-800/50 hover:border-amber-400/50 transition-all duration-200 active:scale-90"
+            className="absolute top-4 left-4 z-20 bg-black/60 hover:bg-black/80 text-white p-2.5 rounded-full border border-white/20 backdrop-blur-md transition-all active:scale-95"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-
-
-            <div className="overflow-y-auto custom-scrollbar flex-grow">
-              {/* Grand Banner Backdrop of the Movie */}
-              <div id={`modal-banner-${movie.id}`} className={`relative h-[280px] sm:h-[400px] w-full bg-gradient-to-r ${movie.gradient} flex items-end p-6 sm:p-10 overflow-hidden`}>
-                
-                {/* Decorative glowing spotlight lines */}
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.05),transparent)] pointer-events-none" />
-                <div className="absolute inset-0 banner-overlay-bottom z-10" />
-                <div className="absolute inset-0 banner-overlay-side z-10" />
-
-                {/* Big Floating Symbol Emblem */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-8xl sm:text-9xl opacity-15 filter blur-xs select-none pointer-events-none">
-                  {movie.symbol}
-                </div>
-
-                <div className="relative z-20 max-w-2xl space-y-3">
-                  
-                  {/* Mega Metallic Title */}
-                  <h1 className="text-3xl sm:text-5xl font-forum font-bold text-white uppercase tracking-wider leading-none drop-shadow-md">
+          
+          {/* Top Hero Section */}
+          <div className="relative w-full h-64 sm:h-96 md:h-[400px]">
+            <img
+              src={movie.backdropUrl || movie.posterUrl}
+              alt={movie.title}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/40 to-transparent" />
+            
+            {/* Title & Play Button Overlay */}
+            <div className="absolute inset-x-0 bottom-0 px-6 pb-4 sm:px-10 sm:pb-6 pt-16 flex flex-col md:flex-row md:items-end justify-between gap-6">
+              <div className="space-y-3">
+                {movie.hasLogo && movie.logoUrl ? (
+                  <motion.img
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    src={movie.logoUrl}
+                    alt={movie.title}
+                    className="max-w-[200px] sm:max-w-[300px] max-h-[100px] object-contain drop-shadow-2xl"
+                  />
+                ) : (
+                  <motion.h2
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-4xl sm:text-5xl font-cinzel font-bold text-white tracking-widest uppercase drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
+                  >
                     {movie.title}
-                  </h1>
-
-                  {/* Ligne de Métadonnées Unique et Propre */}
-                  <div className="flex flex-row items-center gap-3 text-zinc-300 font-sans text-xs sm:text-sm font-medium pt-1">
-                    <div className="flex items-center gap-1 text-amber-400">
-                      <Star className="w-3.5 h-3.5 fill-amber-400" />
-                      <span>{movie.rating}/10</span>
-                    </div>
-                    <span className="opacity-40">•</span>
-                    <span>{movie.year}</span>
-                    <span className="opacity-40">•</span>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>{movie.duration}</span>
-                    </div>
-                  </div>
-
-                  {/* Petit Bouton de Lecture Doré et Liste */}
-                  <div className="flex flex-row items-center gap-3 pt-2">
-                    <button
-                      id="play-movie-trigger"
-                      onClick={() => {
-                        (window as any).moviePlayClickTime = performance.now();
-                        onPlay(movie!.id);
-                      }}
-                      className="inline-flex items-center justify-center gap-2 gold-button px-6 py-2.5 rounded-full text-sm font-semibold transition-all"
-                    >
-                      <Play className="w-4 h-4 fill-current" />
-                      Play
-                    </button>
-
-                    <button
-                      id="toggle-watchlist-trigger"
-                      onClick={onToggleBookmark}
-                      className={`inline-flex items-center justify-center p-2.5 rounded-full border transition-all duration-200 active:scale-95 ${
-                        isBookmarked
-                          ? "bg-amber-400/10 border-amber-400/50 text-amber-400"
-                          : "bg-black/40 border-white/20 hover:bg-black/60 text-zinc-300 hover:text-white"
-                      }`}
-                      title={isBookmarked ? "In My Watchlist" : "Add to Watchlist"}
-                    >
-                      {isBookmarked ? (
-                        <Check className="w-4 h-4" />
-                      ) : (
-                        <Plus className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
+                  </motion.h2>
+                )}
+                {movie.tagline && (
+                  <p className="text-white font-sans text-sm md:text-base leading-relaxed max-w-xl font-light opacity-95 mt-1 mb-2">
+                    {movie.tagline}
+                  </p>
+                )}
+                
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-mono tracking-widest text-zinc-300 pt-1 uppercase">
+                  <span className="text-amber-400 font-extrabold flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded shadow-sm">
+                    <Star className="w-3.5 h-3.5 fill-current text-amber-500" />
+                    {movie.rating || movie.voteAverage}
+                  </span>
+                  {movie.isTv && movie.seasons && (
+                    <>
+                      <span>•</span>
+                      <span>{movie.seasons.length} Seasons</span>
+                    </>
+                  )}
+                  {movie.originalLanguage && (
+                    <>
+                      <span>•</span>
+                      <span>{movie.originalLanguage.toUpperCase()}</span>
+                    </>
+                  )}
+                  <span>•</span>
+                  <span className="text-zinc-400">{Array.isArray(movie.genre) ? movie.genre.join(", ") : movie.genre}</span>
                 </div>
+                
+                <p className="text-zinc-300 text-xs sm:text-sm leading-relaxed max-w-2xl font-sans font-light line-clamp-3 sm:line-clamp-4 mt-2">
+                  {movie.description}
+                </p>
               </div>
-
+              
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => onPlay(movie.id)}
+                  className="bg-amber-500 hover:bg-amber-400 text-black px-6 py-3 rounded-xl font-bold font-display uppercase tracking-widest flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(245,158,11,0.4)]"
+                >
+                  <Play className="w-5 h-5 fill-current" />
+                  {checkingJellyfin ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin opacity-70" />
+                      Loading
+                    </>
+                  ) : (
+                    "Play Now"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
               {/* Movie Details Block */}
               <div className="p-6 sm:p-10 grid grid-cols-1 md:grid-cols-3 gap-8 text-left bg-stone-950">
                 
@@ -226,7 +233,7 @@ export default function MovieModal({
                     {/* Director */}
                     <div className="space-y-1 py-1 border-b border-zinc-800/60">
                       <span className="text-zinc-400 block text-xs">Director</span>
-                      <span className="text-white font-semibold font-display text-base">{movie.director}</span>
+                      <span className="text-white font-semibold font-display text-base">{movie.director || "Unknown Director"}</span>
                     </div>
 
                     {/* Duration */}
@@ -248,7 +255,7 @@ export default function MovieModal({
                     <div className="space-y-2 pt-1">
                       <span className="text-zinc-400 block text-xs">Genres</span>
                       <div className="flex overflow-x-auto no-scrollbar flex-nowrap md:flex-wrap gap-1.5 pb-1 md:pb-0">
-                        {movie.genre.map((g, idx) => (
+                        {(Array.isArray(movie.genre) ? movie.genre : []).map((g, idx) => (
                           <span key={idx} className="whitespace-nowrap bg-zinc-800/60 text-zinc-300 text-[11px] font-mono px-2 py-1 md:px-2.5 md:py-1 rounded-md border border-zinc-700/30">
                             {g}
                           </span>
@@ -259,7 +266,6 @@ export default function MovieModal({
                 </div>
 
               </div>
-            </div>
         </motion.div>
       </div>
     </AnimatePresence>

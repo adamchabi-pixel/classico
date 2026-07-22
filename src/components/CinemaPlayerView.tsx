@@ -104,6 +104,9 @@ export function formatHlsUrl(url: string, id: string, deviceId?: string, apiKey?
 }
 
 interface CinemaPlayerViewProps {
+  isTv?: boolean;
+  season?: number;
+  episode?: number;
   movieId: string;
   movieTitle: string;
   movieDuration?: string;
@@ -168,6 +171,9 @@ const TrackName = ({ track }: { track: any }) => {
 };
 
 export default function CinemaPlayerView({
+  isTv,
+  season,
+  episode,
   movieId,
   movieTitle,
   movieDuration,
@@ -226,6 +232,8 @@ export default function CinemaPlayerView({
   
   const [isCurtainOpen, setIsCurtainOpen] = useState(false);
   const [forceJellyfin, setForceJellyfin] = useState(false);
+  const [activeServerIndex, setActiveServerIndex] = useState(0);
+  const [availableServers, setAvailableServers] = useState<{name: string, url: string}[]>([]);
   const [playing, setPlaying] = useState(true);
   const [isMetadataLoaded, setIsMetadataLoaded] = useState(false);
   const [isAutoplayBlocked, setIsAutoplayBlocked] = useState(false);
@@ -294,7 +302,8 @@ export default function CinemaPlayerView({
     forceTranscode: boolean;
     playbackAttempts: number;
     isLowQuality: boolean;
-  }>({ movieId: null, forceTranscode: false, playbackAttempts: 0, isLowQuality: false });
+    activeServerIndex: number;
+  }>({ movieId: null, forceTranscode: false, playbackAttempts: 0, isLowQuality: false, activeServerIndex: 0 });
 
   const isResettingRef = useRef<boolean>(false);
 
@@ -717,7 +726,7 @@ export default function CinemaPlayerView({
   useEffect(() => {
     const lastOpts = lastFetchedParamsRef.current;
     if (
-      playbackInfo &&       lastOpts.movieId === movieId &&       lastOpts.forceTranscode === forceTranscode &&       lastOpts.playbackAttempts === playbackAttempts &&       lastOpts.isLowQuality === isLowQuality
+      playbackInfo &&       lastOpts.movieId === movieId &&       lastOpts.forceTranscode === forceTranscode &&       lastOpts.playbackAttempts === playbackAttempts &&       lastOpts.isLowQuality === isLowQuality && lastOpts.activeServerIndex === activeServerIndex
     ) {
       return;
     }
@@ -757,21 +766,39 @@ export default function CinemaPlayerView({
           let actualTmdbId = movieId;
           const matchedMovie = allMoviesData.find(m => m.id === movieId);
           if (matchedMovie) {
-            actualTmdbId = matchedMovie.tmdbId || matchedMovie.imdbId || (matchedMovie.providerIds?.Tmdb) || (matchedMovie.providerIds?.Imdb) || movieId;
+            actualTmdbId = matchedMovie.tmdbId || (matchedMovie.providerIds?.Tmdb) || movieId;
           }
           
           if (!forceJellyfin) {
             // ALWAYS use videasy now, even for jellyfin uuids, by using the looked up tmdbId
             console.log("Videasy ID resolution", {movieId, actualTmdbId, matchedMovie});
+            let finalTmdbId = actualTmdbId;
+            if (finalTmdbId.startsWith('tt') && matchedMovie?.tmdbId) {
+                finalTmdbId = matchedMovie.tmdbId;
+            }
+            
+            let iframeUrl = "";
+            let cleanId = finalTmdbId;
+            if (cleanId.endsWith('-tv')) cleanId = cleanId.replace('-tv', '');
+            if (isTv && season && episode) {
+              iframeUrl = `https://player.videasy.net/tv/${cleanId}/${season}/${episode}?color=FFD700&overlay=true`;
+            } else {
+              iframeUrl = `https://player.videasy.net/movie/${cleanId}?color=FFD700&overlay=true`;
+            }
+            const newServers = [
+              { name: "Videasy (Premium)", url: iframeUrl }
+            ];
+            setAvailableServers(newServers);
+            
             const iframeResult = {
               id: movieId,
-              streamUrl: `https://player.videasy.net/movie/${actualTmdbId}?color=FFD700&overlay=true`,
+              streamUrl: newServers[activeServerIndex]?.url || newServers[0].url,
               duration: 0,
               container: "iframe",
               title: "Film (Embed)",
               isDirect: true,
               isIframeEmbed: true,
-              iframeSrc: `https://player.videasy.net/movie/${actualTmdbId}?color=FFD700&overlay=true`,
+              iframeSrc: newServers[activeServerIndex]?.url || newServers[0].url,
               subtitles: [],
               audios: []
             };
@@ -839,10 +866,11 @@ export default function CinemaPlayerView({
                 if (!forceJellyfin && itemData.ProviderIds) {
                   if (itemData.ProviderIds.Tmdb) {
                     data.isIframeEmbed = true;
-                    data.iframeSrc = `https://player.videasy.net/movie/${itemData.ProviderIds.Tmdb}?color=FFD700&overlay=true`;
-                  } else if (itemData.ProviderIds.Imdb) {
-                    data.isIframeEmbed = true;
-                    data.iframeSrc = `https://player.videasy.net/movie/${itemData.ProviderIds.Imdb}?color=FFD700&overlay=true`;
+                    const srvs = [
+                      { name: "Videasy (Premium)", url: `https://player.videasy.net/movie/${itemData.ProviderIds.Tmdb}?color=FFD700&overlay=true` }
+                    ];
+                    setAvailableServers(srvs);
+                    data.iframeSrc = srvs[activeServerIndex]?.url || srvs[0].url;
                   }
                 }
                 // Fallback for testing if jellyfin bugs and no provider IDs are found
@@ -918,7 +946,7 @@ export default function CinemaPlayerView({
           setPlaybackInfo(data);
           setIsLoading(false);
           lastFetchedMovieIdRef.current = movieId;
-          lastFetchedParamsRef.current = { movieId, forceTranscode, playbackAttempts, isLowQuality };
+          lastFetchedParamsRef.current = { movieId, forceTranscode, playbackAttempts, isLowQuality, activeServerIndex };
           // Initialisation immédiate et stable avec la métadonnée Jellyfin
           if (data && data?.duration || 0 && data?.duration || 0 > 0) {
             setDuration(data?.duration || 0);
@@ -999,7 +1027,7 @@ export default function CinemaPlayerView({
             };
             setPlaybackInfo(fallbackData as any);
             setIsLoading(false);
-            lastFetchedParamsRef.current = { movieId, forceTranscode, playbackAttempts, isLowQuality };
+            lastFetchedParamsRef.current = { movieId, forceTranscode, playbackAttempts, isLowQuality, activeServerIndex };
             setVideoError(null);
           }
         }
@@ -1016,7 +1044,7 @@ export default function CinemaPlayerView({
     return () => {
       active = false;
     };
-  }, [movieId, forceTranscode, playbackAttempts, isLowQuality, forceJellyfin]);
+  }, [movieId, forceTranscode, playbackAttempts, isLowQuality, forceJellyfin, activeServerIndex]);
 
   // Handle Audio && non-text Subtitle Track changes by reloading stream
   useEffect(() => {
@@ -1699,22 +1727,15 @@ export default function CinemaPlayerView({
     <div className="fixed inset-0 z-50 bg-black flex flex-col justify-center items-center select-none overflow-hidden cursor-default">
       {/* UPPER DECK (GO BACK) */}
       <div className="absolute top-0 left-0 right-0 p-6 pt-[calc(1.5rem+env(safe-area-inset-top))] flex items-center justify-between z-[60] pointer-events-none">
-        <button
-          onClick={() => {
-            if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-            onClose();
-          }}
-          className="pointer-events-auto p-2 rounded-full bg-black/50 hover:bg-black/80 text-white/70 hover:text-white transition-all cursor-pointer flex items-center justify-center backdrop-blur-md"
-          title="Back"
-        >
-          <ArrowLeft className="w-6 h-6" />
-        </button>
-        
         <div className="flex items-center gap-4">
-          {movieTitle && (
-            <div className="pointer-events-auto hidden sm:flex px-4 py-2 rounded-full bg-black/50 text-white/90 backdrop-blur-md items-center justify-center">
-              <span className="text-sm font-medium">{movieTitle}</span>
-            </div>
+          {availableServers && availableServers.length > 1 && (
+            <button
+              onClick={() => setActiveServerIndex((prev) => (prev + 1) % availableServers.length)}
+              className="pointer-events-auto px-4 py-2 rounded-full bg-black/50 hover:bg-black/80 text-white transition-all cursor-pointer flex items-center justify-center backdrop-blur-md gap-2"
+              title="Changer de serveur"
+            >
+              <span className="text-sm font-medium">Serveur {activeServerIndex + 1} : {availableServers[activeServerIndex]?.name || ''}</span>
+            </button>
           )}
           <button
             onClick={() => {
@@ -1725,6 +1746,24 @@ export default function CinemaPlayerView({
           >
             <Cast className="w-5 h-5" />
             <span className="text-sm font-medium hidden sm:inline">Caster</span>
+          </button>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          {movieTitle && (
+            <div className="pointer-events-auto hidden sm:flex px-4 py-2 rounded-full bg-black/50 text-white/90 backdrop-blur-md items-center justify-center">
+              <span className="text-sm font-medium">{movieTitle}</span>
+            </div>
+          )}
+          <button
+            onClick={() => {
+              if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+              onClose();
+            }}
+            className="pointer-events-auto p-2 rounded-full bg-black/50 hover:bg-black/80 text-white/70 hover:text-white transition-all cursor-pointer flex items-center justify-center backdrop-blur-md"
+            title="Back"
+          >
+            <ArrowLeft className="w-6 h-6" />
           </button>
         </div>
       </div>

@@ -1,9 +1,15 @@
 export interface Movie {
+  trailerUrl?: string;
+  originalLanguage?: string;
+  similar?: any[];
+  hasLogo?: boolean;
+  logoUrl?: string;
   id: string;
   isIframeEmbed?: boolean;
   title: string;
   year: number;
   duration: string;
+  voteAverage?: number;
   rating: string;
   director: string;
   cast: string[];
@@ -25,6 +31,8 @@ export interface Movie {
   originalTitle?: string;
   studios?: string[];
   providerIds?: Record<string, string>;
+  isTv?: boolean;
+  seasons?: { season_number: number, name: string, episode_count: number, posterUrl?: string }[];
 }
 
 export interface Collection {

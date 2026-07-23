@@ -1,0 +1,8 @@
+const fs = require('fs');
+let code = fs.readFileSync('src/App.tsx', 'utf-8');
+
+code = code.replace(/\) :\ \(\n\s*\{movieLoadError \? \(/g, ') : movieLoadError ? (');
+code = code.replace(/<\/div>\n\s*\)\}\n\s*\}<\/motion\.div>/g, '</div>\n              )\n            }</motion.div>');
+
+fs.writeFileSync('src/App.tsx', code, 'utf-8');
+console.log("Syntax fixed");

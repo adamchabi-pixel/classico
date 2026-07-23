@@ -1,51 +1,18 @@
-const fs = require("fs");
-let content = fs.readFileSync("server.ts", "utf-8");
+const fs = require('fs');
 
-const startStr = "if (response.headers[\"content-length\"]) {";
-const endStr = "response.pipe(res);";
+let serverCode = fs.readFileSync('server.ts', 'utf-8');
 
-const startIdx = content.indexOf(startStr);
-const endIdx = content.indexOf(endStr, startIdx) + endStr.length;
+serverCode = serverCode.replace(/\(\(process\.env\.NODE_ENV === "production"\) \? require\("os"\)\.tmpdir\(\) : process\.cwd\(\)\)/g, 'process.cwd()');
 
-const replacement = `if (response.headers["content-length"]) {
-      responseHeaders["Content-Length"] = response.headers["content-length"];
-    }
+// Selectively replace cache paths
+serverCode = serverCode.replace(/path\.join\(process\.cwd\(\), "jellyfin-config\.json"\)/g, 'path.join((process.env.NODE_ENV === "production" ? require("os").tmpdir() : process.cwd()), "jellyfin-config.json")');
+serverCode = serverCode.replace(/path\.join\(process\.cwd\(\), "wishlist_requests\.json"\)/g, 'path.join((process.env.NODE_ENV === "production" ? require("os").tmpdir() : process.cwd()), "wishlist_requests.json")');
+serverCode = serverCode.replace(/path\.join\(process\.cwd\(\), "jellyfin-movies-cache\.json"\)/g, 'path.join((process.env.NODE_ENV === "production" ? require("os").tmpdir() : process.cwd()), "jellyfin-movies-cache.json")');
+serverCode = serverCode.replace(/path\.join\(process\.cwd\(\), "jellyfin-hero-cache\.json"\)/g, 'path.join((process.env.NODE_ENV === "production" ? require("os").tmpdir() : process.cwd()), "jellyfin-hero-cache.json")');
+serverCode = serverCode.replace(/path\.join\(process\.cwd\(\), "jellyfin-userid-cache\.json"\)/g, 'path.join((process.env.NODE_ENV === "production" ? require("os").tmpdir() : process.cwd()), "jellyfin-userid-cache.json")');
+serverCode = serverCode.replace(/path\.join\(process\.cwd\(\), "\.data", "tmdb_cache\.json"\)/g, 'path.join((process.env.NODE_ENV === "production" ? require("os").tmpdir() : process.cwd()), "tmdb_cache.json")');
+serverCode = serverCode.replace(/path\.join\(process\.cwd\(\), "collections_modifications\.json"\)/g, 'path.join((process.env.NODE_ENV === "production" ? require("os").tmpdir() : process.cwd()), "collections_modifications.json")');
+serverCode = serverCode.replace(/path\.join\(process\.cwd\(\), "imported_movies\.json"\)/g, 'path.join((process.env.NODE_ENV === "production" ? require("os").tmpdir() : process.cwd()), "imported_movies.json")');
 
-    if (response.headers["connection"]) {
-      responseHeaders["Connection"] = response.headers["connection"];
-    }
-
-    // Forward exact 206 status code for Range or 200/other
-    res.writeHead(response.statusCode || 200, responseHeaders);
-    res.flushHeaders();
-
-    let totalBytesStreamed = 0;
-    let lastLogTime = Date.now();
-    let firstChunkReceived = false;
-
-    response.on("data", (chunk) => {
-      if (!firstChunkReceived) {
-        firstChunkReceived = true;
-        const ttfbFirstOctet = Date.now() - reqStartTimestamp;
-        console.log(\`[PERF_MEASURE] [\${perfId}] FIRST_OCTET | T+\${ttfbFirstOctet}ms | Jellyfin started sending data. Chunk size: \${chunk.length}\`);
-      }
-      totalBytesStreamed += chunk.length;
-      const now = Date.now();
-      if (now - lastLogTime > 4000) {
-        lastLogTime = now;
-      }
-    });
-
-    response.on("end", () => {
-      const timeTotal = Date.now() - reqStartTimestamp;
-      console.log(\`[PERF_MEASURE] [\${perfId}] END | T+\${timeTotal}ms | Finished sending stream to browser.\`);
-    });
-
-    response.on("error", (err) => {
-      console.error(\`[PERF_MEASURE] [\${perfId}] ERROR |\`, err);
-    });
-
-    response.pipe(res);`;
-
-content = content.substring(0, startIdx) + replacement + content.substring(endIdx);
-fs.writeFileSync("server.ts", content);
+fs.writeFileSync('server.ts', serverCode, 'utf-8');
+console.log("Server paths selectively fixed");

@@ -13,10 +13,9 @@ import { heroMoviesData } from "./data/hero_movies";
 const COLLECTIONS: Collection[] = [...RAW_COLLECTIONS].sort((a, b) => { if (a.id === "trending-now") return -1; if (b.id === "trending-now") return 1; return a.title.localeCompare(b.title); });
 
 import MovieCard from "./components/MovieCard";
-import { AdminWishlist } from "./components/AdminWishlist";
-import MovieModal from "./components/MovieModal";
+const MovieModal = React.lazy(() => import("./components/MovieModal"));
 import MovieDetailView from "./components/MovieDetailView";
-import CinemaPlayerView from "./components/CinemaPlayerView";
+const CinemaPlayerView = React.lazy(() => import("./components/CinemaPlayerView"));
 import ErrorBoundary from "./components/ErrorBoundary";
 import LazyVirtualCard from "./components/LazyVirtualCard";
 import HeroSkeleton from "./components/HeroSkeleton";
@@ -898,7 +897,7 @@ export default function App() {
       if (m.director && m.director.trim() !== "" && !/unknown|inconnu|divers|various|various directors/i.test(m.director)) {
         const dName = m.director.trim();
         // Skip directors already in main sagas (Quentin Tarantino and Christopher Nolan)
-        if (!/tarantino|nolan|avildsen|stallone|stalonne|fincher/i.test(dName)) {
+        if (!/tarantino|nolan|avildsen|stallone|stalonne|fincher|wingard|wingrad|coogler|spielberg/i.test(dName)) {
           if (!directorGroups[dName]) {
             directorGroups[dName] = [];
           }
@@ -979,7 +978,8 @@ export default function App() {
         const finalCollections = [
       ...curatedSagaCollections,
       ...dynamicFranchiseCollections,
-      ...dynamicDirectorCollections
+      ...dynamicDirectorCollections,
+      ...genreCollections
     ];
 
     // APPLY COLLECTION MODS
@@ -1006,11 +1006,11 @@ export default function App() {
     });
 
     
-    let filteredCollections = finalCollections.filter(c => !mods.deletedCollections.includes(c.id) && !mods.deletedCollections.includes(c.title));
+    let filteredCollections = finalCollections.filter(c => !mods.deletedCollections.some(d => d === c.id || d === c.title || d === c.title.toLowerCase().replace(/\s+/g, "-")));
     
     return filteredCollections.map((col) => {
       // Apply manual movie additions from mods (assuming movie exists in jellyfinMovies or allMoviesData)
-      let customAdded = (mods.addedMovies[col.id] || []).map(id => jellyfinMovies.find(m => String(m.id) === String(id))).filter(Boolean);
+      let customAdded = (mods.addedMovies[col.id] || []).map(id => jellyfinMovies.find(m => String(m.id) === String(id)) || tmdbCache.find(m => String(m.id) === String(id))).filter(Boolean);
       col.movies = [...col.movies, ...customAdded];
       
       // Apply manual movie removals
@@ -1095,37 +1095,8 @@ export default function App() {
 
 
   const [isTestingOdyssey, setIsTestingOdyssey] = useState(false);
-    const [showPinPrompt, setShowPinPrompt] = useState(false);
-  const [pinInput, setPinInput] = useState("");
-  const [isAdminUnlocked, setIsAdminUnlockedState] = useState(() => localStorage.getItem("classico_admin_unlocked") === "true");
-    
-  const setIsAdminUnlocked = (val: boolean) => {
-    setIsAdminUnlockedState(val);
-    localStorage.setItem("classico_admin_unlocked", String(val));
-  };
-  const [testOdysseySuccess, setTestOdysseySuccess] = useState<string | null>(null);
-
-  const handleTestOdyssey = async () => {
-    setIsTestingOdyssey(true);
-    setTestOdysseySuccess(null);
-    try {
-      const res = await fetch("/api/admin/movies/test-odyssey");
-      const data = await res.json();
-      if (data.success) {
-        setTestOdysseySuccess("Test réussi ! Le film Odyssey a été ajouté avec succès.");
-        // Trigger a refresh of the movies list
-        loadJellyfinLibrary();
-        setTimeout(() => setTestOdysseySuccess(null), 5000);
-      } else {
-        alert("Erreur lors du test: " + data.error);
-      }
-    } catch (err) {
-      alert("Erreur réseau lors du test");
-    } finally {
-      setIsTestingOdyssey(false);
-    }
-  };
-
+        
+  
   const handleRecalculateSagas = async () => {
     setIsRecalculating(true);
     try {
@@ -1244,7 +1215,7 @@ export default function App() {
   };
 
   const handleDisconnectJellyfin = async () => {
-    if (!window.confirm("Voulez-vous déconnecter ce serveur de CLASSICO ?")) return;
+    if (!window.confirm("Do you want to disconnect this server from CLASSICO?")) return;
     try {
       const res = await fetch("/api/jellyfin/disconnect", { method: "POST" });
       const data = await res.json();
@@ -1395,6 +1366,17 @@ export default function App() {
   }, [selectedMovie]);
 
   // Filter movies globally based on search query
+  const [tmdbSearchResults, setTmdbSearchResults] = useState<Movie[]>([]);
+  const [movieLoadError, setMovieLoadError] = useState<string | null>(null);
+  const [tmdbCache, setTmdbCache] = useState<Movie[]>(() => {
+    try {
+      const stored = localStorage.getItem("classico_tmdb_cache");
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
   const allMovies = React.useMemo(() => {
     const map = new Map<string, Movie>();
     
@@ -1409,9 +1391,20 @@ export default function App() {
         map.set(m.id, { ...m, isJellyfin: true });
       }
     });
+    
+    // Add TMDB cache movies
+    tmdbCache.forEach(m => {
+      if (!map.has(m.id)) {
+        map.set(m.id, m);
+      } else {
+        // Merge in missing details (like seasons)
+        const existing = map.get(m.id)!;
+        map.set(m.id, { ...existing, ...m });
+      }
+    });
 
     return Array.from(map.values());
-  }, [mappedCollections, jellyfinMovies]);
+  }, [mappedCollections, jellyfinMovies, tmdbCache]);
 
     const unmatchedMovies = React.useMemo(() => {
     if (!jellyfinMovies || jellyfinMovies.length === 0) return [];
@@ -1433,15 +1426,7 @@ export default function App() {
     });
   }, [allMovies, mappedCollections]);
 
-  const [tmdbSearchResults, setTmdbSearchResults] = useState<Movie[]>([]);
-  const [tmdbCache, setTmdbCache] = useState<Movie[]>(() => {
-    try {
-      const stored = localStorage.getItem("classico_tmdb_cache");
-      return stored ? JSON.parse(stored) : [];
-    } catch (e) {
-      return [];
-    }
-  });
+
   const [isSearchingTmdb, setIsSearchingTmdb] = useState(false);
   
   useEffect(() => {
@@ -1488,25 +1473,79 @@ export default function App() {
     tmdbSearchResults.forEach(tmdbMovie => {
       // Check if we already have this TMDB id in local (local might use imdbId as id, but tmdbMovie has tmdbId)
       // We check both id and tmdbId
-      const existsLocal = merged.some(m => String(m.tmdbId) === String(tmdbMovie.tmdbId) || String(m.id) === String(tmdbMovie.id) || String(m.imdbId) === String(tmdbMovie.tmdbId));
+      const existsLocal = merged.some(m => String(m.tmdbId) === String(tmdbMovie.tmdbId) || String(m.id) === String(tmdbMovie.id) || String(m.imdbId) === String(tmdbMovie.tmdbId) || (m.providerIds && m.providerIds.Tmdb && String(m.providerIds.Tmdb) === String(tmdbMovie.tmdbId)));
       if (!existsLocal) {
         merged.push(tmdbMovie);
       }
     });
     
+    
+    const lowerQuery = searchQuery.toLowerCase().trim();
+    merged.sort((a, b) => {
+      const aTitle = (a.title || "").toLowerCase();
+      const bTitle = (b.title || "").toLowerCase();
+      const aExact = aTitle === lowerQuery;
+      const bExact = bTitle === lowerQuery;
+      
+      if (aExact && !bExact) return -1;
+      if (!aExact && bExact) return 1;
+      
+      const aStarts = aTitle.startsWith(lowerQuery);
+      const bStarts = bTitle.startsWith(lowerQuery);
+      if (aStarts && !bStarts) return -1;
+      if (!aStarts && bStarts) return 1;
+      
+      return 0; // preserve original order (tmdb is already popularity sorted)
+    });
+
     return merged;
   }, [searchQuery, allMovies, tmdbSearchResults]);
 
-  const activeMovie = React.useMemo(() => {
+  const targetMovieId = React.useMemo(() => {
     let targetId = "";
     if (routePath.startsWith("/movie/")) {
       targetId = routePath.slice("/movie/".length);
     } else if (routePath.startsWith("/player/")) {
       targetId = routePath.slice("/player/".length);
     }
-    if (!targetId) return null;
-    return allMovies.find(m => m.id === targetId) || null;
-  }, [routePath, allMovies]);
+    const tvMatch = targetId.match(/^(.*-tv)-S\d+E\d+$/);
+    if (tvMatch) {
+      targetId = tvMatch[1];
+    }
+    return targetId;
+  }, [routePath]);
+
+  const activeMovie = React.useMemo(() => {
+    if (!targetMovieId) return null;
+    return allMovies.find(m => m.id === targetMovieId) || null;
+  }, [targetMovieId, allMovies]);
+
+  // Fetch missing movie data if navigated directly
+  useEffect(() => {
+    if (targetMovieId && (!activeMovie || !activeMovie.director || activeMovie.tagline === undefined || (activeMovie.isTv && !activeMovie.seasons))) {
+      setMovieLoadError(null);
+      setMovieLoadError(null);
+      fetch(`/api/movie/${targetMovieId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.movie) {
+            setTmdbCache(prev => {
+              const map = new Map(prev.map(m => [m.id, m]));
+              map.set(data.movie.id, data.movie);
+              const newCache = Array.from(map.values());
+              localStorage.setItem("classico_tmdb_cache", JSON.stringify(newCache));
+              return newCache;
+            });
+          } else {
+            setMovieLoadError(data.error || "Failed to load movie data.");
+          }
+        })
+        .catch(err => {
+          console.error("Error fetching missing movie data:", err);
+          setMovieLoadError(err.message);
+        });
+    }
+  }, [targetMovieId, activeMovie]);
 
   // Intercept and return the standalone full-screen cinema view with zero overlay UI
   if (activeTab === "player") {
@@ -1519,14 +1558,29 @@ export default function App() {
         fallbackTitle="Interruption de la lecture du film"
         onReset={() => navigateTo("/movie/" + pId)}
       >
-        <CinemaPlayerView
-          movieId={pId}
-          movieTitle={activeMovie?.title || "Cult Classic"}
-          movieDuration={activeMovie?.duration}
-          moviePoster={activeMovie?.posterUrl || (activeMovie as any)?.poster}
-          movieBackdrop={activeMovie?.backdropUrl || (activeMovie as any)?.backdrop}
-          onClose={() => navigateTo("/movie/" + pId)}
-        />
+        {(() => {
+          let actualId = pId;
+          let season, episode;
+          const tvMatch = pId.match(/^(.*-tv)-S(\d+)E(\d+)$/);
+          if (tvMatch) {
+            actualId = tvMatch[1];
+            season = parseInt(tvMatch[2]);
+            episode = parseInt(tvMatch[3]);
+          }
+          return (
+            <CinemaPlayerView
+              movieId={actualId}
+              isTv={!!tvMatch}
+              season={season}
+              episode={episode}
+              movieTitle={activeMovie?.title || "Cult Classic"}
+              movieDuration={activeMovie?.duration}
+              moviePoster={activeMovie?.posterUrl || (activeMovie as any)?.poster}
+              movieBackdrop={activeMovie?.backdropUrl || (activeMovie as any)?.backdrop}
+              onClose={() => navigateTo("/movie/" + actualId)}
+            />
+          );
+        })()}
       </ErrorBoundary>
     );
   }
@@ -1538,7 +1592,7 @@ export default function App() {
       {/* 1. FIXED GLASS HEADER BAR                                 */}
       {/* ========================================================== */}
       <header className={`fixed top-0 left-0 right-0 z-[9999] pt-[env(safe-area-inset-top)] transition-all duration-300 ease-in-out border-b ${isScrolled ? "bg-black border-white/5" : "bg-black border-transparent"}`}>
-        <div className="max-w-[2000px] mx-auto px-4 sm:px-8 py-2 md:py-3.5 flex flex-row items-center justify-between gap-2.5 md:gap-4 font-sans w-full">
+        <div className="max-w-[2000px] mx-auto px-4 sm:px-8 py-0.5 md:py-1 flex flex-row items-center justify-between gap-2.5 md:gap-4 font-sans w-full">
           
           {/* Logo CLASSICO with Metallic Gold Reflection */}
           <div 
@@ -1549,12 +1603,12 @@ export default function App() {
             }}
           >
             <div className="relative overflow-hidden flex items-center">
-              <span className="font-cinzel font-bold text-xl sm:text-2.5xl md:text-3xl tracking-[0.22em] gold-metallic-text uppercase leading-none transition-all duration-300 group-hover:scale-102">
+              <span className="font-cinzel font-bold text-[17px] sm:text-lg md:text-xl tracking-[0.22em] gold-metallic-text uppercase leading-none transition-all duration-300 group-hover:scale-102">
                 CLASSICO
               </span>
               <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-amber-300 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-center" />
             </div>
-            <span className="block font-signature text-[13px] sm:text-[17px] md:text-[20px] text-[#f4ecd8] leading-none mt-[-2px] sm:mt-[-1px] select-none text-center translate-x-[-3px] filter drop-shadow-[0_0_4px_rgba(244,236,216,0.2)] font-signature">
+            <span className="block font-signature text-[10px] sm:text-[12px] md:text-[14px] text-[#f4ecd8] leading-none mt-[-2px] sm:mt-[-1px] select-none text-center translate-x-[-3px] filter drop-shadow-[0_0_4px_rgba(244,236,216,0.2)] font-signature">
               The Best
             </span>
           </div>
@@ -1623,10 +1677,10 @@ export default function App() {
                       navigateTo(tab.id === "accueil" ? "/" : `/${tab.id}`);
                       setSearchQuery("");
                     }}
-                    className={`relative flex items-center gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-full text-[10px] sm:text-xs font-semibold tracking-wider transition-all duration-250 font-sans ${
+                    className={`relative flex items-center justify-center gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-none text-[10px] sm:text-xs font-semibold tracking-wider transition-all duration-250 font-sans ${
                       isActive
-                        ? "gold-button scale-102"
-                        : "text-zinc-400 hover:text-white hover:bg-neutral-900/50"
+                        ? "text-white"
+                        : "text-zinc-400 hover:text-white"
                     }`}
                   >
                     <IconComp className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
@@ -1636,6 +1690,7 @@ export default function App() {
                         {watchlist.length}
                       </span>
                     )}
+                    {isActive && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent" />}
                   </button>
                 );
               })}
@@ -1671,14 +1726,15 @@ export default function App() {
                         navigateTo(tab.id === "accueil" ? "/" : `/${tab.id}`);
                         setSearchQuery("");
                       }}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium tracking-wide transition-all duration-300 w-full text-left ${
+                      className={`relative flex items-center gap-3 px-3 py-2.5 rounded-none text-sm font-medium tracking-wide transition-all duration-300 w-full text-left ${
                         isActive
-                          ? "bg-amber-500/10 text-amber-400"
+                          ? "text-white"
                           : "text-zinc-300 hover:text-white hover:bg-white/5"
                       }`}
                     >
-                      <IconComp strokeWidth={2} className={`w-4 h-4 ${isActive ? "text-amber-400" : "text-zinc-400"}`} />
+                      <IconComp strokeWidth={2} className={`w-4 h-4 ${isActive ? "text-white" : "text-zinc-400"}`} />
                       {tab.label}
+                      {isActive && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent" />}
                     </button>
                   );
                 })}
@@ -1693,7 +1749,7 @@ export default function App() {
 
       {/* Spacing for Fixed Header - Hidden for the home tab's Hero section to allow full screen 100vh display */}
       {(activeTab !== "accueil" || searchQuery.trim() !== "") && (
-        <div className="h-[80px] md:h-[72px]" />
+        <div className="h-[64px] md:h-[60px]" />
       )}
 
       {/* ========================================================== */}
@@ -1724,7 +1780,7 @@ export default function App() {
               {searchedMovies.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-8 pt-2 justify-items-center">
                   {searchedMovies.map((movie, idx) => (
-                    <LazyVirtualCard key={`${movie.id}-search-${idx}`}>
+                    <LazyVirtualCard key={`${movie.id}-search-${idx}`} priority={idx < 10}>
                       <MovieCard
                         movie={movie}
                         onSelect={(m) => handleOpenMovie(m, false)}
@@ -2027,7 +2083,7 @@ export default function App() {
                           .map(id => allMovies.find(m => m.id === id))
                           .filter((m): m is Movie => !!m)
                           .map((movie, idx) => (
-                            <LazyVirtualCard key={`resume-${movie.id}-${idx}`}>
+                            <LazyVirtualCard key={`resume-${movie.id}-${idx}`} priority={idx < 6}>
                               <MovieCard
                                 movie={movie}
                                 onSelect={(m) => handleOpenMovie(m, false)}
@@ -2159,9 +2215,10 @@ export default function App() {
                           }}
                           className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar pt-4 px-1 pb-6 sm:pb-10"
                         >
-                          {collection.movies.map((movie, idx) => (
+                          {collection.movies.slice(0, 40).map((movie, idx) => (
                             <LazyVirtualCard 
                               key={`${collection.id}-${movie.id}`}
+                              priority={idx < 6}
                               className={collection.id === "trending-now" ? "w-[200px] min-[400px]:w-[240px] sm:w-[300px] aspect-[2/3] mr-12 sm:mr-20" : undefined}
                             >
                               <MovieCard
@@ -2178,68 +2235,7 @@ export default function App() {
                   ))}
                 </div>
 
-                {/* OTHER BANGERS Section */}
-                {unmatchedMovies.length > 0 && (
-                  <div className="space-y-4 text-left pt-6 sm:pt-8 border-t border-zinc-700/60 mt-8">
-                    <div className="flex flex-row items-center sm:items-end justify-between gap-2 sm:gap-3 border-b border-zinc-900 pb-2 sm:pb-3">
-                      <div className="space-y-0.5 max-w-[80%]">
-                        <span className="text-[8px] sm:text-[9px] font-mono tracking-[2px] sm:tracking-[3px] text-zinc-500 uppercase font-bold">
-                          UNCATEGORIZED • {unmatchedMovies.length} MOVIES
-                        </span>
-                        <h3 className="text-base sm:text-2xl font-cinzel font-bold text-white uppercase tracking-widest leading-tight truncate">
-                          OTHER BANGERS
-                        </h3>
-                      </div>
-                    </div>
-                    
-                    <div 
-                      className="relative group/carousel"
-                      onMouseEnter={() => { hoveredCarousels.current["other-bangers"] = true; }}
-                      onMouseLeave={() => { hoveredCarousels.current["other-bangers"] = false; }}
-                    >
-                      <div className="absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-stone-950 to-transparent z-10 pointer-events-none" />
-                      <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-stone-950 to-transparent z-10 pointer-events-none" />
-                      
-                      <div className="absolute inset-y-0 left-2 flex items-center z-20 opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 pointer-events-none">
-                        <button
-                          onClick={() => scrollCarousel("other-bangers", "left")}
-                          className="bg-black/80 hover:bg-zinc-900 border border-zinc-800 text-stone-200 hover:text-amber-400 p-2 rounded-full shadow-lg transition-all duration-150 pointer-events-auto active:scale-95 cursor-pointer"
-                          title="Previous"
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                        </button>
-                      </div>
-                      
-                      <div className="absolute inset-y-0 right-2 flex items-center z-20 opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-200 pointer-events-none">
-                        <button
-                          onClick={() => scrollCarousel("other-bangers", "right")}
-                          className="bg-black/80 hover:bg-zinc-900 border border-zinc-800 text-stone-200 hover:text-amber-400 p-2 rounded-full shadow-lg transition-all duration-150 pointer-events-auto active:scale-95 cursor-pointer"
-                          title="Next"
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      <div
-                        id={`carousel-container-other-bangers`}
-                        ref={(el) => {
-                          carouselRefs.current["other-bangers"] = el;
-                        }}
-                        className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar pt-4 px-1 pb-6 sm:pb-10"
-                      >
-                        {unmatchedMovies.map((movie) => (
-                          <LazyVirtualCard key={`other-bangers-${movie.id}`}>
-                            <MovieCard
-                              movie={movie}
-                              onSelect={(m) => handleOpenMovie(m, false)}
-                              onPlay={(m) => handleOpenMovie(m, true)}
-                            />
-                          </LazyVirtualCard>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
+                {/* OTHER BANGERS Section Removed */}
                   </>
                 )}
               </div>
@@ -2390,7 +2386,7 @@ export default function App() {
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-8 justify-items-center">
                       {selectedCollection.movies.map((movie, idx) => (
-                        <LazyVirtualCard key={`${movie.id}-detail-${idx}`}>
+                        <LazyVirtualCard key={`${movie.id}-detail-${idx}`} priority={idx < 8}>
                           <MovieCard
                             movie={movie}
                             onSelect={(m) => handleOpenMovie(m, false)}
@@ -2415,6 +2411,7 @@ export default function App() {
                 <MovieDetailView
                   movie={activeMovie}
                   onBack={goBackOrHome}
+                  onSimilarClick={(id) => navigateTo("/movie/" + id)}
                   onPlay={(id) => {
                     (window as any).moviePlayClickTime = performance.now();
                     console.log("%c[CHRONO LECTEUR] Clic sur le film : 0.000s (Début du flux via Détails)", "color: #a855f7; font-weight: bold; font-size: 13px;");
@@ -2434,9 +2431,16 @@ export default function App() {
                     navigateTo("/player/" + id);
                   }}
                 />
+              ) : movieLoadError ? (
+                <div className="py-20 text-center max-w-sm mx-auto space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-red-900/30 border border-red-500/30 flex items-center justify-center mx-auto text-red-500 mb-4"><AlertCircle className="w-8 h-8" /></div>
+                  <p className="text-red-400 font-mono text-sm tracking-widest uppercase">{movieLoadError}</p>
+                  <button onClick={() => navigateTo("/")} className="mt-6 px-4 py-2 bg-zinc-800 text-white rounded hover:bg-zinc-700">Go Back</button>
+                </div>
               ) : (
                 <div className="py-20 text-center max-w-sm mx-auto space-y-4">
-                  <p className="text-zinc-400 font-mono">Loading movie data...</p>
+                  <Loader2 className="w-8 h-8 text-amber-500 animate-spin mx-auto mb-4" />
+                  <p className="text-zinc-400 font-mono text-sm tracking-widest uppercase">Loading movie data...</p>
                 </div>
               )}
             </motion.div>
@@ -2456,14 +2460,11 @@ export default function App() {
                             {/* Profile Header */}
               <div className="pb-4 border-b border-zinc-800">
                 <h2 className="text-3xl sm:text-4xl font-cinzel font-bold text-white uppercase tracking-widest">
-                  Mon Profil
+                  My Profile
                 </h2>
               </div>
 
-              {isAdminUnlocked && (
-                <AdminWishlist onAdded={() => { loadJellyfinLibrary(); }} categories={mappedCollections.map(c => c.title)} allMovies={allMovies} />
-              )}
-
+              
               {/* Profile Card Deck */}
               <div className="space-y-8 text-left">
                 
@@ -2482,7 +2483,7 @@ export default function App() {
                         {allMovies
                           .filter(m => history.includes(m.id))
                           .map((movie, idx) => (
-                            <LazyVirtualCard key={`${movie.id}-history-${idx}`}>
+                            <LazyVirtualCard key={`${movie.id}-history-${idx}`} priority={idx < 8}>
                               <MovieCard
                                 movie={movie}
                                 onSelect={(m) => handleOpenMovie(m, false)}
@@ -2520,50 +2521,6 @@ export default function App() {
           <p className="text-zinc-600 font-sans tracking-wide">
             © {new Date().getFullYear()} CLASSICO Streaming Inc. • All rights reserved.
           </p>
-          
-          {showPinPrompt ? (
-            <div className="flex items-center gap-2">
-              <input 
-                type="password"
-                value={pinInput}
-                onChange={e => setPinInput(e.target.value)}
-                placeholder="PIN"
-                className="bg-zinc-900 border border-zinc-700 text-white text-[10px] rounded px-2 py-1 w-16 focus:outline-none focus:border-[#D4AF37]"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    if (pinInput === "0698") {
-                      setIsAdminUnlocked(true);
-                      setShowPinPrompt(false);
-                      setPinInput("");
-                    } else {
-                      alert("Code incorrect.");
-                      setPinInput("");
-                    }
-                  }
-                }}
-              />
-              <button onClick={() => setShowPinPrompt(false)} className="text-zinc-500 hover:text-white">
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => {
-                if (isAdminUnlocked) {
-                  setIsAdminUnlocked(false);
-                } else {
-                  setShowPinPrompt(true);
-                  setPinInput("");
-                }
-              }}
-              className={`transition-opacity duration-500 hover:opacity-100 ${isAdminUnlocked ? "text-[#D4AF37] opacity-80" : "text-zinc-600 opacity-40 hover:text-white hover:opacity-100"}`}
-              title="Admin"
-            >
-              <Key className="w-4 h-4" />
-            </button>
-          )}
-
         </div>
       </footer>
 

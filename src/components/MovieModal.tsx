@@ -103,7 +103,7 @@ export default function MovieModal({
           
           {/* Top Hero Section */}
           <div className="relative w-full h-64 sm:h-96 md:h-[400px]">
-            <img
+            <img referrerPolicy="no-referrer"
               src={movie.backdropUrl || movie.posterUrl}
               alt={movie.title}
               className="absolute inset-0 w-full h-full object-cover"
@@ -111,16 +111,56 @@ export default function MovieModal({
             <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/40 to-transparent" />
             
             {/* Title & Play Button Overlay */}
-            <div className="absolute inset-x-0 bottom-0 p-6 sm:p-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="absolute inset-x-0 bottom-0 px-6 pb-4 sm:px-10 sm:pb-6 pt-16 flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div className="space-y-3">
-                <motion.h2 
-                  layoutId={`title-${movie.id}`}
-                  className="text-4xl sm:text-5xl font-cinzel font-bold text-white tracking-widest uppercase drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
-                >
-                  {movie.title}
-                </motion.h2>
-                <p className="text-amber-400 font-mono text-sm tracking-widest drop-shadow-md">
-                  {movie.director} &bull; {movie.year}
+                {movie.hasLogo && movie.logoUrl ? (
+                  <motion.img referrerPolicy="no-referrer"
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    src={movie.logoUrl}
+                    alt={movie.title}
+                    className="max-w-[200px] sm:max-w-[300px] max-h-[100px] object-contain drop-shadow-2xl"
+                  />
+                ) : (
+                  <motion.h2
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-4xl sm:text-5xl font-cinzel font-bold text-white tracking-widest uppercase drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
+                  >
+                    {movie.title}
+                  </motion.h2>
+                )}
+                {movie.tagline && (
+                  <p className="text-white font-sans text-sm md:text-base leading-relaxed max-w-xl font-light opacity-95 mt-1 mb-2">
+                    {movie.tagline}
+                  </p>
+                )}
+                
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-mono tracking-widest text-zinc-300 pt-1 uppercase">
+                  <span className="text-amber-400 font-extrabold flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded shadow-sm">
+                    <Star className="w-3.5 h-3.5 fill-current text-amber-500" />
+                    {movie.rating || movie.voteAverage}
+                  </span>
+                  {movie.isTv && movie.seasons && (
+                    <>
+                      <span>•</span>
+                      <span>{movie.seasons.length} Seasons</span>
+                    </>
+                  )}
+                  {movie.originalLanguage && (
+                    <>
+                      <span>•</span>
+                      <span>{movie.originalLanguage.toUpperCase()}</span>
+                    </>
+                  )}
+                  <span>•</span>
+                  <span className="text-zinc-400">{Array.isArray(movie.genre) ? movie.genre.join(", ") : movie.genre}</span>
+                </div>
+                
+                <p className="text-zinc-300 text-xs sm:text-sm leading-relaxed max-w-2xl font-sans font-light line-clamp-3 sm:line-clamp-4 mt-2">
+                  {movie.description}
                 </p>
               </div>
               
@@ -193,7 +233,7 @@ export default function MovieModal({
                     {/* Director */}
                     <div className="space-y-1 py-1 border-b border-zinc-800/60">
                       <span className="text-zinc-400 block text-xs">Director</span>
-                      <span className="text-white font-semibold font-display text-base">{movie.director}</span>
+                      <span className="text-white font-semibold font-display text-base">{movie.director || "Unknown Director"}</span>
                     </div>
 
                     {/* Duration */}
@@ -215,7 +255,7 @@ export default function MovieModal({
                     <div className="space-y-2 pt-1">
                       <span className="text-zinc-400 block text-xs">Genres</span>
                       <div className="flex overflow-x-auto no-scrollbar flex-nowrap md:flex-wrap gap-1.5 pb-1 md:pb-0">
-                        {movie.genre.map((g, idx) => (
+                        {(Array.isArray(movie.genre) ? movie.genre : []).map((g, idx) => (
                           <span key={idx} className="whitespace-nowrap bg-zinc-800/60 text-zinc-300 text-[11px] font-mono px-2 py-1 md:px-2.5 md:py-1 rounded-md border border-zinc-700/30">
                             {g}
                           </span>

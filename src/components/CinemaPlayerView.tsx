@@ -104,6 +104,9 @@ export function formatHlsUrl(url: string, id: string, deviceId?: string, apiKey?
 }
 
 interface CinemaPlayerViewProps {
+  isTv?: boolean;
+  season?: number;
+  episode?: number;
   movieId: string;
   movieTitle: string;
   movieDuration?: string;
@@ -168,6 +171,9 @@ const TrackName = ({ track }: { track: any }) => {
 };
 
 export default function CinemaPlayerView({
+  isTv,
+  season,
+  episode,
   movieId,
   movieTitle,
   movieDuration,
@@ -770,8 +776,17 @@ export default function CinemaPlayerView({
             if (finalTmdbId.startsWith('tt') && matchedMovie?.tmdbId) {
                 finalTmdbId = matchedMovie.tmdbId;
             }
+            
+            let iframeUrl = "";
+            let cleanId = finalTmdbId;
+            if (cleanId.endsWith('-tv')) cleanId = cleanId.replace('-tv', '');
+            if (isTv && season && episode) {
+              iframeUrl = `https://player.videasy.net/tv/${cleanId}/${season}/${episode}?color=FFD700&overlay=true`;
+            } else {
+              iframeUrl = `https://player.videasy.net/movie/${cleanId}?color=FFD700&overlay=true`;
+            }
             const newServers = [
-              { name: "Videasy (Premium)", url: `https://player.videasy.net/movie/${finalTmdbId}?color=FFD700&overlay=true` }
+              { name: "Videasy (Premium)", url: iframeUrl }
             ];
             setAvailableServers(newServers);
             
@@ -1715,23 +1730,22 @@ export default function CinemaPlayerView({
         <div className="flex items-center gap-4">
           {availableServers && availableServers.length > 1 && (
             <button
-              onClick={() => setActiveServerIndex((prev) => (prev + 1) % availableServers.length)}
-              className="pointer-events-auto px-4 py-2 rounded-full bg-black/50 hover:bg-black/80 text-white transition-all cursor-pointer flex items-center justify-center backdrop-blur-md gap-2"
+              onClick={() => {
+                const nextIndex = (activeServerIndex + 1) % availableServers.length;
+                setActiveServerIndex(nextIndex);
+                if (playbackInfo) {
+                  setPlaybackInfo({
+                    ...playbackInfo,
+                    iframeSrc: availableServers[nextIndex].url
+                  });
+                }
+              }}
+              className="pointer-events-auto px-4 py-2 rounded-full bg-black/50 hover:bg-black/80 text-white transition-all cursor-pointer flex items-center justify-center backdrop-blur-md"
               title="Changer de serveur"
             >
               <span className="text-sm font-medium">Serveur {activeServerIndex + 1} : {availableServers[activeServerIndex]?.name || ''}</span>
             </button>
           )}
-          <button
-            onClick={() => {
-              alert("Pour partager l'écran sur votre TV :\n\n• Chrome (PC/Mac) : Cliquez sur le menu (⋮) puis 'Caster...'\n• iPhone/iPad : Utilisez la recopie de l'écran depuis le Centre de contrôle\n• Android : Utilisez 'Smart View' ou 'Diffuser l\'écran'");
-            }}
-            className="pointer-events-auto px-4 py-2 rounded-full bg-black/50 hover:bg-black/80 text-white transition-all cursor-pointer flex items-center justify-center backdrop-blur-md gap-2"
-            title="Caster sur la TV"
-          >
-            <Cast className="w-5 h-5" />
-            <span className="text-sm font-medium hidden sm:inline">Caster</span>
-          </button>
         </div>
         
         <div className="flex items-center gap-3">

@@ -675,11 +675,8 @@ export default function App() {
   const allMoviesBase = React.useMemo(() => {
     const map = new Map();
     [...allMoviesData, ...importedMoviesData].forEach(m => map.set(m.id, m));
-    tmdbCache.forEach(m => {
-      if (!map.has(m.id)) map.set(m.id, m);
-    });
     return Array.from(map.values());
-  }, [tmdbCache]);
+  }, []);
   const [activeTab, setActiveTab ] = useState<"accueil" | "collections" | "profil" | "collection-detail" | "movie" | "player">("accueil");
   const [routePath, setRoutePath] = useState(window.location.pathname);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -687,6 +684,7 @@ export default function App() {
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
   const [isAdminMode, setIsAdminMode] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<any | null>(null);
@@ -1169,7 +1167,7 @@ export default function App() {
   };
 
   const handleOpenMovie = (movie: Movie, immediatePlay = false) => {
-    setSearchQuery("");
+    setSearchQuery(""); setSearchInput("");
     setIsMobileSearchOpen(false);
     if (immediatePlay) {
       // Enregistrer le temps du clic initial
@@ -1220,7 +1218,7 @@ export default function App() {
       // If modal is active, let it handle its own controls
       if (selectedMovie) return;
       if (e.key === "Escape") {
-        setSearchQuery("");
+        setSearchQuery(""); setSearchInput("");
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -1309,7 +1307,7 @@ export default function App() {
     }
     
     setIsSearchingTmdb(true);
-    const delayDebounceFn = setTimeout(() => {
+
       fetch(`/api/search?query=${encodeURIComponent(searchQuery)}`)
         .then(res => res.json())
         .then(data => {
@@ -1325,9 +1323,9 @@ export default function App() {
           }
         })
         .finally(() => setIsSearchingTmdb(false));
-    }, 500);
 
-    return () => clearTimeout(delayDebounceFn);
+
+
   }, [searchQuery]);
 
   const searchedMovies = React.useMemo(() => {
@@ -1346,7 +1344,7 @@ export default function App() {
     tmdbSearchResults.forEach(tmdbMovie => {
       // Check if we already have this TMDB id in local (local might use imdbId as id, but tmdbMovie has tmdbId)
       // We check both id and tmdbId
-      const existsLocal = merged.some(m => String(m.tmdbId) === String(tmdbMovie.tmdbId) || String(m.id) === String(tmdbMovie.id) || String(m.imdbId) === String(tmdbMovie.tmdbId) || (m.providerIds && m.providerIds.Tmdb && String(m.providerIds.Tmdb) === String(tmdbMovie.tmdbId)));
+      const existsLocal = merged.some(m => String(m.tmdbId) === String(tmdbMovie.tmdbId) || String(m.id) === String(tmdbMovie.id) || String(m.imdbId) === String(tmdbMovie.tmdbId) || (m.providerIds && m.providerIds.Tmdb && String(m.providerIds.Tmdb) === String(tmdbMovie.tmdbId)) || (m.title && tmdbMovie.title && m.title.toLowerCase() === tmdbMovie.title.toLowerCase() && m.year === tmdbMovie.year));
       if (!existsLocal) {
         merged.push(tmdbMovie);
       }
@@ -1472,7 +1470,7 @@ export default function App() {
             className="flex flex-col items-center cursor-pointer group select-none py-0.5 md:py-1 shrink-0"
             onClick={() => {
               navigateTo("/");
-              setSearchQuery("");
+              setSearchQuery(""); setSearchInput("");
             }}
           >
             <div className="relative overflow-hidden flex items-center">
@@ -1498,14 +1496,19 @@ export default function App() {
                 id="global-search-input"
                 type="text"
                 placeholder="Search for a movie, director..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    setSearchQuery(searchInput);
+                  }
+                }}
                 className="w-full bg-neutral-900/90 hover:bg-neutral-900 border border-neutral-800 text-stone-100 placeholder-zinc-500 text-[11px] sm:text-xs pl-9 pr-4 py-1.5 md:py-2 rounded-full focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all duration-200 shadow-inner group-hover:border-zinc-700/80 font-sans"
               />
-              {searchQuery && (
+              { (searchQuery || searchInput) && (
                 <button
                   id="clear-search-btn"
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => { setSearchQuery(""); setSearchInput(""); }}
                   className="absolute inset-y-0 right-3 flex items-center text-zinc-500 hover:text-white text-[10px] font-mono"
                 >
                   CLEAR
@@ -1548,7 +1551,7 @@ export default function App() {
                     onClick={() => {
                       
                       navigateTo(tab.id === "accueil" ? "/" : `/${tab.id}`);
-                      setSearchQuery("");
+                      setSearchQuery(""); setSearchInput("");
                     }}
                     className={`relative flex items-center justify-center gap-1.5 px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-none text-[10px] sm:text-xs font-semibold tracking-wider transition-all duration-250 font-sans ${
                       isActive
@@ -1597,7 +1600,7 @@ export default function App() {
                         setIsMobileMenuOpen(false);
                         
                         navigateTo(tab.id === "accueil" ? "/" : `/${tab.id}`);
-                        setSearchQuery("");
+                        setSearchQuery(""); setSearchInput("");
                       }}
                       className={`relative flex items-center gap-3 px-3 py-2.5 rounded-none text-sm font-medium tracking-wide transition-all duration-300 w-full text-left ${
                         isActive

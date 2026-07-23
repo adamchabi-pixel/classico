@@ -296,7 +296,15 @@ if (typeof window !== "undefined") {
           const d1 = await r1.json();
           const d2 = r2.ok ? await r2.json() : { results: [] };
           const combined = [...(d1.results || []), ...(d2.results || [])];
-          const valid = combined.filter((m: any) => m.media_type === "movie" || m.media_type === "tv");
+          const validRaw = combined.filter((m: any) => m.media_type === "movie" || m.media_type === "tv");
+          const uniqueIds = new Set();
+          const valid = [];
+          for (const m of validRaw) {
+            if (!uniqueIds.has(m.id)) {
+              uniqueIds.add(m.id);
+              valid.push(m);
+            }
+          }
           
           const lowerQuery = query.toLowerCase().trim();
           valid.sort((a: any, b: any) => {
@@ -375,6 +383,22 @@ if (typeof window !== "undefined") {
             duration: isTv ? (m.episode_run_time?.[0] || 45) : (m.runtime || 120),
             director: "Unknown",
             cast: m.credits?.cast?.slice(0, 4).map((c: any) => c.name) || [],
+            castDetails: m.credits?.cast?.slice(0, 8).map((c: any) => ({
+              id: String(c.id),
+              name: c.name,
+              role: c.character,
+              imageUrl: c.profile_path ? `https://image.tmdb.org/t/p/w200${c.profile_path}` : undefined
+            })) || [],
+            similar: m.similar?.results?.slice(0, 8).map((sm: any) => ({
+              id: String(sm.id) + (isTv ? "-tv" : ""),
+              tmdbId: String(sm.id),
+              isTv,
+              title: isTv ? sm.name : sm.title,
+              description: sm.overview,
+              posterUrl: sm.poster_path ? `https://image.tmdb.org/t/p/w500${sm.poster_path}` : "",
+              backdropUrl: sm.backdrop_path ? `https://image.tmdb.org/t/p/w780${sm.backdrop_path}` : "",
+              year: (isTv ? sm.first_air_date : sm.release_date) ? parseInt((isTv ? sm.first_air_date : sm.release_date).substring(0, 4)) : new Date().getFullYear(),
+            })) || [],
             genre: m.genres ? m.genres.map((g: any) => g.name) : (isTv ? ["TV Series"] : ["Movie"]),
             voteAverage: m.vote_average,
             isIframeEmbed: true,

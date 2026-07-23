@@ -307,7 +307,7 @@ export default function MovieDetailView({
       <div className="max-w-4xl mx-auto px-4 sm:px-8 mt-2 sm:mt-4 text-left">
                 {expandedSection === 'casting' && ((fullMovie.castDetails && fullMovie.castDetails.length > 0) || (fullMovie.cast && fullMovie.cast.length > 0)) && (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 sm:gap-3 pt-2">
-            {fullMovie.castDetails ? fullMovie.castDetails.map((actor, idx) => (
+            {fullMovie.castDetails && fullMovie.castDetails.length > 0 ? fullMovie.castDetails.map((actor, idx) => (
               <div key={idx} className="bg-zinc-900/80 border border-zinc-800 rounded-xl overflow-hidden flex flex-col">
                 <div className="aspect-[2/3] bg-zinc-800 w-full relative">
                   {actor.imageUrl ? (
@@ -340,7 +340,7 @@ export default function MovieDetailView({
       </div>
 
       {/* SIMILAR CONTENT (MOVIES ONLY) */}
-      {!fullMovie.isTv && fullMovie.similar && fullMovie.similar.length > 0 && (
+      {fullMovie.similar && fullMovie.similar.length > 0 && (
         <div className="max-w-[2000px] w-full mx-auto px-4 sm:px-8 mt-6 sm:mt-12 mb-20 space-y-2 text-left">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm sm:text-base font-bold text-white uppercase tracking-widest">Similar Content</h3>

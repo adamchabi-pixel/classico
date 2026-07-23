@@ -31,33 +31,9 @@ app.get("/api/trending", async (req, res) => {
     const combinedResults = resultsByPage.flat();
     const validResults = combinedResults.filter((m: any) => m.media_type === "movie" || m.media_type === "tv");
     
-    const enrichedResults = await Promise.all(validResults.slice(0, 60).map(async (m: any) => {
-      let director = "Unknown";
-      let cast = [];
-      let genres = [];
-      const isTv = m.media_type === "tv";
-      try {
-        const detailUrl = isTv 
-          ? `https://api.themoviedb.org/3/tv/${m.id}?append_to_response=credits&language=en-US`
-          : `https://api.themoviedb.org/3/movie/${m.id}?append_to_response=credits&language=en-US`;
-        const detailRes = await fetch(detailUrl, {
-          headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
-        });
-        if (detailRes.ok) {
-          const detailData = await detailRes.json();
-          genres = detailData.genres ? detailData.genres.map((g: any) => g.name) : [];
-          if (isTv) {
-            director = detailData.created_by?.[0]?.name || detailData.credits?.crew?.find((c: any) => c.job === "Director" || c.job === "Executive Producer")?.name || "Unknown";
-          } else {
-            director = detailData.credits?.crew?.find((c: any) => c.job === "Director")?.name || "Unknown";
-          }
-          cast = detailData.credits?.cast?.slice(0, 4).map((c: any) => c.name) || [];
-        }
-      } catch (e) {
-        console.error("Error fetching details for", m.id, e);
-      }
-      
+    const enrichedResults = validResults.slice(0, 60).map((m: any) => {
       const title = m.title || m.name || m.original_title || m.original_name;
+      const isTv = m.media_type === "tv";
       return {
         id: isTv ? `${m.id}-tv` : String(m.id),
         tmdbId: String(m.id),
@@ -69,13 +45,13 @@ app.get("/api/trending", async (req, res) => {
         backdropUrl: m.backdrop_path ? `https://image.tmdb.org/t/p/w780${m.backdrop_path}` : null,
         year: parseInt((m.release_date || m.first_air_date || "0").split("-")[0]) || 0,
         voteAverage: m.vote_average,
-        director,
-        cast,
-        genre: genres,
+        director: "Unknown",
+        cast: [],
+        genre: [],
         isIframeEmbed: true,
         iframeSrc: ""
       };
-    }));
+    });
     
     res.json({ success: true, results: enrichedResults });
   } catch (error) {
@@ -119,31 +95,8 @@ app.get("/api/search", async (req, res) => {
     
     const topResults = validResults.slice(0, 40);
     
-    const enrichedResults = await Promise.all(topResults.map(async (m: any) => {
-      let director = "Unknown";
-      let cast = [];
-      let genres = [];
+    const enrichedResults = topResults.map((m: any) => {
       const isTv = m.media_type === "tv";
-      try {
-        const detailUrl = isTv 
-          ? `https://api.themoviedb.org/3/tv/${m.id}?append_to_response=credits&language=en-US`
-          : `https://api.themoviedb.org/3/movie/${m.id}?append_to_response=credits&language=en-US`;
-        const detailRes = await fetch(detailUrl, {
-          headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
-        });
-        if (detailRes.ok) {
-          const detailData = await detailRes.json();
-          genres = detailData.genres ? detailData.genres.map((g: any) => g.name) : [];
-          if (isTv) {
-            director = detailData.created_by?.[0]?.name || detailData.credits?.crew?.find((c: any) => c.job === "Director" || c.job === "Executive Producer")?.name || "Unknown";
-          } else {
-            director = detailData.credits?.crew?.find((c: any) => c.job === "Director")?.name || "Unknown";
-          }
-          cast = detailData.credits?.cast?.slice(0, 3).map((c: any) => c.name) || [];
-        }
-      } catch (e) {
-      }
-      
       const title = isTv ? m.name : m.title;
       const originalTitle = isTv ? m.original_name : m.original_title;
       const releaseDate = isTv ? m.first_air_date : m.release_date;
@@ -159,13 +112,13 @@ app.get("/api/search", async (req, res) => {
         backdropUrl: m.backdrop_path ? `https://image.tmdb.org/t/p/w780${m.backdrop_path}` : "",
         year: releaseDate ? parseInt(releaseDate.substring(0, 4)) : new Date().getFullYear(),
         voteAverage: m.vote_average,
-        director,
-        cast,
-        genre: genres,
+        director: "Unknown",
+        cast: [],
+        genre: [],
         isIframeEmbed: true,
         iframeSrc: isTv ? "" : `https://player.videasy.net/movie/${m.id}?color=FFD700&overlay=true`
       };
-    }));
+    });
     
     res.json({ success: true, results: enrichedResults });
   } catch (error: any) {
@@ -228,6 +181,22 @@ app.get("/api/movie/:id", async (req, res) => {
       duration: isTv ? (m.episode_run_time?.[0] || 45) : (m.runtime || 120),
       director: director,
       cast: cast,
+      castDetails: m.credits?.cast?.slice(0, 8).map((c: any) => ({
+        id: String(c.id),
+        name: c.name,
+        role: c.character,
+        imageUrl: c.profile_path ? `https://image.tmdb.org/t/p/w200${c.profile_path}` : undefined
+      })) || [],
+      similar: m.similar?.results?.slice(0, 8).map((sm: any) => ({
+        id: String(sm.id) + (isTv ? "-tv" : ""),
+        tmdbId: String(sm.id),
+        isTv,
+        title: isTv ? sm.name : sm.title,
+        description: sm.overview,
+        posterUrl: sm.poster_path ? `https://image.tmdb.org/t/p/w500${sm.poster_path}` : "",
+        backdropUrl: sm.backdrop_path ? `https://image.tmdb.org/t/p/w780${sm.backdrop_path}` : "",
+        year: (isTv ? sm.first_air_date : sm.release_date) ? parseInt((isTv ? sm.first_air_date : sm.release_date).substring(0, 4)) : new Date().getFullYear(),
+      })) || [],
       genre: m.genres ? m.genres.map((g: any) => g.name) : (isTv ? ["TV Series"] : ["Movie"]),
       voteAverage: m.vote_average,
       isIframeEmbed: true,

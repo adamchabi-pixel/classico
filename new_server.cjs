@@ -1,4 +1,5 @@
-
+const fs = require('fs');
+const content = `
 import express from "express";
 import compression from "compression";
 import path from "path";
@@ -17,9 +18,9 @@ app.get("/api/search", async (req, res) => {
     const { query } = req.query;
     if (!query) return res.json({ success: true, results: [] });
     
-    const searchUrl = `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(query)}&language=en-US&page=1`;
+    const searchUrl = \`https://api.themoviedb.org/3/search/multi?query=\${encodeURIComponent(query)}&language=en-US&page=1\`;
     const searchRes = await fetch(searchUrl, {
-      headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
+      headers: { "Authorization": \`Bearer \${TMDB_ACCESS_TOKEN}\`, "Accept": "application/json" }
     });
     
     if (!searchRes.ok) throw new Error("TMDB search failed");
@@ -47,10 +48,10 @@ app.get("/api/search", async (req, res) => {
       const isTv = m.media_type === "tv";
       try {
         const detailUrl = isTv 
-          ? `https://api.themoviedb.org/3/tv/${m.id}?append_to_response=credits&language=en-US`
-          : `https://api.themoviedb.org/3/movie/${m.id}?append_to_response=credits&language=en-US`;
+          ? \`https://api.themoviedb.org/3/tv/\${m.id}?append_to_response=credits&language=en-US\`
+          : \`https://api.themoviedb.org/3/movie/\${m.id}?append_to_response=credits&language=en-US\`;
         const detailRes = await fetch(detailUrl, {
-          headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
+          headers: { "Authorization": \`Bearer \${TMDB_ACCESS_TOKEN}\`, "Accept": "application/json" }
         });
         if (detailRes.ok) {
           const detailData = await detailRes.json();
@@ -76,15 +77,15 @@ app.get("/api/search", async (req, res) => {
         title,
         originalTitle,
         description: m.overview,
-        posterUrl: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : "",
-        backdropUrl: m.backdrop_path ? `https://image.tmdb.org/t/p/w780${m.backdrop_path}` : "",
+        posterUrl: m.poster_path ? \`https://image.tmdb.org/t/p/w500\${m.poster_path}\` : "",
+        backdropUrl: m.backdrop_path ? \`https://image.tmdb.org/t/p/w780\${m.backdrop_path}\` : "",
         year: releaseDate ? parseInt(releaseDate.substring(0, 4)) : new Date().getFullYear(),
         voteAverage: m.vote_average,
         director,
         cast,
         genre: genres,
         isIframeEmbed: true,
-        iframeSrc: isTv ? "" : `https://player.videasy.net/movie/${m.id}?color=FFD700&overlay=true`
+        iframeSrc: isTv ? "" : \`https://player.videasy.net/movie/\${m.id}?color=FFD700&overlay=true\`
       };
     }));
     
@@ -101,11 +102,11 @@ app.get("/api/movie/:id", async (req, res) => {
     const actualId = isTv ? id.replace('-tv', '') : id;
     
     const url = isTv 
-      ? `https://api.themoviedb.org/3/tv/${actualId}?append_to_response=credits,videos,similar&language=en-US`
-      : `https://api.themoviedb.org/3/movie/${actualId}?append_to_response=credits,videos,similar&language=en-US`;
+      ? \`https://api.themoviedb.org/3/tv/\${actualId}?append_to_response=credits,videos,similar&language=en-US\`
+      : \`https://api.themoviedb.org/3/movie/\${actualId}?append_to_response=credits,videos,similar&language=en-US\`;
       
     const response = await fetch(url, {
-      headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
+      headers: { "Authorization": \`Bearer \${TMDB_ACCESS_TOKEN}\`, "Accept": "application/json" }
     });
     
     if (!response.ok) throw new Error("TMDB fetch failed");
@@ -128,7 +129,7 @@ app.get("/api/movie/:id", async (req, res) => {
         name: s.name,
         episode_count: s.episode_count,
         air_date: s.air_date,
-        poster_path: s.poster_path ? `https://image.tmdb.org/t/p/w500${s.poster_path}` : "",
+        poster_path: s.poster_path ? \`https://image.tmdb.org/t/p/w500\${s.poster_path}\` : "",
         episodes: []
       }));
     }
@@ -143,8 +144,8 @@ app.get("/api/movie/:id", async (req, res) => {
       originalTitle: isTv ? m.original_name : m.original_title,
       originalLanguage: m.original_language || "en",
       description: m.overview,
-      posterUrl: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : "",
-      backdropUrl: m.backdrop_path ? `https://image.tmdb.org/t/p/original${m.backdrop_path}` : "",
+      posterUrl: m.poster_path ? \`https://image.tmdb.org/t/p/w500\${m.poster_path}\` : "",
+      backdropUrl: m.backdrop_path ? \`https://image.tmdb.org/t/p/original\${m.backdrop_path}\` : "",
       year: releaseDate ? parseInt(releaseDate.substring(0, 4)) : new Date().getFullYear(),
       duration: isTv ? (m.episode_run_time?.[0] || 45) : (m.runtime || 120),
       director: director,
@@ -153,7 +154,7 @@ app.get("/api/movie/:id", async (req, res) => {
       voteAverage: m.vote_average,
       isIframeEmbed: true,
       seasons: seasons,
-      iframeSrc: isTv ? "" : `https://player.videasy.net/movie/${m.id}?color=FFD700&overlay=true`
+      iframeSrc: isTv ? "" : \`https://player.videasy.net/movie/\${m.id}?color=FFD700&overlay=true\`
     };
     
     // Auto-save logic
@@ -168,7 +169,7 @@ app.get("/api/movie/:id", async (req, res) => {
       if (!data.some((existing: any) => existing.id === movieData.id)) {
         data.push(movieData);
         fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), "utf-8");
-        const tsCode = `export const importedMoviesData = ${JSON.stringify(data, null, 2)};\n`;
+        const tsCode = \`export const importedMoviesData = \${JSON.stringify(data, null, 2)};\\n\`;
         fs.writeFileSync(path.join(process.cwd(), "src/data/imported_movies.ts"), tsCode, "utf-8");
       }
     } catch(err) {
@@ -185,9 +186,9 @@ app.get("/api/tv/:id/season/:season_number", async (req, res) => {
   try {
     const { id, season_number } = req.params;
     const cleanId = id.replace("-tv", "");
-    const url = `https://api.themoviedb.org/3/tv/${cleanId}/season/${season_number}?language=en-US`;
+    const url = \`https://api.themoviedb.org/3/tv/\${cleanId}/season/\${season_number}?language=en-US\`;
     const response = await fetch(url, {
-      headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
+      headers: { "Authorization": \`Bearer \${TMDB_ACCESS_TOKEN}\`, "Accept": "application/json" }
     });
     if (!response.ok) throw new Error("TMDB fetch failed");
     const seasonData = await response.json();
@@ -197,7 +198,7 @@ app.get("/api/tv/:id/season/:season_number", async (req, res) => {
       episode_number: ep.episode_number,
       name: ep.name,
       overview: ep.overview,
-      stillUrl: ep.still_path ? `https://image.tmdb.org/t/p/w500${ep.still_path}` : "",
+      stillUrl: ep.still_path ? \`https://image.tmdb.org/t/p/w500\${ep.still_path}\` : "",
       air_date: ep.air_date,
       runtime: ep.runtime
     }));
@@ -249,3 +250,6 @@ async function startServer() {
 }
 
 startServer();
+`;
+fs.writeFileSync('server.ts', content, 'utf-8');
+console.log("Rewrote server.ts from scratch!");

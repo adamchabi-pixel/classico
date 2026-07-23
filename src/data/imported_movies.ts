@@ -1,5 +1,4 @@
-export const importedMoviesData = 
-[
+export const importedMoviesData = [
   {
     "hasLogo": true,
     "logoUrl": "https://image.tmdb.org/t/p/w500/7bfRNJWmYIwyca2kFyd031wwaJm.png",
@@ -39,7 +38,7 @@ export const importedMoviesData =
       "George Lucas"
     ],
     "isIframeEmbed": true,
-    "iframeSrc": "https://player.videasy.to/movie/tt32890033"
+    "iframeSrc": "https://player.videasy.net/movie/tt32890033?color=FFD700&overlay=true"
   },
   {
     "hasLogo": true,
@@ -79,7 +78,7 @@ export const importedMoviesData =
       "Sione Milford"
     ],
     "isIframeEmbed": true,
-    "iframeSrc": "https://player.videasy.to/movie/tt27419466"
+    "iframeSrc": "https://player.videasy.net/movie/tt27419466?color=FFD700&overlay=true"
   },
   {
     "hasLogo": true,
@@ -119,7 +118,7 @@ export const importedMoviesData =
       "Jay Hernandez"
     ],
     "isIframeEmbed": true,
-    "iframeSrc": "https://player.videasy.to/movie/tt29355505"
+    "iframeSrc": "https://player.videasy.net/movie/tt29355505?color=FFD700&overlay=true"
   },
   {
     "hasLogo": true,
@@ -158,7 +157,7 @@ export const importedMoviesData =
       "Jarreth J. Merz"
     ],
     "isIframeEmbed": true,
-    "iframeSrc": "https://player.videasy.to/movie/tt33764258"
+    "iframeSrc": "https://player.videasy.net/movie/tt33764258?color=FFD700&overlay=true"
   },
   {
     "hasLogo": true,
@@ -197,6 +196,157 @@ export const importedMoviesData =
       "Ferdinand Kingsley"
     ],
     "isIframeEmbed": true,
-    "iframeSrc": "https://player.videasy.to/movie/tt8814476"
+    "iframeSrc": "https://player.videasy.net/movie/tt8814476?color=FFD700&overlay=true"
+  },
+  {
+    "id": "1622-tv",
+    "tmdbId": "1622",
+    "imdbId": "1622",
+    "isTv": true,
+    "tagline": "Saving people, hunting things, the family business.",
+    "title": "Supernatural",
+    "originalTitle": "Supernatural",
+    "originalLanguage": "en",
+    "description": "When they were boys, Sam and Dean Winchester lost their mother to a mysterious and demonic supernatural force. Subsequently, their father raised them to be soldiers. He taught them about the paranormal evil that lives in the dark corners and on the back roads of America ... and he taught them how to kill it. Now, the Winchester brothers crisscross the country in their '67 Chevy Impala, battling every kind of supernatural threat they encounter along the way. ",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/8iixmfGx5EIFPdpNvB2JvI3VIqX.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/original/ro0tlgnsco4SwbdAgmscLkSlMSL.jpg",
+    "year": 2005,
+    "duration": 45,
+    "director": "Eric Kripke",
+    "cast": [
+      "Jared Padalecki",
+      "Jensen Ackles",
+      "Misha Collins"
+    ],
+    "genre": [
+      "Drama",
+      "Mystery",
+      "Sci-Fi & Fantasy"
+    ],
+    "voteAverage": 8.312,
+    "isIframeEmbed": true,
+    "seasons": [
+      {
+        "season_number": 1,
+        "name": "Season 1",
+        "episode_count": 22,
+        "air_date": "2005-09-12",
+        "poster_path": "https://image.tmdb.org/t/p/w500/fFn80y3PPmCcTbIIjQS5ft0jNFc.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 2,
+        "name": "Season 2",
+        "episode_count": 22,
+        "air_date": "2006-09-27",
+        "poster_path": "https://image.tmdb.org/t/p/w500/235GDaro5DuRJ9ogXmV7tOB6W5j.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 3,
+        "name": "Season 3",
+        "episode_count": 16,
+        "air_date": "2007-10-03",
+        "poster_path": "https://image.tmdb.org/t/p/w500/vDIg3XI9JHfEORxTWstO2seUyCw.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 4,
+        "name": "Season 4",
+        "episode_count": 22,
+        "air_date": "2008-09-17",
+        "poster_path": "https://image.tmdb.org/t/p/w500/uswpAvIhUX98ybJEJYJp6EUe3d6.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 5,
+        "name": "Season 5",
+        "episode_count": 22,
+        "air_date": "2009-09-08",
+        "poster_path": "https://image.tmdb.org/t/p/w500/hAeufhaaL5nBoCLOxyw3AbWtxWH.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 6,
+        "name": "Season 6",
+        "episode_count": 22,
+        "air_date": "2010-09-23",
+        "poster_path": "https://image.tmdb.org/t/p/w500/hGInmwwUlG3yvrvSH9CYcL6Ba1j.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 7,
+        "name": "Season 7",
+        "episode_count": 23,
+        "air_date": "2011-09-22",
+        "poster_path": "https://image.tmdb.org/t/p/w500/qiuf2qxR2Zd5sInYytZzSIXbUuL.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 8,
+        "name": "Season 8",
+        "episode_count": 23,
+        "air_date": "2012-10-02",
+        "poster_path": "https://image.tmdb.org/t/p/w500/pmzX28gvLj52HtN5qeyb1Qw4q5l.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 9,
+        "name": "Season 9",
+        "episode_count": 23,
+        "air_date": "2013-10-07",
+        "poster_path": "https://image.tmdb.org/t/p/w500/gzxekP92imqSSq6FhagISMTr3dg.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 10,
+        "name": "Season 10",
+        "episode_count": 23,
+        "air_date": "2014-10-07",
+        "poster_path": "https://image.tmdb.org/t/p/w500/60iYy9SYG74duc91JLKpsEQG3AS.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 11,
+        "name": "Season 11",
+        "episode_count": 23,
+        "air_date": "2015-10-06",
+        "poster_path": "https://image.tmdb.org/t/p/w500/ye95dj8FL4Me65bLnrXWo3Sk74Z.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 12,
+        "name": "Season 12",
+        "episode_count": 23,
+        "air_date": "2016-10-12",
+        "poster_path": "https://image.tmdb.org/t/p/w500/gkNzVg2k8dF6mXsMnjhaMX1NpUy.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 13,
+        "name": "Season 13",
+        "episode_count": 23,
+        "air_date": "2017-10-11",
+        "poster_path": "https://image.tmdb.org/t/p/w500/22BarYiD0QFajKT1AG71RhBrJfH.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 14,
+        "name": "Season 14",
+        "episode_count": 20,
+        "air_date": "2018-10-10",
+        "poster_path": "https://image.tmdb.org/t/p/w500/jbUJjcQsCgNlhgo4L0O8RQZqQLx.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 15,
+        "name": "Season 15",
+        "episode_count": 20,
+        "air_date": "2019-10-10",
+        "poster_path": "https://image.tmdb.org/t/p/w500/j3kk9PK1Xp8G3r6nDxVLOL1rqLo.jpg",
+        "episodes": []
+      }
+    ],
+    "iframeSrc": ""
   }
 ];

@@ -33,8 +33,7 @@ export default function MovieCard({ movie, onSelect, onPlay, progressPercent, tr
               
               className="w-full h-full object-cover"
               loading="lazy"
-              decoding="async"
-              referrerPolicy="no-referrer"
+              decoding="async" referrerPolicy="no-referrer"
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
               }}

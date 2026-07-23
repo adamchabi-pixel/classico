@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { COLLECTIONS as RAW_COLLECTIONS, Movie, Collection } from "./data";
 import { allMoviesData } from "./data/all_movies";
+import { importedMoviesData } from "./data/imported_movies";
 import { heroMoviesData } from "./data/hero_movies";
 const COLLECTIONS: Collection[] = [...RAW_COLLECTIONS].sort((a, b) => { if (a.id === "trending-now") return -1; if (b.id === "trending-now") return 1; return a.title.localeCompare(b.title); });
 
@@ -668,133 +669,56 @@ export default function App() {
   const [activeTab, setActiveTab ] = useState<"accueil" | "collections" | "profil" | "collection-detail" | "movie" | "player">("accueil");
   const [routePath, setRoutePath] = useState(window.location.pathname);
   const [isScrolled, setIsScrolled] = useState(false);
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const routeScrollPositions = useRef<Record<string, number>>({});
-  const currentRouteRef = useRef(routePath);
-
-  useEffect(() => {
-    currentRouteRef.current = routePath;
-  }, [routePath]);
-
-  // Synchronize custom router state with HTML5 pushState
-  useEffect(() => {
-    const handlePopState = () => {
-      routeScrollPositions.current[currentRouteRef.current] = window.scrollY;
-      setRoutePath(window.location.pathname);
-    };
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
-
-  const navigateTo = (path: string) => {
-    routeScrollPositions.current[currentRouteRef.current] = window.scrollY;
-    window.history.pushState(null, "", path);
-    setRoutePath(path);
-  };
-
-  useEffect(() => {
-    const savedPos = routeScrollPositions.current[routePath] || 0;
-    
-    // Attempt scroll immediately
-    setTimeout(() => {
-      window.scrollTo(0, savedPos);
-    }, 0);
-    
-    // Attempt again after AnimatePresence 'wait' exit animations complete (typically 300-400ms)
-    const timer = setTimeout(() => {
-      window.scrollTo(0, savedPos);
-    }, 450);
-    
-    if (routePath === "/" || routePath === "/accueil") {
-      setActiveTab("accueil");
-      setSelectedCollectionId(null);
-    } else if (routePath === "/collections") {
-      setActiveTab("collections");
-      setSelectedCollectionId(null);
-    } else if (routePath === "/profil") {
-      setActiveTab("profil");
-      setSelectedCollectionId(null);
-    } else if (routePath.startsWith("/collection-detail/")) {
-      const id = routePath.slice("/collection-detail/".length);
-      setSelectedCollectionId(id);
-      setActiveTab("collection-detail");
-    } else if (routePath.startsWith("/movie/")) {
-      setActiveTab("movie");
-    } else if (routePath.startsWith("/player/")) {
-      setActiveTab("player");
-    }
-
-    return () => clearTimeout(timer);
-  }, [routePath]);
 
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
-  const [isAdminMode, setIsAdminMode] = useState<boolean>(() => {
-    return localStorage.getItem("isAdmin") === "true";
-  });
+  const [isAdminMode, setIsAdminMode] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
-  const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
-
-  useEffect(() => {
-    const data = localStorage.getItem("classico_progress");
-    if (data) {
-      try {
-        const parsed = JSON.parse(data);
-        const arr = Object.values(parsed).sort((a: any, b: any) => (b.updatedAt || 0) - (a.updatedAt || 0));
-        setRecentlyViewed(arr);
-      } catch(e) {}
-    }
-  }, [activeTab]);
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState<any | null>(null);
+  const [progressData, setProgressData] = useState<Record<string, number>>({});
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [history, setHistory] = useState<string[]>([]);
-  const [progressData, setProgressData] = useState<Record<string, number>>({});
-  const [startAsPlaying, setStartAsPlaying] = useState(false);
-  const [jellyfinHeroMovies, setJellyfinHeroMovies] = useState<any[]>(heroMoviesData.heroes as any);
-  const [currentHeroIndex, setCurrentHeroIndex] = useState<number>(0);
-  const [direction, setDirection] = useState<number>(1);
-  const jellyfinHeroMovie = jellyfinHeroMovies[currentHeroIndex] || null;
-  const [isJellyfinHeroLoading, setIsJellyfinHeroLoading] = useState(false);
-  const [useTextTitleForJellyfinHero, setUseTextTitleForJellyfinHero] = useState(false);
+  
+  const [expandedCollections, setExpandedCollections] = useState<Record<string, boolean>>({});
+  const isHeroLoading = false;
 
-  // Server Integration States
-  const [jellyfinConfig, setJellyfinConfig] = useState<{ configured: boolean; url: string } | null>(null);
+  const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
+  const [routeScrollPositions, setRouteScrollPositions] = useState<Record<string, number>>({});
+    
+  const jellyfinMovies: any[] = [];
+  const jellyfinHeroMovies: any[] = [];
+  const jellyfinHeroMovie: any = null;
+  const useTextTitleForJellyfinHero = false;
+  const setUseTextTitleForJellyfinHero = (val: boolean) => {};
+  const isJellyfinLoading = false;
+  const jellyfinConfig = null;
 
-  const isHeroLoading = 
-    jellyfinConfig === null || 
-    (jellyfinConfig.configured && isJellyfinHeroLoading && jellyfinHeroMovies.length === 0);
-
-  const [expandedCollections, setExpandedCollections] = useState<Record<string, boolean>>({
-    "christopher-nolan": true, // Start with Christopher Nolan collection unfolded so users see films immediately
-  });
-
-  const [jellyfinMovies, setJellyfinMovies] = useState<Movie[]>(allMoviesData as any);
-  const [jellyfinSearchQuery, setJellyfinSearchQuery] = useState("");
-  const [isJellyfinLoading, setIsJellyfinLoading] = useState(false);
-  const [isJellyfinError, setIsJellyfinError] = useState("");
-
-  // Force scroll to top when initial page loading completes to prevent browser layout-shift scroll drops
-  useEffect(() => {
-    if (!isJellyfinLoading) {
-      const timer = setTimeout(() => {
-        window.scrollTo(0, 0);
-      }, 100);
-      return () => clearTimeout(timer);
+  const navigateTo = (path: string) => {
+    setRouteScrollPositions(prev => ({ ...prev, [activeTab]: window.scrollY }));
+    window.history.pushState({}, "", path);
+    setRoutePath(path);
+    if (path === "/") setActiveTab("accueil");
+    else if (path === "/collections") setActiveTab("collections");
+    else if (path === "/profil") setActiveTab("profil");
+    else if (path.startsWith("/collection/")) {
+      setSelectedCollectionId(path.split("/")[2]);
+      setActiveTab("collection-detail");
     }
-  }, [isJellyfinLoading]);
+    else if (path.startsWith("/player/")) {
+      setActiveTab("player");
+    }
+    else if (path.startsWith("/movie/")) {
+      setActiveTab("movie");
+    }
+    window.scrollTo(0, 0);
+  };
+
+  
 
   // Connection form states
-  const [jellyfinInputUrl, setJellyfinInputUrl] = useState("");
-  const [jellyfinInputApiKey, setJellyfinInputApiKey] = useState("");
-  const [isConnecting, setIsConnecting] = useState(false);
+      const [isConnecting, setIsConnecting] = useState(false);
   const [connectionError, setConnectionError] = useState("");
   const [isRecalculating, setIsRecalculating] = useState(false);
 
@@ -1113,26 +1037,7 @@ export default function App() {
   };
 
   // Load library movies from backend
-    const loadJellyfinLibrary = async () => {
-    try {
-      const res = await fetch("/api/jellyfin/movies");
-      const data = await res.json();
-      if (data.success) {
-        setJellyfinMovies(data.movies);
-        const heroImports = data.movies.filter((m: any) => m.isHero);
-        if (heroImports.length > 0) {
-          const combinedHeroes = [...heroImports, ...heroMoviesData.heroes];
-          const uniqueHeroes = Array.from(new Map(combinedHeroes.map(m => [m.id, m])).values());
-          setJellyfinHeroMovies(uniqueHeroes);
-        }
-        
-        // Load mods
-        fetch("/api/admin/collections/modifications").then(r => r.json()).then(mdata => {
-          if (mdata.success) setCollectionMods(mdata.modifications);
-        }).catch(()=>{});
-      }
-    } catch (e) {}
-  };
+    const loadJellyfinLibrary = async () => {};
 
   useEffect(() => {
     loadJellyfinLibrary();
@@ -1163,7 +1068,7 @@ export default function App() {
       const customEvent = event as CustomEvent;
       if (customEvent.detail && Array.isArray(customEvent.detail.movies)) {
         console.log("[CLIENT EVENT] Received updated movies list via event listener");
-        setJellyfinMovies(customEvent.detail.movies);
+        
       }
     };
     window.addEventListener("classico-movies-updated", handleMoviesUpdated);
@@ -1172,65 +1077,9 @@ export default function App() {
     };
   }, []);
 
-  const handleConnectJellyfin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsConnecting(true);
-    setConnectionError("");
+  
 
-    if (!jellyfinInputUrl || !jellyfinInputApiKey) {
-      setConnectionError("Veuillez remplir tous les champs.");
-      setIsConnecting(false);
-      return;
-    }
-
-    try {
-      const res = await fetch("/api/jellyfin/config", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: jellyfinInputUrl, apiKey: jellyfinInputApiKey })
-      });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setJellyfinConfig({ configured: true, url: data.url });
-        localStorage.setItem("classico_jellyfin_url", data.url);
-        localStorage.setItem("classico_jellyfin_apikey", jellyfinInputApiKey);
-        
-        // Load movies
-        setIsJellyfinLoading(true);
-        const libRes = await fetch("/api/jellyfin/movies");
-        const libData = await libRes.json();
-        if (libData.success) {
-          setJellyfinMovies(libData.movies);
-        }
-        setIsJellyfinLoading(false);
-      } else {
-        setConnectionError(data.error || "Failed to connect to the media server.");
-      }
-    } catch (err) {
-      setConnectionError("Unable to connect to the remote server. Check your server URL.");
-    } finally {
-      setIsConnecting(false);
-    }
-  };
-
-  const handleDisconnectJellyfin = async () => {
-    if (!window.confirm("Do you want to disconnect this server from CLASSICO?")) return;
-    try {
-      const res = await fetch("/api/jellyfin/disconnect", { method: "POST" });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setJellyfinConfig({ configured: false, url: "" });
-        setJellyfinMovies([]);
-        setJellyfinInputUrl("");
-        setJellyfinInputApiKey("");
-        localStorage.removeItem("classico_jellyfin_url");
-        localStorage.removeItem("classico_jellyfin_apikey");
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  
 
   // Load watchlist and search default spotlight film
   useEffect(() => {
@@ -1271,14 +1120,7 @@ export default function App() {
     }
 
     // Check Jellyfin server configuration status
-    const checkJellyfinSetup = async () => {
-      let attempts = 0;
-      const maxAttempts = 3;
-      
-      // tryFetch removed: Using static Videasy data
-      setJellyfinConfig({ configured: true, url: "https://videasy.net" });
-    };
-    checkJellyfinSetup();
+    
 
   }, []);
 
@@ -1815,7 +1657,7 @@ export default function App() {
               {/* Grand Showcase Spotlight Hero Section (Premium Netflix/Apple TV style) */}
               {isHeroLoading ? (
                 <HeroSkeleton />
-              ) : jellyfinConfig?.configured && jellyfinHeroMovies.length > 0 && jellyfinHeroMovie ? (
+              ) : jellyfinHeroMovies.length > 0 && jellyfinHeroMovie ? (
                 <div 
                   className="relative w-full h-[85vh] [@media(max-height:500px)_and_(orientation:landscape)]:h-[100vh] md:h-screen bg-black overflow-hidden flex items-end select-none"
                   onTouchStart={(e) => {
@@ -2035,7 +1877,7 @@ export default function App() {
               <div className="max-w-[2000px] mx-auto px-4 sm:px-8 space-y-12 pb-16">
                 
                 {/* Reprendre la lecture Section */}
-                {!isJellyfinLoading && history.some(id => progressData[id] > 0 && progressData[id] < 0.95) && (
+                {history.some(id => progressData[id] > 0 && progressData[id] < 0.95) && (
                   <div className="space-y-4 text-left pt-6 sm:pt-8">
                     <div className="flex flex-row items-center sm:items-end justify-between gap-2 sm:gap-3 border-b border-zinc-900 pb-2 sm:pb-3">
                       <div className="space-y-0.5 max-w-[80%]">
@@ -2097,7 +1939,7 @@ export default function App() {
                   </div>
                 )}
 
-                {!isJellyfinLoading && (
+                {(
                   <>
                     {/* Premium Discord Community Banner */}
                     <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-r from-zinc-900 via-[#1e1f24] to-zinc-900 border border-white/5 shadow-[0_8px_32px_rgba(0,0,0,0.4)] group">

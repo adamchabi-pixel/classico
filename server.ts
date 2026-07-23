@@ -12,20 +12,99 @@ app.use(express.json());
 
 const TMDB_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs";
 
+
+
+app.get("/api/trending", async (req, res) => {
+  try {
+    const pages = [1, 2, 3];
+    const fetchPage = async (page) => {
+      const url = `https://api.themoviedb.org/3/trending/all/day?language=en-US&page=${page}`;
+      const response = await fetch(url, {
+        headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
+      });
+      if (!response.ok) return [];
+      const data = await response.json();
+      return data.results || [];
+    };
+
+    const resultsByPage = await Promise.all(pages.map(fetchPage));
+    const combinedResults = resultsByPage.flat();
+    const validResults = combinedResults.filter((m: any) => m.media_type === "movie" || m.media_type === "tv");
+    
+    const enrichedResults = await Promise.all(validResults.slice(0, 60).map(async (m: any) => {
+      let director = "Unknown";
+      let cast = [];
+      let genres = [];
+      const isTv = m.media_type === "tv";
+      try {
+        const detailUrl = isTv 
+          ? `https://api.themoviedb.org/3/tv/${m.id}?append_to_response=credits&language=en-US`
+          : `https://api.themoviedb.org/3/movie/${m.id}?append_to_response=credits&language=en-US`;
+        const detailRes = await fetch(detailUrl, {
+          headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
+        });
+        if (detailRes.ok) {
+          const detailData = await detailRes.json();
+          genres = detailData.genres ? detailData.genres.map((g: any) => g.name) : [];
+          if (isTv) {
+            director = detailData.created_by?.[0]?.name || detailData.credits?.crew?.find((c: any) => c.job === "Director" || c.job === "Executive Producer")?.name || "Unknown";
+          } else {
+            director = detailData.credits?.crew?.find((c: any) => c.job === "Director")?.name || "Unknown";
+          }
+          cast = detailData.credits?.cast?.slice(0, 4).map((c: any) => c.name) || [];
+        }
+      } catch (e) {
+        console.error("Error fetching details for", m.id, e);
+      }
+      
+      const title = m.title || m.name || m.original_title || m.original_name;
+      return {
+        id: isTv ? `${m.id}-tv` : String(m.id),
+        tmdbId: String(m.id),
+        isTv,
+        title,
+        originalTitle: m.original_title || m.original_name,
+        description: m.overview || "",
+        posterUrl: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : null,
+        backdropUrl: m.backdrop_path ? `https://image.tmdb.org/t/p/w780${m.backdrop_path}` : null,
+        year: parseInt((m.release_date || m.first_air_date || "0").split("-")[0]) || 0,
+        voteAverage: m.vote_average,
+        director,
+        cast,
+        genre: genres,
+        isIframeEmbed: true,
+        iframeSrc: ""
+      };
+    }));
+    
+    res.json({ success: true, results: enrichedResults });
+  } catch (error) {
+    console.error("TMDB Trending API Error:", error);
+    res.status(500).json({ success: false, error: "TMDB trending failed" });
+  }
+});
+
+
 app.get("/api/search", async (req, res) => {
   try {
     const { query } = req.query;
     if (!query) return res.json({ success: true, results: [] });
     
-    const searchUrl = `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(query)}&language=en-US&page=1`;
-    const searchRes = await fetch(searchUrl, {
-      headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
-    });
     
-    if (!searchRes.ok) throw new Error("TMDB search failed");
-    const searchData = await searchRes.json();
+    const searchUrl1 = `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(query)}&language=en-US&page=1`;
+    const searchUrl2 = `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(query)}&language=en-US&page=2`;
+    const [searchRes1, searchRes2] = await Promise.all([
+      fetch(searchUrl1, { headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" } }),
+      fetch(searchUrl2, { headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" } })
+    ]);
     
-    const validResults = searchData.results.filter((m: any) => m.media_type === "movie" || m.media_type === "tv");
+    if (!searchRes1.ok) throw new Error("TMDB search failed");
+    const searchData1 = await searchRes1.json();
+    const searchData2 = searchRes2.ok ? await searchRes2.json() : { results: [] };
+    
+    const combinedResults = [...(searchData1.results || []), ...(searchData2.results || [])];
+    const validResults = combinedResults.filter((m: any) => m.media_type === "movie" || m.media_type === "tv");
+
     
     const lowerQuery = (query as string).toLowerCase().trim();
     validResults.sort((a: any, b: any) => {
@@ -38,7 +117,7 @@ app.get("/api/search", async (req, res) => {
       return (b.popularity || 0) - (a.popularity || 0);
     });
     
-    const topResults = validResults.slice(0, 12);
+    const topResults = validResults.slice(0, 40);
     
     const enrichedResults = await Promise.all(topResults.map(async (m: any) => {
       let director = "Unknown";

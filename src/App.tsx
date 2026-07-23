@@ -664,7 +664,22 @@ function enrichDynamicMovie(m: Movie, contextID: string): Movie {
 }
 
 export default function App() {
-  const allMoviesBase = React.useMemo(() => [...allMoviesData, ...importedMoviesData], []);
+  const [tmdbCache, setTmdbCache] = useState<Movie[]>(() => {
+    try {
+      const stored = localStorage.getItem("classico_tmdb_cache");
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+  const allMoviesBase = React.useMemo(() => {
+    const map = new Map();
+    [...allMoviesData, ...importedMoviesData].forEach(m => map.set(m.id, m));
+    tmdbCache.forEach(m => {
+      if (!map.has(m.id)) map.set(m.id, m);
+    });
+    return Array.from(map.values());
+  }, [tmdbCache]);
   const [activeTab, setActiveTab ] = useState<"accueil" | "collections" | "profil" | "collection-detail" | "movie" | "player">("accueil");
   const [routePath, setRoutePath] = useState(window.location.pathname);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -753,10 +768,12 @@ export default function App() {
               rating: movie.rating && movie.rating !== "N/A" ? movie.rating : match.rating
             } as Movie;
           }
-          if (collection.id === "trending-now" || collection.id === "comedy-gold" || collection.id === "mind-bending-mysteries" || collection.id === "mafia-movies") {
-            return movie;
-          }
-          return null;
+          // Always return the TMDB movie so the collection is full, even if not found locally
+          return {
+            ...movie,
+            isIframeEmbed: true,
+            iframeSrc: ""
+          };
         })
         .filter((m): m is Movie => m !== null);
 
@@ -858,36 +875,37 @@ export default function App() {
       return true;
     });
 
-    const genreGroups: Record<string, Movie[]> = {};
+    const genreGroupsMap: Record<string, { title: string, movies: Movie[] }> = {};
     finalUnmatchedMovies.forEach((movie) => {
       const genres = movie.genre && movie.genre.length > 0 ? movie.genre : ["Divers"];
       genres.forEach((genreName) => {
-        const key = genreName.trim();
-        if (!genreGroups[key]) {
-          genreGroups[key] = [];
+        const title = genreName.trim();
+        const idClean = title.toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, "-");
+        
+        if (!genreGroupsMap[idClean]) {
+          genreGroupsMap[idClean] = { title, movies: [] };
         }
-        if (!genreGroups[key].some((m) => m.id === movie.id)) {
-          genreGroups[key].push({
+        if (!genreGroupsMap[idClean].movies.some((m) => m.id === movie.id)) {
+          genreGroupsMap[idClean].movies.push({
             ...movie,
-            gradient: GENRE_AESTHETICS[key.toLowerCase()]?.gradient || "from-slate-900 via-neutral-900 to-zinc-950/40",
-            accentColor: GENRE_AESTHETICS[key.toLowerCase()]?.accentColor || "text-zinc-400 border-zinc-800 bg-zinc-900/10",
-            accentHex: GENRE_AESTHETICS[key.toLowerCase()]?.accentHex || "#71717a",
-            symbol: GENRE_AESTHETICS[key.toLowerCase()]?.symbol || "🎬🎥"
+            gradient: GENRE_AESTHETICS[title.toLowerCase()]?.gradient || "from-slate-900 via-neutral-900 to-zinc-950/40",
+            accentColor: GENRE_AESTHETICS[title.toLowerCase()]?.accentColor || "text-zinc-400 border-zinc-800 bg-zinc-900/10",
+            accentHex: GENRE_AESTHETICS[title.toLowerCase()]?.accentHex || "#71717a",
+            symbol: GENRE_AESTHETICS[title.toLowerCase()]?.symbol || "🎬🎥"
           });
         }
       });
     });
 
     // Construct dynamic genre collections
-    const genreCollections = Object.entries(genreGroups).map(([genreName, movies]) => {
-      const idClean = genreName.toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, "-");
-      const config = GENRE_AESTHETICS[genreName.toLowerCase()] || {
-        description: `Selection of auteur films cataloged under the ${genreName} theme.`
+    const genreCollections = Object.values(genreGroupsMap).map(({ title, movies }) => {
+      const idClean = title.toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g, "-");
+      const config = GENRE_AESTHETICS[title.toLowerCase()] || {
+        description: `Selection of auteur films cataloged under the ${title} theme.`
       };
-
       return {
         id: `genre-${idClean}`,
-        title: `Cinéma ${genreName}`,
+        title: `Cinéma ${title}`,
         description: config.description,
         movies: movies
       };
@@ -926,6 +944,14 @@ export default function App() {
     
     let filteredCollections = finalCollections.filter(c => !mods.deletedCollections.some(d => d === c.id || d === c.title || d === c.title.toLowerCase().replace(/\s+/g, "-")));
     
+    
+    const ids = new Set();
+    filteredCollections.forEach(c => {
+      if (ids.has(c.id)) {
+        console.warn("DUPLICATE ID FOUND IN FINAL COLLECTIONS:", c.id);
+      }
+      ids.add(c.id);
+    });
     return filteredCollections.map((col) => {
       // Apply manual movie additions from mods (assuming movie exists in allMoviesBase or allMoviesBaseData)
       let customAdded = (mods.addedMovies[col.id] || []).map(id => allMoviesBase.find(m => String(m.id) === String(id)) || tmdbCache.find(m => String(m.id) === String(id))).filter(Boolean);
@@ -1204,14 +1230,7 @@ export default function App() {
   // Filter movies globally based on search query
   const [tmdbSearchResults, setTmdbSearchResults] = useState<Movie[]>([]);
   const [movieLoadError, setMovieLoadError] = useState<string | null>(null);
-  const [tmdbCache, setTmdbCache] = useState<Movie[]>(() => {
-    try {
-      const stored = localStorage.getItem("classico_tmdb_cache");
-      return stored ? JSON.parse(stored) : [];
-    } catch (e) {
-      return [];
-    }
-  });
+
 
   const allMovies = React.useMemo(() => {
     const map = new Map<string, Movie>();
@@ -1264,6 +1283,24 @@ export default function App() {
 
 
   const [isSearchingTmdb, setIsSearchingTmdb] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/trending")
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.results) {
+          setTmdbCache(prev => {
+            const map = new Map(prev.map(m => [m.id, m]));
+            data.results.forEach((m) => map.set(m.id, m));
+            const newCache = Array.from(map.values());
+            localStorage.setItem("classico_tmdb_cache", JSON.stringify(newCache));
+            return newCache;
+          });
+        }
+      })
+      .catch(e => console.error("Trending error:", e));
+  }, []);
+
   
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -1608,9 +1645,14 @@ export default function App() {
                 <h2 className="text-2xl sm:text-3xl font-display font-black text-white uppercase tracking-tight">
                   Results for: <span className="text-amber-400 italic">"{searchQuery}"</span>
                 </h2>
-                <p className="text-xs sm:text-sm text-zinc-400 font-mono">
-                  {searchedMovies.length} cinematic masterpiece{searchedMovies.length > 1 ? "s" : ""} found
-                </p>
+                <div className="flex items-center gap-3">
+                  <p className="text-xs sm:text-sm text-zinc-400 font-mono">
+                    {searchedMovies.length} cinematic masterpiece{searchedMovies.length > 1 ? "s" : ""} found
+                  </p>
+                  {isSearchingTmdb && (
+                    <div className="w-4 h-4 border-2 border-amber-400/20 border-t-amber-400 rounded-full animate-spin" />
+                  )}
+                </div>
               </div>
 
               {searchedMovies.length > 0 ? (

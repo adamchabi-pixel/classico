@@ -660,12 +660,11 @@ function enrichDynamicMovie(m: Movie, contextID: string): Movie {
     accentColor: customAccent,
     accentHex: customHex,
     symbol: customSymbol,
-    tagline,
-    isJellyfin: true,
-  };
+    tagline};
 }
 
 export default function App() {
+  const allMoviesBase = React.useMemo(() => [...allMoviesData, ...importedMoviesData], []);
   const [activeTab, setActiveTab ] = useState<"accueil" | "collections" | "profil" | "collection-detail" | "movie" | "player">("accueil");
   const [routePath, setRoutePath] = useState(window.location.pathname);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -687,9 +686,8 @@ export default function App() {
   const [direction, setDirection] = useState(0);
   const [routeScrollPositions, setRouteScrollPositions] = useState<Record<string, number>>({});
     
-  const jellyfinMovies: any[] = [];
-  const jellyfinHeroMovies: any[] = [];
-  const jellyfinHeroMovie: any = null;
+    const jellyfinHeroMovies = heroMoviesData.heroes;
+  const jellyfinHeroMovie = jellyfinHeroMovies[currentHeroIndex] || null;
   const useTextTitleForJellyfinHero = false;
   const setUseTextTitleForJellyfinHero = (val: boolean) => {};
   const isJellyfinLoading = false;
@@ -726,7 +724,7 @@ export default function App() {
 
   // Dynamically map movies into collections & genres by checking server presence
   const mappedCollections = React.useMemo(() => {
-    if (!jellyfinMovies || jellyfinMovies.length === 0) return [];
+    if (!allMoviesBase || allMoviesBase.length === 0) return [];
 
     const matchedServersMovieIds = new Set<string>();
 
@@ -735,14 +733,13 @@ export default function App() {
     const curatedSagaCollections = COLLECTIONS.map((collection) => {
       const enrichedMovies = collection.movies
         .map((movie) => {
-          const match = jellyfinMovies.find((jf) => isMovieMatch(movie.title, jf.title));
+          const match = allMoviesBase.find((jf) => isMovieMatch(movie.title, jf.title));
           if (match) {
             matchedServersMovieIds.add(match.id);
             return {
               ...movie,
               id: match.id, // Use server id to play correctly
               streamUrl: match.streamUrl,
-              isJellyfin: true,
               posterUrl: match.posterUrl || movie.posterUrl,
               backdropUrl: match.backdropUrl || movie.backdropUrl,
               year: match.year || movie.year,
@@ -764,7 +761,7 @@ export default function App() {
         .filter((m): m is Movie => m !== null);
 
       // Dynamically load unmatched movies from Jellyfin that belong to this saga!
-      jellyfinMovies.forEach((jf) => {
+      allMoviesBase.forEach((jf) => {
         if (!matchedServersMovieIds.has(jf.id)) {
           const sagaId = getDynamicSagaId(jf);
           if (sagaId === collection.id) {
@@ -783,14 +780,13 @@ export default function App() {
 
       return {
         ...collection,
-        movies: sortedMovies,
-      };
+        movies: sortedMovies};
     }).filter((col) => col.movies.length > 0);
 
     // 2. Classify other remaining server movies into custom franchise dynamic collections (like Matrix) using high-confidence classification
     const dynamicFranchiseCollections: any[] = [];
     FRANCHISES.forEach((franchise) => {
-      const franchiseMovies = jellyfinMovies
+      const franchiseMovies = allMoviesBase
         .filter((m) => {
           if (matchedServersMovieIds.has(m.id)) return false;
           const classification = classifyMovie(m.title, m.originalTitle || "", m.director || "", m.genre || [], m.studios || []);
@@ -807,14 +803,13 @@ export default function App() {
           id: `franchise-${franchise.id}`,
           title: franchise.title,
           description: franchise.description,
-          movies: sortedFranchise,
-        });
+          movies: sortedFranchise});
       }
     });
 
     // 3. Classify other remaining server movies into dynamic director retrospectives
     const dynamicDirectorCollections: any[] = [];
-    const remainingAfterFranchises = jellyfinMovies.filter((m) => !matchedServersMovieIds.has(m.id));
+    const remainingAfterFranchises = allMoviesBase.filter((m) => !matchedServersMovieIds.has(m.id));
     
     const directorGroups: Record<string, Movie[]> = {};
     remainingAfterFranchises.forEach((m) => {
@@ -842,8 +837,7 @@ export default function App() {
           id: `director-${slug}`,
           title: directorName,
           description: `Retrospective dedicated to the exceptional work of director: ${directorName}.`,
-          movies: enrichedMovies,
-        });
+          movies: enrichedMovies});
       }
     });
 
@@ -851,7 +845,7 @@ export default function App() {
     dynamicDirectorCollections.sort((a, b) => a.title.localeCompare(b.title));
 
     // 4. Classify leftover unmatched movies into genre categories (shelf rows)
-    const finalUnmatchedMovies = jellyfinMovies.filter((m) => {
+    const finalUnmatchedMovies = allMoviesBase.filter((m) => {
       if (matchedServersMovieIds.has(m.id)) return false;
       const t = m.title.toLowerCase();
       if (t.includes("john wick")) return false;
@@ -910,20 +904,20 @@ export default function App() {
     const mods = collectionMods || { deletedCollections: [], addedMovies: {}, removedMovies: {} };
     
     // INJECT CUSTOM CATEGORY MOVIES
-    jellyfinMovies.forEach(m => {
+    allMoviesBase.forEach(m => {
       if (m.customCategory && m.customCategory !== "none") {
         let target = finalCollections.find(c => c.title === m.customCategory);
         if (target) {
           // Avoid duplicate pushing
           if (!target.movies.some(existing => existing.id === m.id)) {
-            target.movies.push({ ...m, isJellyfin: true });
+            target.movies.push({ ...m});
           }
         } else {
           finalCollections.push({
             id: `custom-${m.customCategory.toLowerCase().replace(/[^a-z]/g, '-')}`,
             title: m.customCategory,
             description: "Catégorie Personnalisée",
-            movies: [{ ...m, isJellyfin: true }]
+            movies: [{ ...m}]
           });
         }
       }
@@ -933,8 +927,8 @@ export default function App() {
     let filteredCollections = finalCollections.filter(c => !mods.deletedCollections.some(d => d === c.id || d === c.title || d === c.title.toLowerCase().replace(/\s+/g, "-")));
     
     return filteredCollections.map((col) => {
-      // Apply manual movie additions from mods (assuming movie exists in jellyfinMovies or allMoviesData)
-      let customAdded = (mods.addedMovies[col.id] || []).map(id => jellyfinMovies.find(m => String(m.id) === String(id)) || tmdbCache.find(m => String(m.id) === String(id))).filter(Boolean);
+      // Apply manual movie additions from mods (assuming movie exists in allMoviesBase or allMoviesBaseData)
+      let customAdded = (mods.addedMovies[col.id] || []).map(id => allMoviesBase.find(m => String(m.id) === String(id)) || tmdbCache.find(m => String(m.id) === String(id))).filter(Boolean);
       col.movies = [...col.movies, ...customAdded];
       
       // Apply manual movie removals
@@ -962,18 +956,18 @@ export default function App() {
         movies: uniqueMovies
       };
     }).filter((col) => col.movies.length > 0);
-  }, [jellyfinMovies, collectionMods]);
+  }, [allMoviesBase, collectionMods]);
 
   // SAGA COMPLETENESS CHECKLIST VALIDATION ENGINE
   const sagaCompletenessList = React.useMemo(() => {
-    if (!jellyfinMovies || jellyfinMovies.length === 0) return [];
+    if (!allMoviesBase || allMoviesBase.length === 0) return [];
 
     return COLLECTIONS.map(collection => {
       const ownedTitles: string[] = [];
       const missingMovies: Array<{ title: string; year: number }> = [];
 
       collection.movies.forEach(expectedMovie => {
-        const isOwned = jellyfinMovies.some(jf => isMovieMatch(expectedMovie.title, jf.title));
+        const isOwned = allMoviesBase.some(jf => isMovieMatch(expectedMovie.title, jf.title));
         if (isOwned) {
           ownedTitles.push(expectedMovie.title);
         } else {
@@ -994,7 +988,7 @@ export default function App() {
         missingMovies
       };
     });
-  }, [jellyfinMovies]);
+  }, [allMoviesBase]);
 
   const toggleCollection = (collectionId: string) => {
     setExpandedCollections(prev => ({
@@ -1228,9 +1222,9 @@ export default function App() {
     });
 
     // Add Jellyfin-only library movies that did not match any of the hand-crafted collections
-    jellyfinMovies.forEach(m => {
+    allMoviesBase.forEach(m => {
       if (!map.has(m.id)) {
-        map.set(m.id, { ...m, isJellyfin: true });
+        map.set(m.id, { ...m});
       }
     });
     
@@ -1246,10 +1240,10 @@ export default function App() {
     });
 
     return Array.from(map.values());
-  }, [mappedCollections, jellyfinMovies, tmdbCache]);
+  }, [mappedCollections, allMoviesBase, tmdbCache]);
 
     const unmatchedMovies = React.useMemo(() => {
-    if (!jellyfinMovies || jellyfinMovies.length === 0) return [];
+    if (!allMovies || allMovies.length === 0) return [];
     
     const inCollections = new Set<string>();
     mappedCollections.forEach(c => c.movies.forEach(m => inCollections.add(m.id)));
@@ -1690,18 +1684,14 @@ export default function App() {
                       variants={{
                         enter: (dir: number) => ({
                           x: dir > 0 ? "100%" : "-100%",
-                          opacity: 0,
-                        }),
+                          opacity: 0}),
                         center: {
                           x: 0,
-                          opacity: 1,
-                        },
+                          opacity: 1},
                         exit: (dir: number) => ({
                           x: dir < 0 ? "100%" : "-100%",
                           opacity: 0,
-                          zIndex: 0,
-                        }),
-                      }}
+                          zIndex: 0})}}
                       initial="enter"
                       animate="center"
                       exit="exit"
@@ -1728,8 +1718,7 @@ export default function App() {
                           transition={{
                             duration: 40,
                             repeat: Infinity,
-                            ease: "linear",
-                          }}
+                            ease: "linear"}}
                         />
                       </div>
 

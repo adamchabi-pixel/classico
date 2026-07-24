@@ -513,168 +513,6 @@
     "iframeSrc": "https://111movies.net/movie/1368337"
   },
   {
-    "id": "3f786303c08f1b396d482558b930a45c",
-    "tmdbId": "3",
-    "imdbId": "tt0092149",
-    "isTv": false,
-    "tagline": "",
-    "title": "Shadows in Paradise",
-    "originalTitle": "Varjoja paratiisissa",
-    "originalLanguage": "fi",
-    "description": "Nikander, a rubbish collector and would-be entrepreneur, finds his plans for success dashed when his business associate dies. One evening, he meets Ilona, a down-on-her-luck cashier, in a local supermarket. Falteringly, a bond begins to develop between them.",
-    "posterUrl": "https://image.tmdb.org/t/p/w500/nj01hspawPof0mJmlgfjuLyJuRN.jpg",
-    "backdropUrl": "https://image.tmdb.org/t/p/original/l94l89eMmFKh7na2a1u5q67VgNx.jpg",
-    "year": 1986,
-    "duration": 74,
-    "director": "Aki Kaurismäki",
-    "cast": [
-      "Matti Pellonpää",
-      "Kati Outinen",
-      "Sakari Kuosmanen",
-      "Esko Nikkari"
-    ],
-    "castDetails": [
-      {
-        "id": "4826",
-        "name": "Matti Pellonpää",
-        "role": "Nikander",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/1Qzhkkp3wFE2NMGKVyOra9931q2.jpg"
-      },
-      {
-        "id": "5999",
-        "name": "Kati Outinen",
-        "role": "Ilona",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/cQSSc5IPpU8BoJsQw7EjWLPt98C.jpg"
-      },
-      {
-        "id": "4828",
-        "name": "Sakari Kuosmanen",
-        "role": "Melartin",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/syM87lzV2IqFno87Za1PbeAUdMW.jpg"
-      },
-      {
-        "id": "53508",
-        "name": "Esko Nikkari",
-        "role": "Nikander's Co-Worker",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/mNiyD3BOzWba4CB0VTbIqA4EAVm.jpg"
-      },
-      {
-        "id": "1086499",
-        "name": "Kylli Köngäs",
-        "role": "Ilona's Friend",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/qswommjAWaVRtetDb0HDcWxHVCu.jpg"
-      },
-      {
-        "id": "222320",
-        "name": "Pekka Laiho",
-        "role": "Store Manager",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/iYTw4uW0XgBSrhYTw7QssZgyEhQ.jpg"
-      },
-      {
-        "id": "1086500",
-        "name": "Jukka-Pekka Palo",
-        "role": "Third Man",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/6ZMzVa2lH80CrzqolESnepGYaJr.jpg"
-      },
-      {
-        "id": "2307211",
-        "name": "Svante Korkiakoski",
-        "role": "Police Officer"
-      }
-    ],
-    "similar": [
-      {
-        "id": "14443",
-        "tmdbId": "14443",
-        "isTv": false,
-        "title": "The Garbage Pail Kids Movie",
-        "description": "Crude, grotesque, pint-sized aliens known as the Garbage Pail Kids® help a young boy exact revenge on his bullies and win the girl of his dreams.",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/v6PqKUptGhQjTTgqN2s2uPdNW0h.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/1D7zmoM11ydkL5Ml1TKYPWcOaYs.jpg",
-        "year": 1987
-      },
-      {
-        "id": "11974",
-        "tmdbId": "11974",
-        "isTv": false,
-        "title": "The 'Burbs",
-        "description": "When secretive new neighbors move in next door, suburbanite Ray Peterson and his friends let their paranoia get the best of them as they start to suspect the newcomers of evildoings and commence an investigation. But it's hardly how Ray, who much prefers drinking beer, reading his newspaper and watching a ball game on the tube expected to spend his vacation.",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/jwYKzJS0C3A711hmg1G4ptI0InF.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/pyeknyOKRLBd4ROOeYL6kV103ov.jpg",
-        "year": 1989
-      },
-      {
-        "id": "43801",
-        "tmdbId": "43801",
-        "isTv": false,
-        "title": "The Devil and Miss Jones",
-        "description": "The wealthiest man in the world, John P. Merrick, is a private person who likes to stay anonymous. One of his many assets is Neeley's Department Store. There is labor unrest at the store, and the employees' anger is directed at him, who they hang in effigy outside the store despite not knowing what he looks like. Merrick, not happy at what he sees going on, decides to mete out the rabble-rousers. So he goes undercover as a sales clerk in the shoe department.",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/spGm2v3Jpg5l5xZS9xjKYNrLYF1.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/dOH2qUexfaqtdaIY96mX8PnHvvd.jpg",
-        "year": 1941
-      },
-      {
-        "id": "463997",
-        "tmdbId": "463997",
-        "isTv": false,
-        "title": "Virality",
-        "description": "Set in modern day Helsinki, Finland, Virality portrays the lives of several main characters confronted with viral themes. The film links emerging viral aspects in our modern day societies, such as the spreading of news on the internet, with the viral nature of life itself, as in the storyline of a cancer patient being treated with virotherapy.  Being primarily a crime film, the main storyline centers around a bitcoin heist that connects the lives of the main characters. Character storylines involve a young rapper searching for a breakthrough, a policeman who falls for an aspiring musician with a promising international career, a hacker choosing his own path and a cancer patient and a banker who reconcile ten years after the end of their marriage.",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/kculaXRJy8f5fwpThR17m0ynwVB.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/53y3816HBSrKbflL7QNsxJAbTW.jpg",
-        "year": 2017
-      },
-      {
-        "id": "1376848",
-        "tmdbId": "1376848",
-        "isTv": false,
-        "title": "Crime and Punishment",
-        "description": "In contemporary Helsinki, former student Raskolnikov is pushed to murder when struggling to pay the rent on his apartment. When the murder is being investigated by the police, Raskolnikov struggles between trying to hide his guilt and the pressure to confess.",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/uway3QjX1e6Gq1Aw2604rDY6YkV.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/zByelnlddcypcyWcrAQXV0u6K82.jpg",
-        "year": 2025
-      },
-      {
-        "id": "8749",
-        "tmdbId": "8749",
-        "isTv": false,
-        "title": "Hamlet Goes Business",
-        "description": "When Hamlet discovers his father’s deceased body, he finds himself pulled into a power struggle as his scheming uncle attempts to secure a monopoly on the Scandinavian rubber duck industry. Will Hamlet avenge his father? Will he become the king of rubber ducks? Does any of it really matter?",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/5OjVh44NDV3m8ePTt2BXMWTzlH5.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/YbzfnWSeZvfABKn0zSyY3IY0IV.jpg",
-        "year": 1987
-      },
-      {
-        "id": "8214",
-        "tmdbId": "8214",
-        "isTv": false,
-        "title": "Drifting Clouds",
-        "description": "The ever-poker-faced Ilona loses her job as a restaurant hostess, as her tram driver husband, Lauri, also finds himself out of work. Together they must hit the streets of Helsinki, facing up to hardship and humiliation in their quest for survival, guided through the gloom by a ray of hope.",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/xxzuKTo3RNyyUGXghfVkeiSbVDt.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/dqcXtv7k8WbM0R9Z6Pm1wUcCQiN.jpg",
-        "year": 1996
-      },
-      {
-        "id": "9794",
-        "tmdbId": "9794",
-        "isTv": false,
-        "title": "Employee of the Month",
-        "description": "When he hears that the new female employee digs ambitious men who are the store employee of the month, a slacker gets his act together but finds himself in competition with his rival, an ambitious co-worker.",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/vfALEF9wz4CEep071iOwM5Qqd17.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/kXdV5vphVB9vU6T4BCa4fNQLWDd.jpg",
-        "year": 2006
-      }
-    ],
-    "genre": [
-      "Comedy",
-      "Drama",
-      "Romance"
-    ],
-    "voteAverage": 7.261,
-    "isIframeEmbed": true,
-    "seasons": [],
-    "iframeSrc": "https://111movies.net/movie/3"
-  },
-  {
     "id": "268",
     "tmdbId": "268",
     "imdbId": "tt0096895",
@@ -1366,326 +1204,6 @@
     "isIframeEmbed": true,
     "seasons": [],
     "iframeSrc": "https://111movies.net/movie/272"
-  },
-  {
-    "id": "83219aef79eeec58a306aac526257953",
-    "tmdbId": "83219",
-    "imdbId": "tt0090314",
-    "isTv": false,
-    "tagline": "...You've gotta go!",
-    "title": "When Nature Calls",
-    "originalTitle": "When Nature Calls",
-    "originalLanguage": "en",
-    "description": "When construction worker Greg becomes fed-up with his foreman and the \"city life\", he takes his wife and kids on a wilderness adventure.",
-    "posterUrl": "https://image.tmdb.org/t/p/w500/hpNWUwgNFJTgFliu7VfQlclFz3M.jpg",
-    "backdropUrl": "https://image.tmdb.org/t/p/original/dLVKeTo2oJRt1bOYgQAwWym6U0e.jpg",
-    "year": 1985,
-    "duration": 85,
-    "director": "Charles Kaufman",
-    "cast": [
-      "David Orange",
-      "Barbara Marineau",
-      "David Strathairn",
-      "Tina Marie Staiano"
-    ],
-    "logoUrl": "",
-    "hasLogo": false,
-    "castDetails": [
-      {
-        "id": "596917",
-        "name": "David Orange",
-        "role": "Greg"
-      },
-      {
-        "id": "1618184",
-        "name": "Barbara Marineau",
-        "role": "Barb",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/bwfBIJ1DTUQLAtFuJ2Wy1EmYzVx.jpg"
-      },
-      {
-        "id": "11064",
-        "name": "David Strathairn",
-        "role": "Weejun",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/w5YM2cGefPnkoyIXCi2UrCQW53r.jpg"
-      },
-      {
-        "id": "1618185",
-        "name": "Tina Marie Staiano",
-        "role": "Bambi"
-      },
-      {
-        "id": "1767898",
-        "name": "Nicky Beim",
-        "role": "Little Billy"
-      },
-      {
-        "id": "237600",
-        "name": "Freddie Blassie",
-        "role": "Psychiatrist",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/vfS0xkf0D8bwbRPheeF1TFpfdca.jpg"
-      },
-      {
-        "id": "3850567",
-        "name": "Patsy Wygle",
-        "role": ""
-      },
-      {
-        "id": "105637",
-        "name": "Morey Amsterdam",
-        "role": "Self",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/oCNNUg4qDQvfjBQcAVeCeyGm6FX.jpg"
-      }
-    ],
-    "similar": [],
-    "genre": [
-      "Comedy"
-    ],
-    "voteAverage": 4.75,
-    "isIframeEmbed": true,
-    "seasons": [],
-    "iframeSrc": "https://111movies.net/movie/83219"
-  },
-  {
-    "id": "83219",
-    "tmdbId": "83219",
-    "imdbId": "tt0090314",
-    "isTv": false,
-    "tagline": "...You've gotta go!",
-    "title": "When Nature Calls",
-    "originalTitle": "When Nature Calls",
-    "originalLanguage": "en",
-    "description": "When construction worker Greg becomes fed-up with his foreman and the \"city life\", he takes his wife and kids on a wilderness adventure.",
-    "posterUrl": "https://image.tmdb.org/t/p/w500/hpNWUwgNFJTgFliu7VfQlclFz3M.jpg",
-    "backdropUrl": "https://image.tmdb.org/t/p/original/dLVKeTo2oJRt1bOYgQAwWym6U0e.jpg",
-    "year": 1985,
-    "duration": 85,
-    "director": "Charles Kaufman",
-    "cast": [
-      "David Orange",
-      "Barbara Marineau",
-      "David Strathairn",
-      "Tina Marie Staiano"
-    ],
-    "logoUrl": "",
-    "hasLogo": false,
-    "castDetails": [
-      {
-        "id": "596917",
-        "name": "David Orange",
-        "role": "Greg"
-      },
-      {
-        "id": "1618184",
-        "name": "Barbara Marineau",
-        "role": "Barb",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/bwfBIJ1DTUQLAtFuJ2Wy1EmYzVx.jpg"
-      },
-      {
-        "id": "11064",
-        "name": "David Strathairn",
-        "role": "Weejun",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/w5YM2cGefPnkoyIXCi2UrCQW53r.jpg"
-      },
-      {
-        "id": "1618185",
-        "name": "Tina Marie Staiano",
-        "role": "Bambi"
-      },
-      {
-        "id": "1767898",
-        "name": "Nicky Beim",
-        "role": "Little Billy"
-      },
-      {
-        "id": "237600",
-        "name": "Freddie Blassie",
-        "role": "Psychiatrist",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/vfS0xkf0D8bwbRPheeF1TFpfdca.jpg"
-      },
-      {
-        "id": "3850567",
-        "name": "Patsy Wygle",
-        "role": ""
-      },
-      {
-        "id": "105637",
-        "name": "Morey Amsterdam",
-        "role": "Self",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/oCNNUg4qDQvfjBQcAVeCeyGm6FX.jpg"
-      }
-    ],
-    "similar": [],
-    "genre": [
-      "Comedy"
-    ],
-    "voteAverage": 4.75,
-    "isIframeEmbed": true,
-    "seasons": [],
-    "iframeSrc": "https://111movies.net/movie/83219"
-  },
-  {
-    "id": "12153",
-    "tmdbId": "12153",
-    "imdbId": "tt0381707",
-    "isTv": false,
-    "tagline": "They're going deep undercover.",
-    "title": "White Chicks",
-    "originalTitle": "White Chicks",
-    "originalLanguage": "en",
-    "description": "Two FBI agent brothers, Marcus and Kevin Copeland, accidentally foil a drug bust. To avoid being fired they accept a mission escorting a pair of socialites to the Hamptons--but when the girls are disfigured in a car accident, they refuse to go. Left without options, Marcus and Kevin decide to pose as the sisters, transforming themselves from black men into rich European-American women.",
-    "posterUrl": "https://image.tmdb.org/t/p/w500/aHTUpo45qy9QYIOnVITGGqLoVcA.jpg",
-    "backdropUrl": "https://image.tmdb.org/t/p/original/85k0kaoRgGmF6ACq0M61AFxhjLN.jpg",
-    "year": 2004,
-    "duration": 109,
-    "director": "Keenen Ivory Wayans",
-    "cast": [
-      "Shawn Wayans",
-      "Marlon Wayans",
-      "Frankie Faison",
-      "Terry Crews"
-    ],
-    "logoUrl": "https://image.tmdb.org/t/p/w500/cUcBiNXQMc9iJO9GJXt4qjJkkd.png",
-    "hasLogo": true,
-    "castDetails": [
-      {
-        "id": "35690",
-        "name": "Shawn Wayans",
-        "role": "Kevin Copeland / Brittany Wilson",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/Cat25uXhB680QLmvg9Tu16W563.jpg"
-      },
-      {
-        "id": "9562",
-        "name": "Marlon Wayans",
-        "role": "Marcus Anthony Copeland II / Tiffany Wilson",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/7LYnX3vluHFBs1WCRKUjSIEDEkn.jpg"
-      },
-      {
-        "id": "13936",
-        "name": "Frankie Faison",
-        "role": "Elliott Gordon",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/3717JOXK2Z8qelfyvScDGimfFBf.jpg"
-      },
-      {
-        "id": "53256",
-        "name": "Terry Crews",
-        "role": "Latrell Spencer",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/pxTY4SglLo5hFcMH00MxPeC5u55.jpg"
-      },
-      {
-        "id": "58953",
-        "name": "Faune Chambers Watkins",
-        "role": "Gina Copeland",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/iP1x9TsE9RzluXQjTtY0Ujxhp9r.jpg"
-      },
-      {
-        "id": "80760",
-        "name": "Rochelle Aytes",
-        "role": "Denise Porter",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/wn2555ynBlXnBd6jyFuW0bedcng.jpg"
-      },
-      {
-        "id": "11512",
-        "name": "John Heard",
-        "role": "Warren Vandergeld",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/zjhcxrCFK4q0C1gtVmeN8FeqCw0.jpg"
-      },
-      {
-        "id": "58058",
-        "name": "Lochlyn Munro",
-        "role": "Agent Jake Harper",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/bOJ03k0oe2R6snRgzV8M4Qtoo4O.jpg"
-      }
-    ],
-    "similar": [
-      {
-        "id": "258545",
-        "tmdbId": "258545",
-        "isTv": false,
-        "title": "Our Miss Fred",
-        "description": "Danny La Rue stars in this 1970s drag comedy as Fred Wimbush, a Shakespearean actor who is drafted into WWII and is appearing in a camp show in France when the Nazis advance. Unless he continues in his female costume, Fred is certain to be shot as a spy. The risque gags and double entendres fly as he attempts to make his escape in the company of a troupe of Girl Guides.",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/8cX13amSldhT0O8nfz5UxhHeHlU.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/IMky2tY7aArj62xYxyftABbRmN.jpg",
-        "year": 1972
-      },
-      {
-        "id": "258780",
-        "tmdbId": "258780",
-        "isTv": false,
-        "title": "Changing Skins",
-        "description": "Inspired by West German terrorists, two pupils kidnap a teacher in East Germany.",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/aeZY1mF5Yshio50FLrtB3idrMEH.jpg",
-        "backdropUrl": "",
-        "year": 1997
-      },
-      {
-        "id": "438081",
-        "tmdbId": "438081",
-        "isTv": false,
-        "title": "Duckweed",
-        "description": "When a son attempts to reconcile with his father, a series of fateful events allow him to experience the father's life in the past.",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/qGQHrrodfrpvRRm9OuJ7s6KmFkA.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/usZOcneQvvluCpoPO0fPsqCFDmf.jpg",
-        "year": 2017
-      },
-      {
-        "id": "35",
-        "tmdbId": "35",
-        "isTv": false,
-        "title": "The Simpsons Movie",
-        "description": "After Homer accidentally pollutes the town's water supply, Springfield is encased in a gigantic dome by the EPA and the Simpsons are declared fugitives.",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/s3b8TZWwmkYc2KoJ5zk77qB6PzY.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/8ln5VUVk7gnNGIb2VNgw8nICDVt.jpg",
-        "year": 2007
-      },
-      {
-        "id": "71",
-        "tmdbId": "71",
-        "isTv": false,
-        "title": "Billy Elliot",
-        "description": "County Durham, England, 1984. The miners' strike has started and the police have started coming up from Bethnal Green, starting a class war with the lower classes suffering. Caught in the middle of the conflict is 11-year old Billy Elliot, who, after leaving his boxing club for the day, stumbles upon a ballet class and finds out that he's naturally talented. He practices with his teacher Mrs. Wilkinson for an upcoming audition in Newcastle-upon Tyne for the royal Ballet school in London.",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/mYtqgWCJiXpDeZwjVcC3OQGD8IR.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/urzflyf41uySpgciGHdQzpcaMOY.jpg",
-        "year": 2000
-      },
-      {
-        "id": "90",
-        "tmdbId": "90",
-        "isTv": false,
-        "title": "Beverly Hills Cop",
-        "description": "Fast-talking, quick-thinking Detroit street cop Axel Foley has bent more than a few rules and regs in his time, but when his best friend is murdered, he heads to sunny Beverly Hills to work the case like only he can.",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/eBJEvKkhQ0tUt1dBAcTEYW6kCle.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/p256RduW9wMC3uhGJTerywmGiiX.jpg",
-        "year": 1984
-      },
-      {
-        "id": "115",
-        "tmdbId": "115",
-        "isTv": false,
-        "title": "The Big Lebowski",
-        "description": "Jeffrey 'The Dude' Lebowski, a Los Angeles slacker who only wants to bowl and drink White Russians, is mistaken for another Jeffrey Lebowski, a wheelchair-bound millionaire, and finds himself dragged into a strange series of events involving nihilists, adult film producers, ferrets, errant toes, and large sums of money.",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/3bv6WAp6BSxxYvB5ozKFUYuRA8C.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/hXsy4XCCHrUk81XoRhcooyWejao.jpg",
-        "year": 1998
-      },
-      {
-        "id": "275",
-        "tmdbId": "275",
-        "isTv": false,
-        "title": "Fargo",
-        "description": "Jerry, a small-town Minnesota car salesman is bursting at the seams with debt... but he's got a plan. He's going to hire two thugs to kidnap his wife in a scheme to collect a hefty ransom from his wealthy father-in-law. It's going to be a snap and nobody's going to get hurt... until people start dying. Enter Police Chief Marge, a coffee-drinking, parka-wearing - and extremely pregnant - investigator who'll stop at nothing to get her man. And if you think her small-time investigative skills will give the crooks a run for their ransom... you betcha!",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/rt7cpEr1uP6RTZykBFhBTcRaKvG.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/747dgDfL5d8esobk7h4odaOFhUq.jpg",
-        "year": 1996
-      }
-    ],
-    "genre": [
-      "Comedy",
-      "Crime"
-    ],
-    "voteAverage": 6.956,
-    "isIframeEmbed": true,
-    "seasons": [],
-    "iframeSrc": "https://111movies.net/movie/12153"
   },
   {
     "id": "1081003",
@@ -2676,168 +2194,498 @@
     "iframeSrc": "https://111movies.net/movie/87"
   },
   {
-    "id": "37f36d9baf5cf8ab24ae1777871b9d3b",
-    "tmdbId": "807",
-    "imdbId": "tt0114369",
+    "id": "11423",
+    "tmdbId": "11423",
+    "imdbId": "tt0353969",
     "isTv": false,
-    "tagline": "Gluttony. Greed. Sloth. Envy. Wrath. Pride. Lust.",
-    "title": "Se7en",
-    "originalTitle": "Se7en",
-    "originalLanguage": "en",
-    "description": "Two homicide detectives are on a desperate hunt for a serial killer whose crimes are based on the \"seven deadly sins\" in this dark and haunting film that takes viewers from the tortured remains of one victim to the next. The seasoned Det. Somerset researches each sin in an effort to get inside the killer's mind, while his novice partner, Mills, scoffs at his efforts to unravel the case.",
-    "posterUrl": "https://image.tmdb.org/t/p/w500/191nKfP0ehp3uIvWqgPbFmI4lv9.jpg",
-    "backdropUrl": "https://image.tmdb.org/t/p/original/i5H7zusQGsysGQ8i6P361Vnr0n2.jpg",
-    "year": 1995,
-    "duration": 127,
-    "director": "David Fincher",
+    "tagline": "The worst of them will stay with you... forever.",
+    "title": "Memories of Murder",
+    "originalTitle": "살인의 추억",
+    "originalLanguage": "ko",
+    "description": "A sadistic serial rapist and murderer of young women terrorizes a small province in 1980s South Korea. To prevent further crimes, three increasingly desperate detectives with conflicting methods race against time to unravel the violent mind of the killer in a futile effort to solve the case.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/jcgUjx1QcupGzjntTVlnQ15lHqy.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/original/6Kn6qW3an3DkPl3MahWemTzrjCt.jpg",
+    "year": 2003,
+    "duration": 131,
+    "director": "Bong Joon Ho",
     "cast": [
-      "Morgan Freeman",
-      "Brad Pitt",
-      "Gwyneth Paltrow",
-      "John Cassini"
+      "Song Kang-ho",
+      "Kim Sang-kyung",
+      "Kim Roi-ha",
+      "Song Jae-ho"
     ],
-    "logoUrl": "https://image.tmdb.org/t/p/w500/zVyZvT1zVO7GIk65RlcOx5KdAN.png",
+    "logoUrl": "https://image.tmdb.org/t/p/w500/uzVGePBZLsdzeMUJArknO5TsB78.png",
     "hasLogo": true,
     "castDetails": [
       {
-        "id": "192",
-        "name": "Morgan Freeman",
-        "role": "Somerset",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/905k0RFzH0Kd6gx8oSxRdnr6FL.jpg"
+        "id": "20738",
+        "name": "Song Kang-ho",
+        "role": "Detective Park Doo-man",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/kBM9UTPYXUA2RNk210DXhztLFns.jpg"
       },
       {
-        "id": "287",
-        "name": "Brad Pitt",
-        "role": "Mills",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/cckcYc2v0yh1tc9QjRelptcOBko.jpg"
+        "id": "69378",
+        "name": "Kim Sang-kyung",
+        "role": "Detective Seo Tae-yoon",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/5VKIhf0ZVxqtrZfyMPbubZz3INr.jpg"
       },
       {
-        "id": "12052",
-        "name": "Gwyneth Paltrow",
-        "role": "Tracy",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/x040uB0CDrHjVAUSONw8bbWMvDC.jpg"
+        "id": "69379",
+        "name": "Kim Roi-ha",
+        "role": "Detective Cho Yong-koo",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/bGHnBUrBKk2ItXDZJrBDnBeQJvj.jpg"
       },
       {
-        "id": "12055",
-        "name": "John Cassini",
-        "role": "Officer Davis",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/kn2Rtn0I8ivCR7ydZTY74XUBh1K.jpg"
+        "id": "1080904",
+        "name": "Song Jae-ho",
+        "role": "Sergeant Shin Dong-chul",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/gLKek8JICZXq4YdJpOd3jECaLCA.jpg"
       },
       {
-        "id": "30487",
-        "name": "Peter Crombie",
-        "role": "Dr. O'Neill",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/pMvhE1wwQo3eTSp4vwq8Hb22CwN.jpg"
+        "id": "116180",
+        "name": "Byun Hee-bong",
+        "role": "Sergeant Koo Hee-bong",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/fV8BtRziGqUsBozd1G6lEwmW2b5.jpg"
       },
       {
-        "id": "38951",
-        "name": "Reg E. Cathey",
-        "role": "Dr. Santiago",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/cgyJJQUdbK4S7ihkL9hgIIwutk3.jpg"
+        "id": "1299348",
+        "name": "Go Seo-hee",
+        "role": "Officer Kwon Kwi-ok",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/nJSugSQsuPirOBgXoZPUDNaaiHW.jpg"
       },
       {
-        "id": "8655",
-        "name": "R. Lee Ermey",
-        "role": "Police Captain",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/aXFJlEGHlQT7bwxkKwq6Sx7PeEp.jpg"
+        "id": "1136064",
+        "name": "Ryu Tae-ho",
+        "role": "Jo Byung-soon",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/3vnSlWZNQJXXS0UMW5LC95lslhh.jpg"
       },
       {
-        "id": "12054",
-        "name": "Daniel Zacapa",
-        "role": "Detective Taylor at First Murder",
-        "imageUrl": "https://image.tmdb.org/t/p/w200/85Ve9cyC2RG3cY20HHv1JrtMqdC.jpg"
+        "id": "1075838",
+        "name": "Park No-shik",
+        "role": "Baek Kwang-ho",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/jhL9musRKIvR37F8WHWZlutOWIe.jpg"
       }
     ],
     "similar": [
       {
-        "id": "1194686",
-        "tmdbId": "1194686",
+        "id": "258286",
+        "tmdbId": "258286",
         "isTv": false,
-        "title": "DÉTECTIVE MANO 2 - LE RETOUR DE LA VENGEANCE",
-        "description": "",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/sSqaLYBl796leKdyukOctaYLqeE.jpg",
+        "title": "La muerte camina en la lluvia",
+        "description": "A murderer terrorizes the city of Buenos Aires by attacking on the streets on rainy days and always leaving a card with the name \"S. López\". A local boarding house full of eccentrics appears to house a possible suspect.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/9EpsttWRwFOsrac9ocBdlfR2swl.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/9rVGxwBCGP27HPtt5LAlOEsnf7L.jpg",
+        "year": 1948
+      },
+      {
+        "id": "258296",
+        "tmdbId": "258296",
+        "isTv": false,
+        "title": "Crime and Punishment",
+        "description": "Former student Raskolnikov is pushed to murder when struggling to pay the rent on his apartment. When the murder is being investigated by the police, Raskolnikov struggles between trying to hide his guilt and the pressure to confess.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/kSosVabJLhTObXjELmvLVAVC8ri.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/b3O8D2B2x2WsM3q6OhwX6un4QrV.jpg",
+        "year": 2002
+      },
+      {
+        "id": "258387",
+        "tmdbId": "258387",
+        "isTv": false,
+        "title": "Ondine",
+        "description": "In the forest, knight-errant Hans meets and falls in love with Ondine, a water-sprite who is attracted to the world of mortal man.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/6uKtC77ppBGU1AYWc0MtrO2FttZ.jpg",
         "backdropUrl": "",
-        "year": 2023
+        "year": 1975
       },
       {
-        "id": "1194742",
-        "tmdbId": "1194742",
+        "id": "258311",
+        "tmdbId": "258311",
         "isTv": false,
-        "title": "Beyond Darkness",
-        "description": "After a power cut one night, Stan thinks he is seeing things. All alone, he must face what lurks in the dark.",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/fTbxoqNCG35lNhIyhdU6PQHZVLQ.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/umnWu0Vq2icY4G9wjQA0b82DpOv.jpg",
-        "year": 2023
+        "title": "2012: Curse of the Xtabai",
+        "description": "A sealed ancient Mayan cave would be blown open unleashing Xtabai to wreak havoc on the world and destroy civilization. She begins by infecting the inhabitants of a nearby village with a terrible and deadly fever. The government responds by placing the village under quarantine. A team of students along with their teacher escape into the jungle to find a cure, guided only by a dream. They go deep into the bowels of the Mayan underworld, hunted by Xtabai herself. Will they ultimately succeed in defeating the evil Xtabai and saving mankind from her curse? How many will live to tell the tale?",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/odmOD3YEsdM5Bl5UjuJAyqNHoCH.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/w17n6NdbdchXmLWOcCGxWnEAjXP.jpg",
+        "year": 2012
       },
       {
-        "id": "451997",
-        "tmdbId": "451997",
+        "id": "258427",
+        "tmdbId": "258427",
         "isTv": false,
-        "title": "The Merciless",
-        "description": "Jae-ho, who aims to become the number one in a crime organization, gets to build up trust with Hyun-su, an ambitious newbie in prison. When they try to take over the organization after their release, their ulterior motives start to emerge.",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/dMNGy8kfySmmNDHw3X4puqPIbx8.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/zJ2uTOvMJOZu97L1EVo5HqdEdsN.jpg",
-        "year": 2017
+        "title": "Death Scream",
+        "description": "Loosely based on the true story of the killing of Kitty Genovese:  A young woman's murder is witnessed by fifteen of her neighbors who do nothing to help and refuse to cooperate with the police.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/8hkA2Skdey3TT75KVee4PisfwUB.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/aaAqYNzR1m3lUVMNzqAFQajdOT8.jpg",
+        "year": 1975
       },
       {
-        "id": "1562700",
-        "tmdbId": "1562700",
+        "id": "258350",
+        "tmdbId": "258350",
         "isTv": false,
-        "title": "Edifício Bonfim",
-        "description": "",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/dyacuWDCD4SATmN1yChh5lqMWsH.jpg",
+        "title": "The Girl He Met Online",
+        "description": "A man's relationship with a bipolar woman becomes dangerous.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/ye4BvSkf8CfHu9CEA92r5QRKd4B.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/c3gLvXED7RsHg0TOr1kQLlXbIQU.jpg",
+        "year": 2014
+      },
+      {
+        "id": "258362",
+        "tmdbId": "258362",
+        "isTv": false,
+        "title": "Perfect Prey",
+        "description": "A former Texas Ranger is recruited by a Houston police captain to assist a homicide detective in the search for an elusive serial killer who collects antique dolls.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/otpeGasEHbG2yHCM14qe2qePxRq.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/bvLd6JLJRR27TXPu8apTveuTP5b.jpg",
+        "year": 1998
+      },
+      {
+        "id": "258529",
+        "tmdbId": "258529",
+        "isTv": false,
+        "title": "Fighting for Freedom",
+        "description": "Two intertwined families, one American, one Mexican, and their fight to save three year old illegal Angelina from deportation.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/mTEQqQ4fZ8kPmKWygXzI5NG3uQd.jpg",
         "backdropUrl": "",
-        "year": 2026
-      },
-      {
-        "id": "15159",
-        "tmdbId": "15159",
-        "isTv": false,
-        "title": "The Pink Panther 2",
-        "description": "When legendary treasures from around the world are stolen, including the priceless Pink Panther Diamond, Chief Inspector Dreyfus is forced to assign Inspector Clouseau to a team of international detectives and experts charged with catching the thief and retrieving the stolen artifacts.",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/qWhI9kn5OtxWB208Z88xAyhOJ68.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/ia6qY2XV4uvrrhSFcqqKZphizXR.jpg",
-        "year": 2009
-      },
-      {
-        "id": "15244",
-        "tmdbId": "15244",
-        "isTv": false,
-        "title": "A Man Escaped",
-        "description": "A captured French Resistance fighter during World War II engineers a daunting escape from prison.",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/gkoZ8fFib24zhB2DKpjQ09SK9FU.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/lNe2z2qQf0G5gzM51ZyJD0zCDVk.jpg",
-        "year": 1956
-      },
-      {
-        "id": "15357",
-        "tmdbId": "15357",
-        "isTv": false,
-        "title": "District 13: Ultimatum",
-        "description": "Damien and Leito return to District 13 on a mission to bring peace to the troubled sector that is controlled by five different gang bosses, before the city’s secret services take drastic measures to solve the problem.",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/qhadETc2y1ImTQ51all8tOd45aw.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/nMHPn12sJb2LCHsWmHvSYDLHZcN.jpg",
-        "year": 2009
-      },
-      {
-        "id": "15422",
-        "tmdbId": "15422",
-        "isTv": false,
-        "title": "Dark Ride",
-        "description": "Ten years after he brutally murdered two girls, a killer escapes from a mental institution and returns to his turf, the theme park attraction called Dark Ride. About to crash his path are a group of college kids on a road trip who stumble across the park.",
-        "posterUrl": "https://image.tmdb.org/t/p/w500/pQbQuJ7JBpaybG3n8pX43YvIoMv.jpg",
-        "backdropUrl": "https://image.tmdb.org/t/p/w780/oC4nQzAYYgshOq69eMQ7Cp4Tcwf.jpg",
-        "year": 2006
+        "year": 2013
       }
     ],
     "genre": [
       "Crime",
-      "Mystery",
+      "Drama",
       "Thriller"
     ],
-    "voteAverage": 8.381,
+    "voteAverage": 8.1,
     "isIframeEmbed": true,
     "seasons": [],
-    "iframeSrc": "https://111movies.net/movie/807"
+    "iframeSrc": "https://111movies.net/movie/11423"
+  },
+  {
+    "id": "27205",
+    "tmdbId": "27205",
+    "imdbId": "tt1375666",
+    "isTv": false,
+    "tagline": "Your mind is the scene of the crime.",
+    "title": "Inception",
+    "originalTitle": "Inception",
+    "originalLanguage": "en",
+    "description": "Cobb, a skilled thief who commits corporate espionage by infiltrating the subconscious of his targets is offered a chance to regain his old life as payment for a task considered to be impossible: \"inception\", the implantation of another person's idea into a target's subconscious.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/xlaY2zyzMfkhk0HSC5VUwzoZPU1.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/original/8ZTVqvKDQ8emSGUEMjsS4yHAwrp.jpg",
+    "year": 2010,
+    "duration": 148,
+    "director": "Christopher Nolan",
+    "cast": [
+      "Leonardo DiCaprio",
+      "Joseph Gordon-Levitt",
+      "Ken Watanabe",
+      "Tom Hardy"
+    ],
+    "logoUrl": "https://image.tmdb.org/t/p/w500/iXYh7y0vI1DZR0taTuvrr8PSnOd.png",
+    "hasLogo": true,
+    "castDetails": [
+      {
+        "id": "6193",
+        "name": "Leonardo DiCaprio",
+        "role": "Dom Cobb",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/wo2hJpn04vbtmh0B9utCFdsQhxM.jpg"
+      },
+      {
+        "id": "24045",
+        "name": "Joseph Gordon-Levitt",
+        "role": "Arthur",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/z2FA8js799xqtfiFjBTicFYdfk.jpg"
+      },
+      {
+        "id": "3899",
+        "name": "Ken Watanabe",
+        "role": "Saito",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/psAXOYp9SBOXvg6AXzARDedNQ9P.jpg"
+      },
+      {
+        "id": "2524",
+        "name": "Tom Hardy",
+        "role": "Eames",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/d81K0RH8UX7tZj49tZaQhZ9ewH.jpg"
+      },
+      {
+        "id": "27578",
+        "name": "Elliot Page",
+        "role": "Ariadne",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/nXO8DE4biVXY4UDYP0NdIY1zvXS.jpg"
+      },
+      {
+        "id": "95697",
+        "name": "Dileep Rao",
+        "role": "Yusuf",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/jRNn8SZqFXuI5wOOlHwYsWh0hXs.jpg"
+      },
+      {
+        "id": "2037",
+        "name": "Cillian Murphy",
+        "role": "Robert Fischer, Jr.",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/2lKs67r7FI4bPu0AXxMUJZxmUXn.jpg"
+      },
+      {
+        "id": "13022",
+        "name": "Tom Berenger",
+        "role": "Peter Browning",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/zLxzAdAfu7y02yEx29JSLDgXJZ4.jpg"
+      }
+    ],
+    "similar": [
+      {
+        "id": "258230",
+        "tmdbId": "258230",
+        "isTv": false,
+        "title": "A Monster Calls",
+        "description": "12-year-old Conor encounters an ancient tree monster who proceeds to help him cope with his mother's terminal illness and being bullied in school.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/vNzWJwVqjszWwXrA7ZfsrJmhgV9.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/9iz9NrxldLvJof2133xvQH5vvhh.jpg",
+        "year": 2016
+      },
+      {
+        "id": "73500",
+        "tmdbId": "73500",
+        "isTv": false,
+        "title": "You May Not Kiss the Bride",
+        "description": "Bryan, an unassuming pet photographer has action and adventure thrust upon him when he is forced to wed Masha, a Croatian crime lord's daughter, and she is subsequently kidnapped while on their honeymoon in a tropical paradise.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/hTmZjfNuGUko6N8zTSN1rsVBFsV.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/cJUZ0IFOydTkRRmbfNnADmrdgK.jpg",
+        "year": 2011
+      },
+      {
+        "id": "508138",
+        "tmdbId": "508138",
+        "isTv": false,
+        "title": "Burn",
+        "description": "Lonely, unstable gas station attendant Melinda is tired of being overshadowed by her more confident, outgoing co-worker Sheila. When the gas station is held up at gunpoint by Billy, a desperate man in need of quick cash, Melinda finds an opportunity to make a connection with the robber, regardless of who gets hurt.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/ifSMo5x7SDXpettRt8TWY9EOquM.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/3C14xx4RteMksSUwgYfI52B8Iu6.jpg",
+        "year": 2019
+      },
+      {
+        "id": "1249272",
+        "tmdbId": "1249272",
+        "isTv": false,
+        "title": "Kitman",
+        "description": "Curiosity kills when a world-renowned hitman faces his greatest adversary yet.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/t8g8C2Cx6dH58D5rsj7lzBkaxjn.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/A365XsM8Dvesxaxh36KGpflRXjO.jpg",
+        "year": 2021
+      },
+      {
+        "id": "1249289",
+        "tmdbId": "1249289",
+        "isTv": false,
+        "title": "Alarum",
+        "description": "Two married spies caught in the crosshairs of an international intelligence network will stop at nothing to obtain a critical asset. Joe and Lara are agents living off the grid whose quiet retreat at a winter resort is blown to shreds when members of the old guard suspect the two may have joined an elite team of rogue spies, known as Alarum.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/ckyYZf5cGTSOwF8LWIRqeThyh18.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/qSOMdbZ6AOdHR999HWwVAh6ALFI.jpg",
+        "year": 2025
+      },
+      {
+        "id": "323867",
+        "tmdbId": "323867",
+        "isTv": false,
+        "title": "Spy",
+        "description": "SPYING TURNS TO SECURITY DETAIL AS A YOUNG COUPLE AVOIDS MURDER, THE MOB, AND THE PAST. Human cloning, surveillance, and a life threatening relationship take center stage in this romantic thriller. Re-Released in the fall of 2012, SPY tells the story of Dante LeClair (Vincent Pastore) who was forced by mob boss (Frank Vincent) to fund illegal and unethical medical experiments after his daughter Susan (Lora Kojovic) was injured.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/fxFjBP55X6ftgXfMSrhgLodWwjp.jpg",
+        "backdropUrl": "",
+        "year": 2011
+      },
+      {
+        "id": "1069868",
+        "tmdbId": "1069868",
+        "isTv": false,
+        "title": "The Road Ahead (Where do we go from here?) Director's cut",
+        "description": "Leo gets abducted and carried around in the trunk of a car. The man who is holding him captive has a sinister plan. He gets Leo to bury corpses for him. In the process, Leo gets to speak with his ego and gets glimpses of his higher self. Will Leo get out of this alive?",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/eM2D4XRUTixVO3vlUwrxuZrDI25.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/9E7LL4415l8zya2B8z4PmqzSVxA.jpg",
+        "year": 2023
+      },
+      {
+        "id": "1624186",
+        "tmdbId": "1624186",
+        "isTv": false,
+        "title": "RayMan Manipulation",
+        "description": "Aidan Ray's guilt from the past comes back to bite him when The Shadow Demon emerges from darkness, leaving him wondering what's real, and what's not",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/bOCCi7q75D30PynP9J4ouSEjPZO.jpg",
+        "backdropUrl": "",
+        "year": 2023
+      }
+    ],
+    "genre": [
+      "Action",
+      "Science Fiction",
+      "Adventure"
+    ],
+    "voteAverage": 8.372,
+    "isIframeEmbed": true,
+    "seasons": [],
+    "iframeSrc": "https://111movies.net/movie/27205"
+  },
+  {
+    "id": "111",
+    "tmdbId": "111",
+    "imdbId": "tt0086250",
+    "isTv": false,
+    "tagline": "He loved the American Dream. With a vengeance.",
+    "title": "Scarface",
+    "originalTitle": "Scarface",
+    "originalLanguage": "en",
+    "description": "After getting a green card in exchange for assassinating a Cuban government official, Tony Montana stakes a claim on the drug trade in Miami. Viciously murdering anyone who stands in his way, Tony eventually becomes the biggest drug lord in the state, controlling nearly all the cocaine that comes through Miami. But increased pressure from the police, wars with Colombian drug cartels and his own drug-fueled paranoia serve to fuel the flames of his eventual downfall.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/iQ5ztdjvteGeboxtmRdXEChJOHh.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/original/1qM2BYNE11Viby8ImC9LC00DgDr.jpg",
+    "year": 1983,
+    "duration": 170,
+    "director": "Brian De Palma",
+    "cast": [
+      "Al Pacino",
+      "Steven Bauer",
+      "Michelle Pfeiffer",
+      "Mary Elizabeth Mastrantonio"
+    ],
+    "logoUrl": "https://image.tmdb.org/t/p/w500/zQGDFzjfXC47foVucagHYIxRUfW.png",
+    "hasLogo": true,
+    "castDetails": [
+      {
+        "id": "1158",
+        "name": "Al Pacino",
+        "role": "Tony Montana",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/m8HAAjq1T75JypKk0v1FFQn4ysZ.jpg"
+      },
+      {
+        "id": "1159",
+        "name": "Steven Bauer",
+        "role": "Manny Ray",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/eMSeKPgfilE2v5VcmwSt5pxbp0x.jpg"
+      },
+      {
+        "id": "1160",
+        "name": "Michelle Pfeiffer",
+        "role": "Elvira",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/8qwNMFzmM3BxGKIj1iIqiHHBpx3.jpg"
+      },
+      {
+        "id": "1161",
+        "name": "Mary Elizabeth Mastrantonio",
+        "role": "Gina",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/vbZ1E557K5oj34xLHR5ErO8wPCi.jpg"
+      },
+      {
+        "id": "1162",
+        "name": "Robert Loggia",
+        "role": "Frank Lopez",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/mRSUgJnfprCNw83pyVfpfW7ryfK.jpg"
+      },
+      {
+        "id": "1163",
+        "name": "Miriam Colon",
+        "role": "Mama Montana",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/9jnz7htVMCTDNRDmoi2mdOKv6Pj.jpg"
+      },
+      {
+        "id": "1164",
+        "name": "F. Murray Abraham",
+        "role": "Omar",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/p2RYVGdrcP0m70BkkiKcwyrDeim.jpg"
+      },
+      {
+        "id": "1165",
+        "name": "Paul Shenar",
+        "role": "Alejandro Sosa",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/kc0I4h9fTY8WP3wyQbwVWEzbmil.jpg"
+      }
+    ],
+    "similar": [
+      {
+        "id": "258432",
+        "tmdbId": "258432",
+        "isTv": false,
+        "title": "The Path",
+        "description": "Two young Nicaraguan children, Saslaya and her mute brother Dario, must travel to Costa Rica to find their long-lost mother.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/93RQ8i9090PdB0Ms6lr9RZntMOs.jpg",
+        "backdropUrl": "",
+        "year": 2007
+      },
+      {
+        "id": "59",
+        "tmdbId": "59",
+        "isTv": false,
+        "title": "A History of Violence",
+        "description": "An average family is thrust into the spotlight after the father commits a seemingly self-defense murder at his diner.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/3qnO72NHmUgs9JZXAmu4aId9QDl.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/iZHJsUYxhjI6kbooHoQRWXv6F8E.jpg",
+        "year": 2005
+      },
+      {
+        "id": "66",
+        "tmdbId": "66",
+        "isTv": false,
+        "title": "Absolute Power",
+        "description": "A master thief coincidentally is robbing a house where a murder—in which the President of the United States is involved—occurs in front of his eyes. He is forced to run, while holding evidence that could convict the President.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/izvyt3cxlilhbYwybTOteDWqf99.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/cLftTzGw40BlLw8IggKSWDjKOQo.jpg",
+        "year": 1997
+      },
+      {
+        "id": "69",
+        "tmdbId": "69",
+        "isTv": false,
+        "title": "Walk the Line",
+        "description": "A chronicle of country music legend Johnny Cash's life, from his early days on an Arkansas cotton farm to his rise to fame with Sun Records in Memphis, where he recorded alongside Elvis Presley, Jerry Lee Lewis and Carl Perkins.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/iIXy2T3fIxfKCBCJqkAnVBFPO8o.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/pMBKzEotLUzk3NuQiyVjZEDlH70.jpg",
+        "year": 2005
+      },
+      {
+        "id": "70",
+        "tmdbId": "70",
+        "isTv": false,
+        "title": "Million Dollar Baby",
+        "description": "Despondent over a painful estrangement from his daughter, trainer Frankie Dunn isn't prepared for boxer Maggie Fitzgerald to enter his life. But Maggie's determined to go pro and to convince Dunn and his cohort to help her.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/jcfEqKdWF1zeyvECPqp3mkWLct2.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/oGMomeS7bE43eN8SGJUaKvQnmud.jpg",
+        "year": 2004
+      },
+      {
+        "id": "73",
+        "tmdbId": "73",
+        "isTv": false,
+        "title": "American History X",
+        "description": "Derek Vineyard is paroled after serving 3 years in prison for killing two African-American men. Through his brother, Danny Vineyard's narration, we learn that before going to prison, Derek was a skinhead and the leader of a violent white supremacist gang that committed acts of racial crime throughout L.A. and his actions greatly influenced Danny. Reformed and fresh out of prison, Derek severs contact with the gang and becomes determined to keep Danny from going down the same violent path as he did.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/x2drgoXYZ8484lqyDj7L1CEVR4T.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/6qHI1IYj7QlLSCwHRzkL62X175s.jpg",
+        "year": 1998
+      },
+      {
+        "id": "617097",
+        "tmdbId": "617097",
+        "isTv": false,
+        "title": "Memory House",
+        "description": "An older man begins to work in a modern dairy factory. He feels distant and does not identify with the place, the people and even the society. Little by little, he is approaching cows and oxen, transforming into an animal and returning to his ancestry.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/rzNJkquAl2EKnNa76JVvH5bRIYN.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/uSxx8FYQ0FQVu9n17Jwvw9DkeB.jpg",
+        "year": 2022
+      },
+      {
+        "id": "82",
+        "tmdbId": "82",
+        "isTv": false,
+        "title": "Miami Vice",
+        "description": "A case involving drug lords and murder in South Florida takes a personal turn for undercover detectives Sonny Crockett and Ricardo Tubbs. Unorthodox Crockett gets involved romantically with the Chinese-Cuban wife of a trafficker of arms and drugs, while Tubbs deals with an assault on those he loves.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/iJPSls4taB09EUKtLj6FjFSprb3.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/nogFh7eQFbBm0wTr9bb6YlnNoiI.jpg",
+        "year": 2006
+      }
+    ],
+    "genre": [
+      "Action",
+      "Crime",
+      "Drama"
+    ],
+    "voteAverage": 8.155,
+    "isIframeEmbed": true,
+    "seasons": [],
+    "iframeSrc": "https://111movies.net/movie/111"
   }
 ]

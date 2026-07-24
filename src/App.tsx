@@ -674,9 +674,53 @@ export default function App() {
     }
   });
   const allMoviesBase = React.useMemo(() => {
-    const map = new Map();
-    [...importedMoviesData, ...allMoviesData].forEach(m => map.set(m.id, m));
-    return Array.from(map.values());
+    const combined = [...importedMoviesData, ...allMoviesData];
+    const groups = new Map();
+    
+    const cleanTitle = (t: string) => t ? t.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+    
+    combined.forEach(m => {
+      let key = null;
+      if (m.tmdbId) key = `tmdb_${m.tmdbId}`;
+      else if (m.providerIds && m.providerIds.Tmdb) key = `tmdb_${m.providerIds.Tmdb}`;
+      else if (m.id && /^\d+$/.test(m.id)) key = `tmdb_${m.id}`; // Assuming numeric IDs are TMDB
+      else key = `title_${cleanTitle(m.title)}`;
+      
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(m);
+    });
+    
+    const finalMovies: Movie[] = [];
+    
+    groups.forEach(group => {
+      // Prioritize Jellyfin object as the base so we keep the streamUrl and Jellyfin ID
+      let baseMovie = group.find((m: Movie) => m.isJellyfin || m.streamUrl) || group[0];
+      let merged = { ...baseMovie };
+      
+      group.forEach((m: Movie) => {
+        if (m === baseMovie) return;
+        merged = {
+          ...m,
+          ...merged, // Base overrides m for top-level fields (like id, streamUrl, title)
+          hasLogo: merged.hasLogo || m.hasLogo,
+          logoUrl: merged.logoUrl || m.logoUrl,
+          castDetails: (merged.castDetails && merged.castDetails.length > 0) ? merged.castDetails : m.castDetails,
+          similar: (merged.similar && merged.similar.length > 0) ? merged.similar : m.similar,
+          director: merged.director || m.director,
+          tagline: merged.tagline || m.tagline,
+          rating: (merged.rating && merged.rating !== "N/A") ? merged.rating : m.rating,
+          description: merged.description || m.description,
+          seasons: (merged.seasons && merged.seasons.length > 0) ? merged.seasons : m.seasons,
+          voteAverage: merged.voteAverage || m.voteAverage,
+          backdropUrl: merged.backdropUrl || m.backdropUrl,
+          posterUrl: merged.posterUrl || m.posterUrl
+        };
+      });
+      
+      finalMovies.push(merged);
+    });
+    
+    return finalMovies;
   }, []);
   const [activeTab, setActiveTab ] = useState<"accueil" | "collections" | "profil" | "collection-detail" | "movie" | "player">("accueil");
   const [routePath, setRoutePath] = useState(window.location.pathname);

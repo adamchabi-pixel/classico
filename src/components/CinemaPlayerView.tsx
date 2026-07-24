@@ -3,7 +3,7 @@ import Hls from "hls.js";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Languages, 
-  Maximize2, ArrowLeft, Loader2, Sparkles, AlertCircle, Captions, Lock, Menu, Cast, Settings, ChevronRight, ChevronLeft, X
+  Maximize2, ArrowLeft, Loader2, Sparkles, AlertCircle, Captions, Lock, Menu, Cast, Settings, ChevronRight, ChevronLeft, X, ChevronDown
 } from "lucide-react";
 import EmbedPlayer from "./EmbedPlayer";
 import { allMoviesData } from "../data/all_movies";
@@ -213,6 +213,7 @@ export default function CinemaPlayerView({
   const [activeSubtitleIndex, setActiveSubtitleIndex] = useState<number | null>(null);
   const [subtitlesOn, setSubtitlesOn] = useState<boolean>(false);
   const [showSubtitleMenu, setShowSubtitleMenu] = useState(false);
+  const [showServerMenu, setShowServerMenu] = useState(false);
   const [activeAudioIndex, setActiveAudioIndex] = useState<number | null>(null);
   const [showAudioMenu, setShowAudioMenu] = useState(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
@@ -229,13 +230,12 @@ export default function CinemaPlayerView({
   const [isActuallyPlaying, setIsActuallyPlaying] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
-  const [showAdblockBanner, setShowAdblockBanner] = useState(() => {
-    return sessionStorage.getItem("adblockBannerDismissed") !== "true";
-  });
+  const [showAdblockBanner, setShowAdblockBanner] = useState(true);
   
   const [isCurtainOpen, setIsCurtainOpen] = useState(false);
   const [forceJellyfin, setForceJellyfin] = useState(false);
   const [activeServerIndex, setActiveServerIndex] = useState(0);
+  const [serverSelected, setServerSelected] = useState(false);
   const [availableServers, setAvailableServers] = useState<{name: string, url: string}[]>([]);
   const [playing, setPlaying] = useState(true);
   const [isMetadataLoaded, setIsMetadataLoaded] = useState(false);
@@ -669,6 +669,22 @@ export default function CinemaPlayerView({
     };
   }, [activeSubtitleIndex, subtitlesOn, playbackInfo]);
 
+  useEffect(() => {
+    if (!showServerMenu) return;
+
+    const handleDocumentClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest("#cinema-server-btn") && !target.closest("#cinema-server-menu")) {
+        setShowServerMenu(false);
+      }
+    };
+
+    document.addEventListener("click", handleDocumentClick);
+    return () => {
+      document.removeEventListener("click", handleDocumentClick);
+    };
+  }, [showServerMenu]);
+
   // Detector to click away closes subtitle menu nicely
   useEffect(() => {
     if (!showSubtitleMenu) return;
@@ -780,28 +796,38 @@ export default function CinemaPlayerView({
                 finalTmdbId = matchedMovie.tmdbId;
             }
             
-            let iframeUrl = "";
+            let iframeUrl111 = "";
+            let iframeUrlPeach = "";
+            let iframeUrlVideasy = "";
             let cleanId = finalTmdbId;
             if (cleanId.endsWith('-tv')) cleanId = cleanId.replace('-tv', '');
             if (isTv && season && episode) {
-              iframeUrl = `https://111movies.net/tv/${cleanId}/${season}/${episode}`;
+              iframeUrl111 = `https://111movies.net/tv/${cleanId}/${season}/${episode}`;
+              iframeUrlPeach = `https://peachify.pro/embed/tv/${cleanId}/${season}/${episode}`;
+              iframeUrlVideasy = `https://player.videasy.net/tv/${cleanId}/${season}/${episode}`;
             } else {
-              iframeUrl = `https://111movies.net/movie/${cleanId}`;
+              iframeUrl111 = `https://111movies.net/movie/${cleanId}`;
+              iframeUrlPeach = `https://peachify.pro/embed/movie/${cleanId}`;
+              iframeUrlVideasy = `https://player.videasy.net/movie/${cleanId}`;
             }
             const newServers = [
-              { name: "Videasy (Premium)", url: iframeUrl }
+              { name: "Serveur 1 ⭐", url: iframeUrlPeach },
+              { name: "Serveur 2", url: iframeUrl111 },
+              { name: "Serveur 3", url: iframeUrlVideasy }
             ];
             setAvailableServers(newServers);
             
+            const safeActiveIndex = activeServerIndex >= newServers.length ? 0 : activeServerIndex;
+
             const iframeResult = {
               id: movieId,
-              streamUrl: newServers[activeServerIndex]?.url || newServers[0].url,
+              streamUrl: newServers[safeActiveIndex].url,
               duration: 0,
               container: "iframe",
               title: "Film (Embed)",
               isDirect: true,
               isIframeEmbed: true,
-              iframeSrc: newServers[activeServerIndex]?.url || newServers[0].url,
+              iframeSrc: newServers[safeActiveIndex].url,
               subtitles: [],
               audios: []
             };
@@ -869,11 +895,24 @@ export default function CinemaPlayerView({
                 if (!forceJellyfin && itemData.ProviderIds) {
                   if (itemData.ProviderIds.Tmdb) {
                     data.isIframeEmbed = true;
+                    let u1 = "", u2 = "", u3 = "";
+                    if (itemData.Type === "Episode" && itemData.ParentIndexNumber && itemData.IndexNumber) {
+                        u1 = `https://peachify.pro/embed/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}`;
+                        u2 = `https://111movies.net/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}`;
+                        u3 = `https://player.videasy.net/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}`;
+                    } else {
+                        u1 = `https://peachify.pro/embed/movie/${itemData.ProviderIds.Tmdb}`;
+                        u2 = `https://111movies.net/movie/${itemData.ProviderIds.Tmdb}`;
+                        u3 = `https://player.videasy.net/movie/${itemData.ProviderIds.Tmdb}`;
+                    }
                     const srvs = [
-                      { name: "Videasy (Premium)", url: `https://111movies.net/movie/${itemData.ProviderIds.Tmdb}` }
+                      { name: "Serveur 1 ⭐", url: u1 },
+                      { name: "Serveur 2", url: u2 },
+                      { name: "Serveur 3", url: u3 }
                     ];
                     setAvailableServers(srvs);
-                    data.iframeSrc = srvs[activeServerIndex]?.url || srvs[0].url;
+                    const safeIndex = activeServerIndex >= srvs.length ? 0 : activeServerIndex;
+                    data.iframeSrc = srvs[safeIndex].url;
                   }
                 }
                 // Fallback for testing if jellyfin bugs and no provider IDs are found
@@ -1684,6 +1723,28 @@ export default function CinemaPlayerView({
     }
   }, [volume, muted]);
 
+  useEffect(() => {
+    if (!playbackInfo?.isIframeEmbed) return;
+    
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data) {
+        if (event.data.type === 'PLAYER_EVENT' && event.data.data?.currentTime !== undefined) {
+          try {
+            const currentTime = event.data.data.currentTime;
+            const saved = JSON.parse(localStorage.getItem("classico_progress") || "{}");
+            if (movieId) {
+                saved[movieId] = { currentTime: currentTime, timestamp: Date.now() };
+                localStorage.setItem("classico_progress", JSON.stringify(saved));
+            }
+          } catch(e) {}
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [playbackInfo, movieId]);
+
   // Format second timestamps to MM:SS
   const formatTime = (secs: number) => {
     if (isNaN(secs) || !isFinite(secs) || secs < 0) return "00:00";
@@ -1726,46 +1787,134 @@ export default function CinemaPlayerView({
     }
   };
 
+  if (!serverSelected && availableServers.length > 0) {
+    return (
+      <div className="fixed inset-0 z-50 bg-neutral-900 flex flex-col justify-center items-center select-none cursor-default bg-cover bg-center" style={{ backgroundImage: `url(${movieBackdrop || ''})`}}>
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-0" />
+        
+        {/* UPPER DECK (GO BACK) */}
+        <div className="absolute top-0 left-0 right-0 p-6 pt-[calc(1.5rem+env(safe-area-inset-top))] flex items-center justify-between z-[60] pointer-events-none">
+          <div className="flex items-center gap-2"></div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => onClose()}
+              className="pointer-events-auto p-2 rounded-full bg-black/50 hover:bg-black/80 text-white transition-all cursor-pointer backdrop-blur-md"
+              title="Fermer"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+
+        <div className="z-10 w-full max-w-md bg-neutral-900/90 border border-white/10 rounded-2xl p-6 shadow-2xl flex flex-col gap-6 backdrop-blur-md relative pointer-events-auto mx-4">
+          <div className="flex flex-col gap-2 text-center">
+            <h2 className="text-2xl font-bold text-white tracking-tight">Sélection du serveur</h2>
+            <p className="text-sm text-neutral-400">Choisissez un serveur de streaming pour lancer la vidéo.</p>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            {availableServers.map((server, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  setActiveServerIndex(idx);
+                  if (playbackInfo) {
+                    setPlaybackInfo({
+                      ...playbackInfo,
+                      iframeSrc: server.url,
+                      streamUrl: server.url
+                    });
+                  }
+                  setServerSelected(true);
+                  setIsIframeLoading(true);
+                }}
+                className={`w-full p-4 rounded-xl flex items-center justify-between transition-all group border ${idx === 0 ? 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30' : 'bg-white/5 hover:bg-white/10 border-white/5'}`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${idx === 0 ? 'bg-amber-500/20 text-amber-500' : 'bg-white/10 text-white'}`}>
+                    <Play className="w-4 h-4 ml-0.5" fill="currentColor" />
+                  </div>
+                  <span className={`font-medium ${idx === 0 ? 'text-amber-500' : 'text-white group-hover:text-amber-500'}`}>{server.name}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${idx === 0 ? 'bg-green-500' : 'bg-neutral-500'}`}></div>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {showAdblockBanner && (
+            <div className="mt-2 bg-black/50 border border-yellow-500/30 rounded-xl p-4 flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-yellow-500 shrink-0" />
+              <span className="text-sm font-medium text-yellow-500 flex-1 text-left">We recommend using AdBlock for a better experience</span>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowAdblockBanner(false);
+                }}
+                className="text-neutral-500 hover:text-white transition-colors ml-auto -mr-2 -mt-2 p-2"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col justify-center items-center select-none overflow-hidden cursor-default">
-      {showAdblockBanner && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[70] bg-black/90 border border-yellow-500/50 rounded-lg px-4 py-2.5 flex items-center gap-4 shadow-2xl backdrop-blur-md">
-          <div className="flex items-center gap-2 text-yellow-500">
-            <AlertCircle className="w-4 h-4" />
-            <span className="text-sm font-medium whitespace-nowrap">We recommend using AdBlock for a better experience</span>
-          </div>
-          <button 
-            onClick={() => {
-              setShowAdblockBanner(false);
-              sessionStorage.setItem("adblockBannerDismissed", "true");
-            }}
-            className="text-gray-400 hover:text-white transition-colors ml-2 pointer-events-auto cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
       {/* UPPER DECK (GO BACK) */}
       <div className="absolute top-0 left-0 right-0 p-6 pt-[calc(1.5rem+env(safe-area-inset-top))] flex items-center justify-between z-[60] pointer-events-none">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 relative">
           {availableServers && availableServers.length > 1 && (
-            <button
-              onClick={() => {
-                const nextIndex = (activeServerIndex + 1) % availableServers.length;
-                setActiveServerIndex(nextIndex);
-                if (playbackInfo) {
-                  setPlaybackInfo({
-                    ...playbackInfo,
-                    iframeSrc: availableServers[nextIndex].url
-                  });
-                }
-              }}
-              className="pointer-events-auto px-4 py-2 rounded-full bg-black/50 hover:bg-black/80 text-white transition-all cursor-pointer flex items-center justify-center backdrop-blur-md"
-              title="Changer de serveur"
-            >
-              <span className="text-sm font-medium">Serveur {activeServerIndex + 1} : {availableServers[activeServerIndex]?.name || ''}</span>
-            </button>
+            <div className="relative">
+              <button
+                id="cinema-server-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowServerMenu(!showServerMenu);
+                }}
+                className={`pointer-events-auto px-4 py-2 rounded-full transition-all cursor-pointer flex items-center justify-center gap-2 backdrop-blur-md bg-black/50 hover:bg-black/80 text-white border border-transparent`}
+                title="Changer de serveur"
+              >
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                <span className="text-xs sm:text-sm font-medium whitespace-nowrap">{availableServers[activeServerIndex]?.name || 'Serveur'}</span>
+                <ChevronDown className="w-4 h-4 opacity-70" />
+              </button>
+              
+              {showServerMenu && (
+                <div id="cinema-server-menu" className="absolute top-full left-0 mt-2 min-w-[200px] bg-black/90 border border-white/10 rounded-xl overflow-hidden shadow-2xl backdrop-blur-xl pointer-events-auto z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="p-2 border-b border-white/10 text-xs font-semibold text-white/50 uppercase tracking-wider">
+                    Serveur de lecture
+                  </div>
+                  <div className="flex flex-col py-1">
+                    {availableServers.map((server, idx) => (
+                      <button
+                        key={idx}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveServerIndex(idx);
+                          if (playbackInfo) {
+                            setPlaybackInfo({
+                              ...playbackInfo,
+                              iframeSrc: server.url,
+                              streamUrl: server.url
+                            });
+                          }
+                          setShowServerMenu(false);
+                        }}
+                        className={`px-4 py-3 text-sm flex items-center gap-3 transition-colors ${activeServerIndex === idx ? 'bg-amber-500/10 text-amber-500' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}
+                      >
+                        <div className={`w-1.5 h-1.5 rounded-full ${activeServerIndex === idx ? 'bg-amber-500' : 'bg-transparent'}`}></div>
+                        {server.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
         
@@ -1802,6 +1951,7 @@ export default function CinemaPlayerView({
       {playbackInfo?.iframeSrc ? (
         <div className="absolute inset-0 w-full h-full bg-black z-40 pointer-events-auto flex items-center justify-center">
           <iframe
+            key={playbackInfo.iframeSrc}
             src={playbackInfo.iframeSrc}
             allowFullScreen={true}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"

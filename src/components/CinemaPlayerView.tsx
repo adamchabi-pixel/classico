@@ -379,15 +379,11 @@ export default function CinemaPlayerView({
     });
   };
 
-  // --- TIKTOK POPUNDER FIX ---
-  // Objectif: Désactiver les popunders uniquement pendant la lecture vidéo pour le navigateur in-app TikTok
+  // --- GLOBAL POPUNDER & AD FIX ---
+  // Objectif: Désactiver les popunders uniquement pendant la lecture vidéo
   useEffect(() => {
-    const isTikTok = /TikTok|Bytedance|musical_ly/i.test(navigator.userAgent);
-    if (!isTikTok) return;
-
-
     const originalWindowOpen = window.open;
-    window.open = function(url?: string | URL, target?: string, features?: string) {
+    window.open = function() {
       return null;
     } as any;
 
@@ -1865,9 +1861,32 @@ export default function CinemaPlayerView({
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col justify-center items-center select-none overflow-hidden cursor-default">
-      {/* UPPER DECK (GO BACK) */}
-      <div className="absolute top-0 left-0 right-0 p-6 pt-[calc(1.5rem+env(safe-area-inset-top))] flex items-center justify-between z-[60] pointer-events-none">
-        <div className="flex items-center gap-2 relative">
+      {/* INTERCEPTOR OVERLAY TO WAKE UP CONTROLS (IFRAME ONLY) */}
+      {!controlsVisible && playbackInfo?.isIframeEmbed && (
+        <div 
+          className="absolute inset-0 z-[55] cursor-default pointer-events-auto"
+          onPointerDown={() => {
+            resetInactivityTimer();
+          }}
+        />
+      )}
+      
+      {/* UPPER DECK (GO BACK & SERVERS) */}
+      <div className={`absolute top-0 left-0 right-0 p-4 sm:p-6 pt-[calc(0.5rem+env(safe-area-inset-top))] sm:pt-[calc(1.5rem+env(safe-area-inset-top))] flex items-center justify-between z-[60] pointer-events-none transition-opacity duration-300 ${controlsVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        
+        {/* LEFT: BACK + SERVER */}
+        <div className="flex items-center gap-2 relative z-10 w-1/3">
+          <button
+            onClick={() => {
+              if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+              onClose();
+            }}
+            className="pointer-events-auto p-2 sm:p-2 rounded-full bg-black/50 hover:bg-black/80 text-white/90 hover:text-white transition-all cursor-pointer flex items-center justify-center backdrop-blur-md"
+            title="Back"
+          >
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
+          
           {availableServers && availableServers.length > 1 && (
             <div className="relative">
               <button
@@ -1876,12 +1895,12 @@ export default function CinemaPlayerView({
                   e.stopPropagation();
                   setShowServerMenu(!showServerMenu);
                 }}
-                className={`pointer-events-auto px-4 py-2 rounded-full transition-all cursor-pointer flex items-center justify-center gap-2 backdrop-blur-md bg-black/50 hover:bg-black/80 text-white border border-transparent`}
+                className={`pointer-events-auto px-3 py-1.5 sm:px-4 sm:py-2 rounded-full transition-all cursor-pointer flex items-center justify-center gap-1.5 backdrop-blur-md bg-black/50 hover:bg-black/80 text-white border border-transparent`}
                 title="Changer de serveur"
               >
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="text-xs sm:text-sm font-medium whitespace-nowrap">{availableServers[activeServerIndex]?.name || 'Serveur'}</span>
-                <ChevronDown className="w-4 h-4 opacity-70" />
+                <span className="text-[10px] sm:text-xs font-medium whitespace-nowrap">{availableServers[activeServerIndex]?.name || 'Serveur'}</span>
+                <ChevronDown className="w-3 h-3 opacity-70" />
               </button>
               
               {showServerMenu && (
@@ -1918,23 +1937,12 @@ export default function CinemaPlayerView({
           )}
         </div>
         
-        <div className="flex items-center gap-3">
-          {movieTitle && (
-            <div className="pointer-events-auto hidden sm:flex px-4 py-2 rounded-full bg-black/50 text-white/90 backdrop-blur-md items-center justify-center">
-              <span className="text-sm font-medium">{movieTitle}</span>
-            </div>
-          )}
-          <button
-            onClick={() => {
-              if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-              onClose();
-            }}
-            className="pointer-events-auto p-2 rounded-full bg-black/50 hover:bg-black/80 text-white/70 hover:text-white transition-all cursor-pointer flex items-center justify-center backdrop-blur-md"
-            title="Back"
-          >
-            <ArrowLeft className="w-6 h-6" />
-          </button>
+        {/* CENTER: TITLE (Removed) */}
+        <div className="flex-1 flex justify-center items-center pointer-events-none w-1/3 absolute left-1/2 -translate-x-1/2">
         </div>
+        
+        {/* RIGHT: EMPTY / SPACING FOR AIRPLAY */}
+        <div className="w-1/3 flex justify-end"></div>
       </div>
 
       {/* Loader overlay */}

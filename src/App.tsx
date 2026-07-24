@@ -1349,20 +1349,65 @@ export default function App() {
   const [isSearchingTmdb, setIsSearchingTmdb] = useState(false);
 
   useEffect(() => {
-    fetch("/api/trending")
-      .then(res => res.json())
-      .then(data => {
+    const fetchTrending = async () => {
+      try {
+        const res = await fetch("/api/trending");
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const text = await res.text();
+        const data = JSON.parse(text);
         if (data.success && data.results) {
           setTmdbCache(prev => {
             const map = new Map(prev.map(m => [m.id, m]));
-            data.results.forEach((m) => map.set(m.id, m));
+            data.results.forEach((m: any) => map.set(m.id, m));
             const newCache = Array.from(map.values());
             localStorage.setItem("classico_tmdb_cache", JSON.stringify(newCache));
             return newCache;
           });
+          return;
         }
-      })
-      .catch(e => console.error("Trending error:", e));
+      } catch (e) {
+        console.error("Trending API failed, trying TMDB fallback:", e);
+      }
+      
+      // Fallback for static deployments
+      const tmdbToken = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs";
+      try {
+        const url = `https://api.themoviedb.org/3/trending/all/day?language=en-US&page=1`;
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${tmdbToken}`, Accept: "application/json" } });
+        if (res.ok) {
+          const m = await res.json();
+          if (m.results) {
+            const formatted = m.results.map((r: any) => {
+              const isTv = r.media_type === "tv";
+              return {
+                id: String(r.id) + (isTv ? "-tv" : ""),
+                tmdbId: String(r.id),
+                isTv,
+                title: isTv ? r.name : r.title,
+                originalTitle: isTv ? r.original_name : r.original_title,
+                description: r.overview,
+                posterUrl: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : "",
+                backdropUrl: r.backdrop_path ? `https://image.tmdb.org/t/p/w780${r.backdrop_path}` : "",
+                year: r.release_date ? parseInt(r.release_date.split("-")[0]) : (r.first_air_date ? parseInt(r.first_air_date.split("-")[0]) : 0),
+                voteAverage: r.vote_average,
+                isIframeEmbed: true,
+                iframeSrc: ""
+              };
+            });
+            setTmdbCache(prev => {
+              const map = new Map(prev.map((item: any) => [item.id, item]));
+              formatted.forEach((item: any) => map.set(item.id, item));
+              const newCache = Array.from(map.values());
+              localStorage.setItem("classico_tmdb_cache", JSON.stringify(newCache));
+              return newCache;
+            });
+          }
+        }
+      } catch (err) {
+        console.error("TMDB Fallback failed:", err);
+      }
+    };
+    fetchTrending();
   }, []);
 
   

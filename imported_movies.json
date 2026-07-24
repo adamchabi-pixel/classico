@@ -2687,5 +2687,1153 @@
     "isIframeEmbed": true,
     "seasons": [],
     "iframeSrc": "https://111movies.net/movie/111"
+  },
+  {
+    "id": "b1023982e27edf175c408667d6335c10",
+    "tmdbId": "603",
+    "imdbId": "tt0133093",
+    "isTv": false,
+    "tagline": "Believe the unbelievable.",
+    "title": "The Matrix",
+    "originalTitle": "The Matrix",
+    "originalLanguage": "en",
+    "description": "Set in the 22nd century, The Matrix tells the story of a computer hacker who joins a group of underground insurgents fighting the vast and powerful computers who now rule the earth.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/dXNAPwY7VrqMAo51EKhhCJfaGb5.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/original/tlm8UkiQsitc8rSuIAscQDCnP8d.jpg",
+    "year": 1999,
+    "duration": 136,
+    "director": "Lana Wachowski",
+    "cast": [
+      "Keanu Reeves",
+      "Laurence Fishburne",
+      "Carrie-Anne Moss",
+      "Hugo Weaving"
+    ],
+    "logoUrl": "https://image.tmdb.org/t/p/w500/sas6S70fOJIeMTtFUMyRn9GkIOU.png",
+    "hasLogo": true,
+    "castDetails": [
+      {
+        "id": "6384",
+        "name": "Keanu Reeves",
+        "role": "Neo",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/8RZLOyYGsoRe9p44q3xin9QkMHv.jpg"
+      },
+      {
+        "id": "2975",
+        "name": "Laurence Fishburne",
+        "role": "Morpheus",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/2GbXERENPpl5MmlqOLlPVaVtifD.jpg"
+      },
+      {
+        "id": "530",
+        "name": "Carrie-Anne Moss",
+        "role": "Trinity",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/xD4jTA3KmVp5Rq3aHcymL9DUGjD.jpg"
+      },
+      {
+        "id": "1331",
+        "name": "Hugo Weaving",
+        "role": "Agent Smith",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/lSC8Et0PYi5zeQb3IpPkFje7hgR.jpg"
+      },
+      {
+        "id": "9364",
+        "name": "Gloria Foster",
+        "role": "Oracle",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/AriGXtC9fjBOia9Zr8CZjn4o3rx.jpg"
+      },
+      {
+        "id": "532",
+        "name": "Joe Pantoliano",
+        "role": "Cypher",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/3OHUI3nX4SYGGItDk3xqeIvWtIf.jpg"
+      },
+      {
+        "id": "9372",
+        "name": "Marcus Chong",
+        "role": "Tank",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/q9HQttibTj2MoXVtLjq2kKqmPrE.jpg"
+      },
+      {
+        "id": "7244",
+        "name": "Julian Arahanga",
+        "role": "Apoc",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/g2YkF3PWSJU1vTKuURBH0DOMblm.jpg"
+      }
+    ],
+    "similar": [
+      {
+        "id": "97",
+        "tmdbId": "97",
+        "isTv": false,
+        "title": "Tron",
+        "description": "When brilliant video game maker Flynn hacks the mainframe of his ex-employer, he is beamed inside an astonishing digital world and becomes part of the very game he is designing. In his mission through cyberspace, Flynn matches wits with a maniacal Master Control Program and teams up with Tron, a security measure created to bring balance to the digital environment.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/jigY9B6TKz4qlfikZcd18qtzTK4.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/vUmeBHiGp5r2ydd8aEvbNLamTVD.jpg",
+        "year": 1982
+      },
+      {
+        "id": "14756",
+        "tmdbId": "14756",
+        "isTv": false,
+        "title": "Ip Man",
+        "description": "A semi-biographical account of Yip Man, the first martial arts master to teach the Chinese martial art of Wing Chun. The film focuses on events surrounding Ip that took place in the city of Foshan between the 1930s to 1940s during the Second Sino-Japanese War. Directed by Wilson Yip, the film stars Donnie Yen in the lead role, and features fight choreography by Sammo Hung.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/9bUIrDKnesNbBL1nAl1nt7gtocE.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/69QJSMkm5Hh0x9fLElZ8hjv5N4P.jpg",
+        "year": 2008
+      },
+      {
+        "id": "14763",
+        "tmdbId": "14763",
+        "isTv": false,
+        "title": "Shadowless Sword",
+        "description": "927 AD. The Killer-Blade Army has toppled the ruling dynasty, plunging the kingdom into chaos. The only remaining heir, Prince Jung-Hyun is living in exile, unaware of his family's dark fate. Still loyal to the dynasty, the beautiful and deadly warrior Soha sets out to find Jung-Hyun and guide him to become the great leader he was born to be. But with the Army's greatest assassins and the criminal underworld hunting them, Soha and Jung-Hyun are swept into an explosive, non-stop battle of swords, wits and bloodshed as they fight to reclaim the fallen throne.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/g8zYKidsjUXDjftPWo9DkrV2gcC.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/bYs3TKUT7MlxrrUssUuB5UvMARo.jpg",
+        "year": 2005
+      },
+      {
+        "id": "14801",
+        "tmdbId": "14801",
+        "isTv": false,
+        "title": "Colossus: The Forbin Project",
+        "description": "The U.S. has handed over control of its nuclear defense system to the Colossus supercomputer designed by scientist Dr. Charles Forbin. It soon becomes clear, that the now-sentient Colossus is far more intelligent than its creator realized—with the fate of the world hanging in the balance.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/kmVDlTzERxSvBrqtQurjKf1zEy1.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/3eV9l3HhOGOytCilHJOACDL9DIT.jpg",
+        "year": 1970
+      },
+      {
+        "id": "451518",
+        "tmdbId": "451518",
+        "isTv": false,
+        "title": "Real Artists",
+        "description": "In the near future, a young animator is offered what should be her dream job, but, when she discovers the truth of the modern 'creative' process, she must make a hard choice about her passion for film.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/fi5ETi6rh66gLV2plosTLW4ulGb.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/2cGlV6X6INdvYlfnTXrTJyyWYg2.jpg",
+        "year": 2017
+      },
+      {
+        "id": "1196067",
+        "tmdbId": "1196067",
+        "isTv": false,
+        "title": "Worldbreaker",
+        "description": "Five years ago, a tear in the fabric of reality brought creatures to our world from an alternate dimension bent on our destruction. A father hides his daughter on an island to keep her safe while he prepares her for survival and the battles to come. But when the world is about to break, no place is safe.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/ahj1JU8r0uJv7QII5Uj7tKzbEsC.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/gMItMzDOyrfQGZsMWRM9tdxq5cV.jpg",
+        "year": 2025
+      },
+      {
+        "id": "274530",
+        "tmdbId": "274530",
+        "isTv": false,
+        "title": "Story in the Temple Red Lily",
+        "description": "When the emperor becomes ill and the Sung Dynasty is threatened by an evil baron, a patriotic officer named Ree (Chia Ling) is assigned to the imperial palace to protect the sacred temple from rebels. Prepare to be chopped and kicked as Ling displays some martial arts fireworks in this 1979 curiosity.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/dPcGcrMpI6tgbIrErJOCTFIcQYa.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/bGwSVWr1DZaRAOaIAIBanXrNhho.jpg",
+        "year": 1976
+      },
+      {
+        "id": "14353",
+        "tmdbId": "14353",
+        "isTv": false,
+        "title": "Repo! The Genetic Opera",
+        "description": "By the year 2056, an epidemic of organ failures has devastated the planet. The megacorporation GeneCo provides organ transplants on a payment plan — and those unable to fulfill their plans have their organs repossessed. In the midst of this, a sickly teenager discovers a shocking secret about herself, her father, and their connection to GeneCo.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/2G5LczM1clXu3byEudWk9w0KDYD.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/xLH9jvY4tNzcKvopgEGYI7YeAy7.jpg",
+        "year": 2008
+      }
+    ],
+    "genre": [
+      "Action",
+      "Science Fiction"
+    ],
+    "voteAverage": 8.252,
+    "isIframeEmbed": true,
+    "seasons": [],
+    "iframeSrc": "https://111movies.net/movie/603"
+  },
+  {
+    "id": "603",
+    "tmdbId": "603",
+    "imdbId": "tt0133093",
+    "isTv": false,
+    "tagline": "Believe the unbelievable.",
+    "title": "The Matrix",
+    "originalTitle": "The Matrix",
+    "originalLanguage": "en",
+    "description": "Set in the 22nd century, The Matrix tells the story of a computer hacker who joins a group of underground insurgents fighting the vast and powerful computers who now rule the earth.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/dXNAPwY7VrqMAo51EKhhCJfaGb5.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/original/tlm8UkiQsitc8rSuIAscQDCnP8d.jpg",
+    "year": 1999,
+    "duration": 136,
+    "director": "Lana Wachowski",
+    "cast": [
+      "Keanu Reeves",
+      "Laurence Fishburne",
+      "Carrie-Anne Moss",
+      "Hugo Weaving"
+    ],
+    "logoUrl": "https://image.tmdb.org/t/p/w500/sas6S70fOJIeMTtFUMyRn9GkIOU.png",
+    "hasLogo": true,
+    "castDetails": [
+      {
+        "id": "6384",
+        "name": "Keanu Reeves",
+        "role": "Neo",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/8RZLOyYGsoRe9p44q3xin9QkMHv.jpg"
+      },
+      {
+        "id": "2975",
+        "name": "Laurence Fishburne",
+        "role": "Morpheus",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/2GbXERENPpl5MmlqOLlPVaVtifD.jpg"
+      },
+      {
+        "id": "530",
+        "name": "Carrie-Anne Moss",
+        "role": "Trinity",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/xD4jTA3KmVp5Rq3aHcymL9DUGjD.jpg"
+      },
+      {
+        "id": "1331",
+        "name": "Hugo Weaving",
+        "role": "Agent Smith",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/lSC8Et0PYi5zeQb3IpPkFje7hgR.jpg"
+      },
+      {
+        "id": "9364",
+        "name": "Gloria Foster",
+        "role": "Oracle",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/AriGXtC9fjBOia9Zr8CZjn4o3rx.jpg"
+      },
+      {
+        "id": "532",
+        "name": "Joe Pantoliano",
+        "role": "Cypher",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/3OHUI3nX4SYGGItDk3xqeIvWtIf.jpg"
+      },
+      {
+        "id": "9372",
+        "name": "Marcus Chong",
+        "role": "Tank",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/q9HQttibTj2MoXVtLjq2kKqmPrE.jpg"
+      },
+      {
+        "id": "7244",
+        "name": "Julian Arahanga",
+        "role": "Apoc",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/g2YkF3PWSJU1vTKuURBH0DOMblm.jpg"
+      }
+    ],
+    "similar": [
+      {
+        "id": "97",
+        "tmdbId": "97",
+        "isTv": false,
+        "title": "Tron",
+        "description": "When brilliant video game maker Flynn hacks the mainframe of his ex-employer, he is beamed inside an astonishing digital world and becomes part of the very game he is designing. In his mission through cyberspace, Flynn matches wits with a maniacal Master Control Program and teams up with Tron, a security measure created to bring balance to the digital environment.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/jigY9B6TKz4qlfikZcd18qtzTK4.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/vUmeBHiGp5r2ydd8aEvbNLamTVD.jpg",
+        "year": 1982
+      },
+      {
+        "id": "14756",
+        "tmdbId": "14756",
+        "isTv": false,
+        "title": "Ip Man",
+        "description": "A semi-biographical account of Yip Man, the first martial arts master to teach the Chinese martial art of Wing Chun. The film focuses on events surrounding Ip that took place in the city of Foshan between the 1930s to 1940s during the Second Sino-Japanese War. Directed by Wilson Yip, the film stars Donnie Yen in the lead role, and features fight choreography by Sammo Hung.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/9bUIrDKnesNbBL1nAl1nt7gtocE.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/69QJSMkm5Hh0x9fLElZ8hjv5N4P.jpg",
+        "year": 2008
+      },
+      {
+        "id": "14763",
+        "tmdbId": "14763",
+        "isTv": false,
+        "title": "Shadowless Sword",
+        "description": "927 AD. The Killer-Blade Army has toppled the ruling dynasty, plunging the kingdom into chaos. The only remaining heir, Prince Jung-Hyun is living in exile, unaware of his family's dark fate. Still loyal to the dynasty, the beautiful and deadly warrior Soha sets out to find Jung-Hyun and guide him to become the great leader he was born to be. But with the Army's greatest assassins and the criminal underworld hunting them, Soha and Jung-Hyun are swept into an explosive, non-stop battle of swords, wits and bloodshed as they fight to reclaim the fallen throne.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/g8zYKidsjUXDjftPWo9DkrV2gcC.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/bYs3TKUT7MlxrrUssUuB5UvMARo.jpg",
+        "year": 2005
+      },
+      {
+        "id": "14801",
+        "tmdbId": "14801",
+        "isTv": false,
+        "title": "Colossus: The Forbin Project",
+        "description": "The U.S. has handed over control of its nuclear defense system to the Colossus supercomputer designed by scientist Dr. Charles Forbin. It soon becomes clear, that the now-sentient Colossus is far more intelligent than its creator realized—with the fate of the world hanging in the balance.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/kmVDlTzERxSvBrqtQurjKf1zEy1.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/3eV9l3HhOGOytCilHJOACDL9DIT.jpg",
+        "year": 1970
+      },
+      {
+        "id": "451518",
+        "tmdbId": "451518",
+        "isTv": false,
+        "title": "Real Artists",
+        "description": "In the near future, a young animator is offered what should be her dream job, but, when she discovers the truth of the modern 'creative' process, she must make a hard choice about her passion for film.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/fi5ETi6rh66gLV2plosTLW4ulGb.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/2cGlV6X6INdvYlfnTXrTJyyWYg2.jpg",
+        "year": 2017
+      },
+      {
+        "id": "1196067",
+        "tmdbId": "1196067",
+        "isTv": false,
+        "title": "Worldbreaker",
+        "description": "Five years ago, a tear in the fabric of reality brought creatures to our world from an alternate dimension bent on our destruction. A father hides his daughter on an island to keep her safe while he prepares her for survival and the battles to come. But when the world is about to break, no place is safe.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/ahj1JU8r0uJv7QII5Uj7tKzbEsC.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/gMItMzDOyrfQGZsMWRM9tdxq5cV.jpg",
+        "year": 2025
+      },
+      {
+        "id": "274530",
+        "tmdbId": "274530",
+        "isTv": false,
+        "title": "Story in the Temple Red Lily",
+        "description": "When the emperor becomes ill and the Sung Dynasty is threatened by an evil baron, a patriotic officer named Ree (Chia Ling) is assigned to the imperial palace to protect the sacred temple from rebels. Prepare to be chopped and kicked as Ling displays some martial arts fireworks in this 1979 curiosity.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/dPcGcrMpI6tgbIrErJOCTFIcQYa.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/bGwSVWr1DZaRAOaIAIBanXrNhho.jpg",
+        "year": 1976
+      },
+      {
+        "id": "14353",
+        "tmdbId": "14353",
+        "isTv": false,
+        "title": "Repo! The Genetic Opera",
+        "description": "By the year 2056, an epidemic of organ failures has devastated the planet. The megacorporation GeneCo provides organ transplants on a payment plan — and those unable to fulfill their plans have their organs repossessed. In the midst of this, a sickly teenager discovers a shocking secret about herself, her father, and their connection to GeneCo.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/2G5LczM1clXu3byEudWk9w0KDYD.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/xLH9jvY4tNzcKvopgEGYI7YeAy7.jpg",
+        "year": 2008
+      }
+    ],
+    "genre": [
+      "Action",
+      "Science Fiction"
+    ],
+    "voteAverage": 8.252,
+    "isIframeEmbed": true,
+    "seasons": [],
+    "iframeSrc": "https://111movies.net/movie/603"
+  },
+  {
+    "id": "83219aef79eeec58a306aac526257953",
+    "tmdbId": "12153",
+    "imdbId": "tt0381707",
+    "isTv": false,
+    "tagline": "They're going deep undercover.",
+    "title": "White Chicks",
+    "originalTitle": "White Chicks",
+    "originalLanguage": "en",
+    "description": "Two FBI agent brothers, Marcus and Kevin Copeland, accidentally foil a drug bust. To avoid being fired they accept a mission escorting a pair of socialites to the Hamptons--but when the girls are disfigured in a car accident, they refuse to go. Left without options, Marcus and Kevin decide to pose as the sisters, transforming themselves from black men into rich European-American women.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/aHTUpo45qy9QYIOnVITGGqLoVcA.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/original/85k0kaoRgGmF6ACq0M61AFxhjLN.jpg",
+    "year": 2004,
+    "duration": 109,
+    "director": "Keenen Ivory Wayans",
+    "cast": [
+      "Shawn Wayans",
+      "Marlon Wayans",
+      "Frankie Faison",
+      "Terry Crews"
+    ],
+    "logoUrl": "https://image.tmdb.org/t/p/w500/cUcBiNXQMc9iJO9GJXt4qjJkkd.png",
+    "hasLogo": true,
+    "castDetails": [
+      {
+        "id": "35690",
+        "name": "Shawn Wayans",
+        "role": "Kevin Copeland / Brittany Wilson",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/Cat25uXhB680QLmvg9Tu16W563.jpg"
+      },
+      {
+        "id": "9562",
+        "name": "Marlon Wayans",
+        "role": "Marcus Anthony Copeland II / Tiffany Wilson",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/7LYnX3vluHFBs1WCRKUjSIEDEkn.jpg"
+      },
+      {
+        "id": "13936",
+        "name": "Frankie Faison",
+        "role": "Elliott Gordon",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/3717JOXK2Z8qelfyvScDGimfFBf.jpg"
+      },
+      {
+        "id": "53256",
+        "name": "Terry Crews",
+        "role": "Latrell Spencer",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/pxTY4SglLo5hFcMH00MxPeC5u55.jpg"
+      },
+      {
+        "id": "58953",
+        "name": "Faune Chambers Watkins",
+        "role": "Gina Copeland",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/iP1x9TsE9RzluXQjTtY0Ujxhp9r.jpg"
+      },
+      {
+        "id": "80760",
+        "name": "Rochelle Aytes",
+        "role": "Denise Porter",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/wn2555ynBlXnBd6jyFuW0bedcng.jpg"
+      },
+      {
+        "id": "11512",
+        "name": "John Heard",
+        "role": "Warren Vandergeld",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/zjhcxrCFK4q0C1gtVmeN8FeqCw0.jpg"
+      },
+      {
+        "id": "58058",
+        "name": "Lochlyn Munro",
+        "role": "Agent Jake Harper",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/bOJ03k0oe2R6snRgzV8M4Qtoo4O.jpg"
+      }
+    ],
+    "similar": [
+      {
+        "id": "258545",
+        "tmdbId": "258545",
+        "isTv": false,
+        "title": "Our Miss Fred",
+        "description": "Danny La Rue stars in this 1970s drag comedy as Fred Wimbush, a Shakespearean actor who is drafted into WWII and is appearing in a camp show in France when the Nazis advance. Unless he continues in his female costume, Fred is certain to be shot as a spy. The risque gags and double entendres fly as he attempts to make his escape in the company of a troupe of Girl Guides.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/8cX13amSldhT0O8nfz5UxhHeHlU.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/IMky2tY7aArj62xYxyftABbRmN.jpg",
+        "year": 1972
+      },
+      {
+        "id": "258780",
+        "tmdbId": "258780",
+        "isTv": false,
+        "title": "Changing Skins",
+        "description": "Inspired by West German terrorists, two pupils kidnap a teacher in East Germany.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/aeZY1mF5Yshio50FLrtB3idrMEH.jpg",
+        "backdropUrl": "",
+        "year": 1997
+      },
+      {
+        "id": "438081",
+        "tmdbId": "438081",
+        "isTv": false,
+        "title": "Duckweed",
+        "description": "When a son attempts to reconcile with his father, a series of fateful events allow him to experience the father's life in the past.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/qGQHrrodfrpvRRm9OuJ7s6KmFkA.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/usZOcneQvvluCpoPO0fPsqCFDmf.jpg",
+        "year": 2017
+      },
+      {
+        "id": "35",
+        "tmdbId": "35",
+        "isTv": false,
+        "title": "The Simpsons Movie",
+        "description": "After Homer accidentally pollutes the town's water supply, Springfield is encased in a gigantic dome by the EPA and the Simpsons are declared fugitives.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/s3b8TZWwmkYc2KoJ5zk77qB6PzY.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/8ln5VUVk7gnNGIb2VNgw8nICDVt.jpg",
+        "year": 2007
+      },
+      {
+        "id": "71",
+        "tmdbId": "71",
+        "isTv": false,
+        "title": "Billy Elliot",
+        "description": "County Durham, England, 1984. The miners' strike has started and the police have started coming up from Bethnal Green, starting a class war with the lower classes suffering. Caught in the middle of the conflict is 11-year old Billy Elliot, who, after leaving his boxing club for the day, stumbles upon a ballet class and finds out that he's naturally talented. He practices with his teacher Mrs. Wilkinson for an upcoming audition in Newcastle-upon Tyne for the royal Ballet school in London.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/mYtqgWCJiXpDeZwjVcC3OQGD8IR.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/urzflyf41uySpgciGHdQzpcaMOY.jpg",
+        "year": 2000
+      },
+      {
+        "id": "90",
+        "tmdbId": "90",
+        "isTv": false,
+        "title": "Beverly Hills Cop",
+        "description": "Fast-talking, quick-thinking Detroit street cop Axel Foley has bent more than a few rules and regs in his time, but when his best friend is murdered, he heads to sunny Beverly Hills to work the case like only he can.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/eBJEvKkhQ0tUt1dBAcTEYW6kCle.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/p256RduW9wMC3uhGJTerywmGiiX.jpg",
+        "year": 1984
+      },
+      {
+        "id": "115",
+        "tmdbId": "115",
+        "isTv": false,
+        "title": "The Big Lebowski",
+        "description": "Jeffrey 'The Dude' Lebowski, a Los Angeles slacker who only wants to bowl and drink White Russians, is mistaken for another Jeffrey Lebowski, a wheelchair-bound millionaire, and finds himself dragged into a strange series of events involving nihilists, adult film producers, ferrets, errant toes, and large sums of money.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/3bv6WAp6BSxxYvB5ozKFUYuRA8C.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/hXsy4XCCHrUk81XoRhcooyWejao.jpg",
+        "year": 1998
+      },
+      {
+        "id": "275",
+        "tmdbId": "275",
+        "isTv": false,
+        "title": "Fargo",
+        "description": "Jerry, a small-town Minnesota car salesman is bursting at the seams with debt... but he's got a plan. He's going to hire two thugs to kidnap his wife in a scheme to collect a hefty ransom from his wealthy father-in-law. It's going to be a snap and nobody's going to get hurt... until people start dying. Enter Police Chief Marge, a coffee-drinking, parka-wearing - and extremely pregnant - investigator who'll stop at nothing to get her man. And if you think her small-time investigative skills will give the crooks a run for their ransom... you betcha!",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/rt7cpEr1uP6RTZykBFhBTcRaKvG.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/747dgDfL5d8esobk7h4odaOFhUq.jpg",
+        "year": 1996
+      }
+    ],
+    "genre": [
+      "Comedy",
+      "Crime"
+    ],
+    "voteAverage": 6.956,
+    "isIframeEmbed": true,
+    "seasons": [],
+    "iframeSrc": "https://111movies.net/movie/12153"
+  },
+  {
+    "id": "12153",
+    "tmdbId": "12153",
+    "imdbId": "tt0381707",
+    "isTv": false,
+    "tagline": "They're going deep undercover.",
+    "title": "White Chicks",
+    "originalTitle": "White Chicks",
+    "originalLanguage": "en",
+    "description": "Two FBI agent brothers, Marcus and Kevin Copeland, accidentally foil a drug bust. To avoid being fired they accept a mission escorting a pair of socialites to the Hamptons--but when the girls are disfigured in a car accident, they refuse to go. Left without options, Marcus and Kevin decide to pose as the sisters, transforming themselves from black men into rich European-American women.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/aHTUpo45qy9QYIOnVITGGqLoVcA.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/original/85k0kaoRgGmF6ACq0M61AFxhjLN.jpg",
+    "year": 2004,
+    "duration": 109,
+    "director": "Keenen Ivory Wayans",
+    "cast": [
+      "Shawn Wayans",
+      "Marlon Wayans",
+      "Frankie Faison",
+      "Terry Crews"
+    ],
+    "logoUrl": "https://image.tmdb.org/t/p/w500/cUcBiNXQMc9iJO9GJXt4qjJkkd.png",
+    "hasLogo": true,
+    "castDetails": [
+      {
+        "id": "35690",
+        "name": "Shawn Wayans",
+        "role": "Kevin Copeland / Brittany Wilson",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/Cat25uXhB680QLmvg9Tu16W563.jpg"
+      },
+      {
+        "id": "9562",
+        "name": "Marlon Wayans",
+        "role": "Marcus Anthony Copeland II / Tiffany Wilson",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/7LYnX3vluHFBs1WCRKUjSIEDEkn.jpg"
+      },
+      {
+        "id": "13936",
+        "name": "Frankie Faison",
+        "role": "Elliott Gordon",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/3717JOXK2Z8qelfyvScDGimfFBf.jpg"
+      },
+      {
+        "id": "53256",
+        "name": "Terry Crews",
+        "role": "Latrell Spencer",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/pxTY4SglLo5hFcMH00MxPeC5u55.jpg"
+      },
+      {
+        "id": "58953",
+        "name": "Faune Chambers Watkins",
+        "role": "Gina Copeland",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/iP1x9TsE9RzluXQjTtY0Ujxhp9r.jpg"
+      },
+      {
+        "id": "80760",
+        "name": "Rochelle Aytes",
+        "role": "Denise Porter",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/wn2555ynBlXnBd6jyFuW0bedcng.jpg"
+      },
+      {
+        "id": "11512",
+        "name": "John Heard",
+        "role": "Warren Vandergeld",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/zjhcxrCFK4q0C1gtVmeN8FeqCw0.jpg"
+      },
+      {
+        "id": "58058",
+        "name": "Lochlyn Munro",
+        "role": "Agent Jake Harper",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/bOJ03k0oe2R6snRgzV8M4Qtoo4O.jpg"
+      }
+    ],
+    "similar": [
+      {
+        "id": "258545",
+        "tmdbId": "258545",
+        "isTv": false,
+        "title": "Our Miss Fred",
+        "description": "Danny La Rue stars in this 1970s drag comedy as Fred Wimbush, a Shakespearean actor who is drafted into WWII and is appearing in a camp show in France when the Nazis advance. Unless he continues in his female costume, Fred is certain to be shot as a spy. The risque gags and double entendres fly as he attempts to make his escape in the company of a troupe of Girl Guides.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/8cX13amSldhT0O8nfz5UxhHeHlU.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/IMky2tY7aArj62xYxyftABbRmN.jpg",
+        "year": 1972
+      },
+      {
+        "id": "258780",
+        "tmdbId": "258780",
+        "isTv": false,
+        "title": "Changing Skins",
+        "description": "Inspired by West German terrorists, two pupils kidnap a teacher in East Germany.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/aeZY1mF5Yshio50FLrtB3idrMEH.jpg",
+        "backdropUrl": "",
+        "year": 1997
+      },
+      {
+        "id": "438081",
+        "tmdbId": "438081",
+        "isTv": false,
+        "title": "Duckweed",
+        "description": "When a son attempts to reconcile with his father, a series of fateful events allow him to experience the father's life in the past.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/qGQHrrodfrpvRRm9OuJ7s6KmFkA.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/usZOcneQvvluCpoPO0fPsqCFDmf.jpg",
+        "year": 2017
+      },
+      {
+        "id": "35",
+        "tmdbId": "35",
+        "isTv": false,
+        "title": "The Simpsons Movie",
+        "description": "After Homer accidentally pollutes the town's water supply, Springfield is encased in a gigantic dome by the EPA and the Simpsons are declared fugitives.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/s3b8TZWwmkYc2KoJ5zk77qB6PzY.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/8ln5VUVk7gnNGIb2VNgw8nICDVt.jpg",
+        "year": 2007
+      },
+      {
+        "id": "71",
+        "tmdbId": "71",
+        "isTv": false,
+        "title": "Billy Elliot",
+        "description": "County Durham, England, 1984. The miners' strike has started and the police have started coming up from Bethnal Green, starting a class war with the lower classes suffering. Caught in the middle of the conflict is 11-year old Billy Elliot, who, after leaving his boxing club for the day, stumbles upon a ballet class and finds out that he's naturally talented. He practices with his teacher Mrs. Wilkinson for an upcoming audition in Newcastle-upon Tyne for the royal Ballet school in London.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/mYtqgWCJiXpDeZwjVcC3OQGD8IR.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/urzflyf41uySpgciGHdQzpcaMOY.jpg",
+        "year": 2000
+      },
+      {
+        "id": "90",
+        "tmdbId": "90",
+        "isTv": false,
+        "title": "Beverly Hills Cop",
+        "description": "Fast-talking, quick-thinking Detroit street cop Axel Foley has bent more than a few rules and regs in his time, but when his best friend is murdered, he heads to sunny Beverly Hills to work the case like only he can.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/eBJEvKkhQ0tUt1dBAcTEYW6kCle.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/p256RduW9wMC3uhGJTerywmGiiX.jpg",
+        "year": 1984
+      },
+      {
+        "id": "115",
+        "tmdbId": "115",
+        "isTv": false,
+        "title": "The Big Lebowski",
+        "description": "Jeffrey 'The Dude' Lebowski, a Los Angeles slacker who only wants to bowl and drink White Russians, is mistaken for another Jeffrey Lebowski, a wheelchair-bound millionaire, and finds himself dragged into a strange series of events involving nihilists, adult film producers, ferrets, errant toes, and large sums of money.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/3bv6WAp6BSxxYvB5ozKFUYuRA8C.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/hXsy4XCCHrUk81XoRhcooyWejao.jpg",
+        "year": 1998
+      },
+      {
+        "id": "275",
+        "tmdbId": "275",
+        "isTv": false,
+        "title": "Fargo",
+        "description": "Jerry, a small-town Minnesota car salesman is bursting at the seams with debt... but he's got a plan. He's going to hire two thugs to kidnap his wife in a scheme to collect a hefty ransom from his wealthy father-in-law. It's going to be a snap and nobody's going to get hurt... until people start dying. Enter Police Chief Marge, a coffee-drinking, parka-wearing - and extremely pregnant - investigator who'll stop at nothing to get her man. And if you think her small-time investigative skills will give the crooks a run for their ransom... you betcha!",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/rt7cpEr1uP6RTZykBFhBTcRaKvG.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/747dgDfL5d8esobk7h4odaOFhUq.jpg",
+        "year": 1996
+      }
+    ],
+    "genre": [
+      "Comedy",
+      "Crime"
+    ],
+    "voteAverage": 6.956,
+    "isIframeEmbed": true,
+    "seasons": [],
+    "iframeSrc": "https://111movies.net/movie/12153"
+  },
+  {
+    "id": "e2fb5ddd828a899024cfba73f4d5b5c9",
+    "tmdbId": "111",
+    "imdbId": "tt0086250",
+    "isTv": false,
+    "tagline": "He loved the American Dream. With a vengeance.",
+    "title": "Scarface",
+    "originalTitle": "Scarface",
+    "originalLanguage": "en",
+    "description": "After getting a green card in exchange for assassinating a Cuban government official, Tony Montana stakes a claim on the drug trade in Miami. Viciously murdering anyone who stands in his way, Tony eventually becomes the biggest drug lord in the state, controlling nearly all the cocaine that comes through Miami. But increased pressure from the police, wars with Colombian drug cartels and his own drug-fueled paranoia serve to fuel the flames of his eventual downfall.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/iQ5ztdjvteGeboxtmRdXEChJOHh.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/original/1qM2BYNE11Viby8ImC9LC00DgDr.jpg",
+    "year": 1983,
+    "duration": 170,
+    "director": "Brian De Palma",
+    "cast": [
+      "Al Pacino",
+      "Steven Bauer",
+      "Michelle Pfeiffer",
+      "Mary Elizabeth Mastrantonio"
+    ],
+    "logoUrl": "https://image.tmdb.org/t/p/w500/zQGDFzjfXC47foVucagHYIxRUfW.png",
+    "hasLogo": true,
+    "castDetails": [
+      {
+        "id": "1158",
+        "name": "Al Pacino",
+        "role": "Tony Montana",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/m8HAAjq1T75JypKk0v1FFQn4ysZ.jpg"
+      },
+      {
+        "id": "1159",
+        "name": "Steven Bauer",
+        "role": "Manny Ray",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/eMSeKPgfilE2v5VcmwSt5pxbp0x.jpg"
+      },
+      {
+        "id": "1160",
+        "name": "Michelle Pfeiffer",
+        "role": "Elvira",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/8qwNMFzmM3BxGKIj1iIqiHHBpx3.jpg"
+      },
+      {
+        "id": "1161",
+        "name": "Mary Elizabeth Mastrantonio",
+        "role": "Gina",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/vbZ1E557K5oj34xLHR5ErO8wPCi.jpg"
+      },
+      {
+        "id": "1162",
+        "name": "Robert Loggia",
+        "role": "Frank Lopez",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/mRSUgJnfprCNw83pyVfpfW7ryfK.jpg"
+      },
+      {
+        "id": "1163",
+        "name": "Miriam Colon",
+        "role": "Mama Montana",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/9jnz7htVMCTDNRDmoi2mdOKv6Pj.jpg"
+      },
+      {
+        "id": "1164",
+        "name": "F. Murray Abraham",
+        "role": "Omar",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/p2RYVGdrcP0m70BkkiKcwyrDeim.jpg"
+      },
+      {
+        "id": "1165",
+        "name": "Paul Shenar",
+        "role": "Alejandro Sosa",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/kc0I4h9fTY8WP3wyQbwVWEzbmil.jpg"
+      }
+    ],
+    "similar": [
+      {
+        "id": "258432",
+        "tmdbId": "258432",
+        "isTv": false,
+        "title": "The Path",
+        "description": "Two young Nicaraguan children, Saslaya and her mute brother Dario, must travel to Costa Rica to find their long-lost mother.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/93RQ8i9090PdB0Ms6lr9RZntMOs.jpg",
+        "backdropUrl": "",
+        "year": 2007
+      },
+      {
+        "id": "59",
+        "tmdbId": "59",
+        "isTv": false,
+        "title": "A History of Violence",
+        "description": "An average family is thrust into the spotlight after the father commits a seemingly self-defense murder at his diner.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/3qnO72NHmUgs9JZXAmu4aId9QDl.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/iZHJsUYxhjI6kbooHoQRWXv6F8E.jpg",
+        "year": 2005
+      },
+      {
+        "id": "66",
+        "tmdbId": "66",
+        "isTv": false,
+        "title": "Absolute Power",
+        "description": "A master thief coincidentally is robbing a house where a murder—in which the President of the United States is involved—occurs in front of his eyes. He is forced to run, while holding evidence that could convict the President.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/izvyt3cxlilhbYwybTOteDWqf99.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/cLftTzGw40BlLw8IggKSWDjKOQo.jpg",
+        "year": 1997
+      },
+      {
+        "id": "69",
+        "tmdbId": "69",
+        "isTv": false,
+        "title": "Walk the Line",
+        "description": "A chronicle of country music legend Johnny Cash's life, from his early days on an Arkansas cotton farm to his rise to fame with Sun Records in Memphis, where he recorded alongside Elvis Presley, Jerry Lee Lewis and Carl Perkins.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/iIXy2T3fIxfKCBCJqkAnVBFPO8o.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/pMBKzEotLUzk3NuQiyVjZEDlH70.jpg",
+        "year": 2005
+      },
+      {
+        "id": "70",
+        "tmdbId": "70",
+        "isTv": false,
+        "title": "Million Dollar Baby",
+        "description": "Despondent over a painful estrangement from his daughter, trainer Frankie Dunn isn't prepared for boxer Maggie Fitzgerald to enter his life. But Maggie's determined to go pro and to convince Dunn and his cohort to help her.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/jcfEqKdWF1zeyvECPqp3mkWLct2.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/oGMomeS7bE43eN8SGJUaKvQnmud.jpg",
+        "year": 2004
+      },
+      {
+        "id": "73",
+        "tmdbId": "73",
+        "isTv": false,
+        "title": "American History X",
+        "description": "Derek Vineyard is paroled after serving 3 years in prison for killing two African-American men. Through his brother, Danny Vineyard's narration, we learn that before going to prison, Derek was a skinhead and the leader of a violent white supremacist gang that committed acts of racial crime throughout L.A. and his actions greatly influenced Danny. Reformed and fresh out of prison, Derek severs contact with the gang and becomes determined to keep Danny from going down the same violent path as he did.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/x2drgoXYZ8484lqyDj7L1CEVR4T.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/6qHI1IYj7QlLSCwHRzkL62X175s.jpg",
+        "year": 1998
+      },
+      {
+        "id": "617097",
+        "tmdbId": "617097",
+        "isTv": false,
+        "title": "Memory House",
+        "description": "An older man begins to work in a modern dairy factory. He feels distant and does not identify with the place, the people and even the society. Little by little, he is approaching cows and oxen, transforming into an animal and returning to his ancestry.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/rzNJkquAl2EKnNa76JVvH5bRIYN.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/uSxx8FYQ0FQVu9n17Jwvw9DkeB.jpg",
+        "year": 2022
+      },
+      {
+        "id": "82",
+        "tmdbId": "82",
+        "isTv": false,
+        "title": "Miami Vice",
+        "description": "A case involving drug lords and murder in South Florida takes a personal turn for undercover detectives Sonny Crockett and Ricardo Tubbs. Unorthodox Crockett gets involved romantically with the Chinese-Cuban wife of a trafficker of arms and drugs, while Tubbs deals with an assault on those he loves.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/iJPSls4taB09EUKtLj6FjFSprb3.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/nogFh7eQFbBm0wTr9bb6YlnNoiI.jpg",
+        "year": 2006
+      }
+    ],
+    "genre": [
+      "Action",
+      "Crime",
+      "Drama"
+    ],
+    "voteAverage": 8.155,
+    "isIframeEmbed": true,
+    "seasons": [],
+    "iframeSrc": "https://111movies.net/movie/111"
+  },
+  {
+    "id": "3f786303c08f1b396d482558b930a45c",
+    "tmdbId": "8363",
+    "imdbId": "tt0829482",
+    "isTv": false,
+    "tagline": "Come and get some!",
+    "title": "Superbad",
+    "originalTitle": "Superbad",
+    "originalLanguage": "en",
+    "description": "Two co-dependent high school seniors are forced to deal with separation anxiety after their plan to stage a booze-soaked party goes awry.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/ek8e8txUyUwd2BNqj6lFEerJfbq.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/original/coru98UcFBzJIU7bxZguxaePgu0.jpg",
+    "year": 2007,
+    "duration": 113,
+    "director": "Greg Mottola",
+    "cast": [
+      "Jonah Hill",
+      "Michael Cera",
+      "Christopher Mintz-Plasse",
+      "Bill Hader"
+    ],
+    "logoUrl": "https://image.tmdb.org/t/p/w500/7xA4BseFuhtcvfkA02nBgskvNj7.png",
+    "hasLogo": true,
+    "castDetails": [
+      {
+        "id": "21007",
+        "name": "Jonah Hill",
+        "role": "Seth",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/cymlWttB83MsAGR2EkTgANtjeRH.jpg"
+      },
+      {
+        "id": "39995",
+        "name": "Michael Cera",
+        "role": "Evan",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/lFKyW2C7xj7X4nWpOEbVIDGOKrH.jpg"
+      },
+      {
+        "id": "54691",
+        "name": "Christopher Mintz-Plasse",
+        "role": "Fogell",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/dnj2qyxmPt5JF5uurbXQLegppAx.jpg"
+      },
+      {
+        "id": "19278",
+        "name": "Bill Hader",
+        "role": "Officer Slater",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/qyT50vQ9PQIEctE1IxDTEsBKstU.jpg"
+      },
+      {
+        "id": "19274",
+        "name": "Seth Rogen",
+        "role": "Officer Michaels",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/nYl9bvQzaPQLzlf0wf75clLN6Hi.jpg"
+      },
+      {
+        "id": "54692",
+        "name": "Martha MacIsaac",
+        "role": "Becca",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/bRTzhnXKkHYwuPSfsDvidDJeHpu.jpg"
+      },
+      {
+        "id": "54693",
+        "name": "Emma Stone",
+        "role": "Jules",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/cZ8a3QvAnj2cgcgVL6g4XaqPzpL.jpg"
+      },
+      {
+        "id": "53208",
+        "name": "Aviva Baumann",
+        "role": "Nicola",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/uJPsrWOjk73lG59Fha8YEvKzO1Z.jpg"
+      }
+    ],
+    "similar": [
+      {
+        "id": "617302",
+        "tmdbId": "617302",
+        "isTv": false,
+        "title": "Living at 100 Miles an Hour",
+        "description": "Louis, Éric and Daniel are inseparable. They are young, reckless and live at 100 miles an hour. Quickly, children's games take the path of small, disorganized crime. Their friendship will be put to the test. A tender and offbeat look at the turbulent and intoxicating period of the transition to adulthood, with the city of Quebec and its 1970s and 1980s as a backdrop.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/eJPObvCkLL6niABZP88icTHPfdl.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/yTuSqdthEJPxtDZx9M02vnOH3y0.jpg",
+        "year": 2019
+      },
+      {
+        "id": "258574",
+        "tmdbId": "258574",
+        "isTv": false,
+        "title": "Treehouse Hostage",
+        "description": "Timmy Taylor and his two friends, Stevie and Buddy capture escaped convict Carl Banks (Jim Varney) and hold him hostage in their treehouse over the weekend so that Timmy can use Carl as his current event project at school on Monday. The boys then find that Carl is mixed up in a counterfeiting ring that could spell trouble for them too.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/r4KwytadQuUzfWwIyCH6kfojjUH.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/bxm1qdkEC7LlNAJjJyConmqKA9s.jpg",
+        "year": 1999
+      },
+      {
+        "id": "258786",
+        "tmdbId": "258786",
+        "isTv": false,
+        "title": "The Bug Killer",
+        "description": "A teenager fails to find (and keep) jobs which makes his father doubt the reason might be the boy's lack of sexual experience. As all his efforts prove to be unsuccessful, the father gives up, but not the boy's aunt.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/kp11nQq7XaKPkacsHrNgvMEu3qm.jpg",
+        "backdropUrl": "",
+        "year": 1971
+      },
+      {
+        "id": "71",
+        "tmdbId": "71",
+        "isTv": false,
+        "title": "Billy Elliot",
+        "description": "County Durham, England, 1984. The miners' strike has started and the police have started coming up from Bethnal Green, starting a class war with the lower classes suffering. Caught in the middle of the conflict is 11-year old Billy Elliot, who, after leaving his boxing club for the day, stumbles upon a ballet class and finds out that he's naturally talented. He practices with his teacher Mrs. Wilkinson for an upcoming audition in Newcastle-upon Tyne for the royal Ballet school in London.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/mYtqgWCJiXpDeZwjVcC3OQGD8IR.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/urzflyf41uySpgciGHdQzpcaMOY.jpg",
+        "year": 2000
+      },
+      {
+        "id": "90",
+        "tmdbId": "90",
+        "isTv": false,
+        "title": "Beverly Hills Cop",
+        "description": "Fast-talking, quick-thinking Detroit street cop Axel Foley has bent more than a few rules and regs in his time, but when his best friend is murdered, he heads to sunny Beverly Hills to work the case like only he can.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/eBJEvKkhQ0tUt1dBAcTEYW6kCle.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/p256RduW9wMC3uhGJTerywmGiiX.jpg",
+        "year": 1984
+      },
+      {
+        "id": "258843",
+        "tmdbId": "258843",
+        "isTv": false,
+        "title": "White Pop Jesus",
+        "description": "Disco Jesus comes back to Earth and takes on the Mafia.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/aIqiN4739HCNRQuZdy9jBa1vG02.jpg",
+        "backdropUrl": "",
+        "year": 1980
+      },
+      {
+        "id": "332",
+        "tmdbId": "332",
+        "isTv": false,
+        "title": "Inspector Gadget",
+        "description": "John Brown is a bumbling but well-intentioned security guard who is badly injured in an explosion planned by an evil mastermind. He is taken to a laboratory, where Brenda, a leading robotics surgeon, replaces his damaged limbs with state-of-the-art gadgets and tools. Named \"Inspector Gadget\" by the press, John -- along with his niece, Penny, and her trusty dog, Brain -- uses his new powers to discover who was behind the explosion.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/dDcsv1Lql5aM6H4JYfDHjBAXKgT.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/7OsGo8yVkTgD1ZJMBi9M8GP5aes.jpg",
+        "year": 1999
+      },
+      {
+        "id": "115",
+        "tmdbId": "115",
+        "isTv": false,
+        "title": "The Big Lebowski",
+        "description": "Jeffrey 'The Dude' Lebowski, a Los Angeles slacker who only wants to bowl and drink White Russians, is mistaken for another Jeffrey Lebowski, a wheelchair-bound millionaire, and finds himself dragged into a strange series of events involving nihilists, adult film producers, ferrets, errant toes, and large sums of money.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/3bv6WAp6BSxxYvB5ozKFUYuRA8C.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/hXsy4XCCHrUk81XoRhcooyWejao.jpg",
+        "year": 1998
+      }
+    ],
+    "genre": [
+      "Comedy"
+    ],
+    "voteAverage": 7.269,
+    "isIframeEmbed": true,
+    "seasons": [],
+    "iframeSrc": "https://111movies.net/movie/8363"
+  },
+  {
+    "id": "693134",
+    "tmdbId": "693134",
+    "imdbId": "tt15239678",
+    "isTv": false,
+    "tagline": "Long live the fighters.",
+    "title": "Dune: Part Two",
+    "originalTitle": "Dune: Part Two",
+    "originalLanguage": "en",
+    "description": "Follow the mythic journey of Paul Atreides as he unites with Chani and the Fremen while on a path of revenge against the conspirators who destroyed his family. Facing a choice between the love of his life and the fate of the known universe, Paul endeavors to prevent a terrible future only he can foresee.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/original/eZ239CUp1d6OryZEBPnO2n87gMG.jpg",
+    "year": 2024,
+    "duration": 167,
+    "director": "Denis Villeneuve",
+    "cast": [
+      "Timothée Chalamet",
+      "Zendaya",
+      "Rebecca Ferguson",
+      "Javier Bardem"
+    ],
+    "logoUrl": "https://image.tmdb.org/t/p/w500/eYvF1LhPKuoBxOAmWjFTAK7EPWl.png",
+    "hasLogo": true,
+    "castDetails": [
+      {
+        "id": "1190668",
+        "name": "Timothée Chalamet",
+        "role": "Paul Atreides",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/axENiFIrSz5B7UuWkMT7PDe7CaO.jpg"
+      },
+      {
+        "id": "505710",
+        "name": "Zendaya",
+        "role": "Chani",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/1qup8tSt95HLbcy2c2xrx4iJNxv.jpg"
+      },
+      {
+        "id": "933238",
+        "name": "Rebecca Ferguson",
+        "role": "Jessica",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/ty8ZPzaCBBlqIr5qzpOXI24iC8j.jpg"
+      },
+      {
+        "id": "3810",
+        "name": "Javier Bardem",
+        "role": "Stilgar",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/zfRID0jx8DKBluPGU9xtk9sZWUt.jpg"
+      },
+      {
+        "id": "16851",
+        "name": "Josh Brolin",
+        "role": "Gurney Halleck",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/sX2etBbIkxRaCsATyw5ZpOVMPTD.jpg"
+      },
+      {
+        "id": "86654",
+        "name": "Austin Butler",
+        "role": "Feyd-Rautha",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/atdAs4pFGjUQ4m2W8kJYly7N6cC.jpg"
+      },
+      {
+        "id": "1373737",
+        "name": "Florence Pugh",
+        "role": "Princess Irulan",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/1Uvfh7xL4U2evkhs0M3C7BbBYFf.jpg"
+      },
+      {
+        "id": "543530",
+        "name": "Dave Bautista",
+        "role": "Beast Rabban",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/snk6JiXOOoRjPtHU5VMoy6qbd32.jpg"
+      }
+    ],
+    "similar": [
+      {
+        "id": "617126",
+        "tmdbId": "617126",
+        "isTv": false,
+        "title": "The Fantastic 4: First Steps",
+        "description": "Against the vibrant backdrop of a 1960s-inspired, retro-futuristic world, Marvel's First Family is forced to balance their roles as heroes with the strength of their family bond, while defending Earth from a ravenous space god called Galactus and his enigmatic Herald, Silver Surfer.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/nf5qaSEvyYSNeFH0YhSs5EsBLX9.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/s94NjfKkcSczZ1FembwmQZwsuwY.jpg",
+        "year": 2025
+      },
+      {
+        "id": "62",
+        "tmdbId": "62",
+        "isTv": false,
+        "title": "2001: A Space Odyssey",
+        "description": "Humanity finds a mysterious object buried beneath the lunar surface and sets off to find its origins with the help of HAL 9000, the world's most advanced super computer.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/ve72VxNqjGM69Uky4WTo2bK6rfq.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/w5IDXtifKntw0ajv2co7jFlTQDM.jpg",
+        "year": 1968
+      },
+      {
+        "id": "68",
+        "tmdbId": "68",
+        "isTv": false,
+        "title": "Brazil",
+        "description": "Low-level bureaucrat Sam Lowry escapes the monotony of his day-to-day life through a recurring daydream of himself as a virtuous hero saving a beautiful damsel. Investigating a case that led to the wrongful arrest and eventual death of an innocent man instead of wanted terrorist Harry Tuttle, he meets the woman from his daydream, and in trying to help her gets caught in a web of mistaken identities, mindless bureaucracy and lies.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/aewan59WcFThBimkTVVoNf2o5Vb.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/9IYyCLf5NNAQFK9pNtqzEU9HWzM.jpg",
+        "year": 1985
+      },
+      {
+        "id": "105",
+        "tmdbId": "105",
+        "isTv": false,
+        "title": "Back to the Future",
+        "description": "Eighties teenager Marty McFly is accidentally sent back in time to 1955, inadvertently disrupting his parents' first meeting and attracting his mother's romantic interest. Marty must repair the damage to history by rekindling his parents' romance and - with the help of his eccentric inventor friend Doc Brown - return to 1985.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/vN5B5WgYscRGcQpVhHl6p9DDTP0.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/5bzPWQ2dFUl2aZKkp7ILJVVkRed.jpg",
+        "year": 1985
+      },
+      {
+        "id": "330",
+        "tmdbId": "330",
+        "isTv": false,
+        "title": "The Lost World: Jurassic Park",
+        "description": "Four years after Jurassic Park's genetically bred dinosaurs ran amok, multimillionaire John Hammond shocks chaos theorist Ian Malcolm by revealing that he has been breeding more beasties at a secret location. Malcolm, his paleontologist ladylove and a wildlife videographer join an expedition to document the lethal lizards' natural behavior in this action-packed thriller.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/ss6cqHQc72eCsXrvne11XVZs3bR.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/A4rYaPdzgocCjQ0n9LUSYUxyvpS.jpg",
+        "year": 1997
+      },
+      {
+        "id": "172",
+        "tmdbId": "172",
+        "isTv": false,
+        "title": "Star Trek V: The Final Frontier",
+        "description": "A renegade Vulcan with a startling secret hijacks the U.S.S. Enterprise in order to find a mythical planet.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/uiXr41VLYsuug3CZbFrKLSNahuZ.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/y0klN15XPVyYtd4P7HYecgJXSsZ.jpg",
+        "year": 1989
+      },
+      {
+        "id": "193",
+        "tmdbId": "193",
+        "isTv": false,
+        "title": "Star Trek: Generations",
+        "description": "Captain Jean-Luc Picard and the crew of the Enterprise-D find themselves at odds with the renegade scientist Soran who is destroying entire star systems. Only one man can help Picard stop Soran's scheme...and he's been dead for seventy-eight years.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/gh0ZZRwSmlzEZTIZee3ZCN9Jssx.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/mNdsbVuRdsyo8eitW2IBW2BWRkU.jpg",
+        "year": 1994
+      },
+      {
+        "id": "199",
+        "tmdbId": "199",
+        "isTv": false,
+        "title": "Star Trek: First Contact",
+        "description": "The Borg, a relentless race of cyborgs, are on a direct course for Earth. Violating orders to stay away from the battle, Captain Picard and the crew of the newly-commissioned USS Enterprise E pursue the Borg back in time to prevent the invaders from changing Federation history and assimilating the galaxy.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/iqhHe893Vcf07jNkNQ31tu85dKG.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/wygUDDRNpeKUnkekRGeLCZM93tA.jpg",
+        "year": 1996
+      }
+    ],
+    "genre": [
+      "Science Fiction",
+      "Adventure"
+    ],
+    "voteAverage": 8.13,
+    "isIframeEmbed": true,
+    "seasons": [],
+    "iframeSrc": "https://111movies.net/movie/693134"
   }
 ]

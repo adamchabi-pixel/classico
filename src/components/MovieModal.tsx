@@ -32,13 +32,60 @@ export default function MovieModal({
     const movieIdToFetch = movie.providerIds?.Tmdb ? (movie.isTv ? movie.providerIds.Tmdb + "-tv" : movie.providerIds.Tmdb) : (movie.tmdbId ? (movie.isTv ? movie.tmdbId + "-tv" : movie.tmdbId) : movie.id);
     if (movieIdToFetch) {
       fetch(`/api/movie/${movieIdToFetch}`)
-        .then(res => res.json())
+        .then(async res => {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          const text = await res.text();
+          try { return JSON.parse(text); } catch (e) { throw new Error("Not JSON"); }
+        })
         .then(data => {
           if (data.success && data.movie) {
             setFullMovie(prev => prev ? {...prev, ...data.movie} : data.movie);
+          } else {
+            throw new Error("API returned failure");
           }
         })
-        .catch(console.error);
+        .catch(async (err) => {
+          console.error("Movie API failed, trying TMDB fallback:", err);
+          // Fallback for static deployments
+          const actualId = movieIdToFetch.replace('-tv', '');
+          const isTv = movieIdToFetch.endsWith('-tv');
+          if (actualId.length < 15 && /^[0-9]+$/.test(actualId)) {
+            const tmdbToken = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs";
+            const url = isTv 
+              ? `https://api.themoviedb.org/3/tv/${actualId}?append_to_response=credits,similar,images&include_image_language=en,null&language=en-US` 
+              : `https://api.themoviedb.org/3/movie/${actualId}?append_to_response=credits,similar,images&include_image_language=en,null&language=en-US`;
+            try {
+              const tmdbRes = await fetch(url, { headers: { Authorization: `Bearer ${tmdbToken}`, Accept: "application/json" } });
+              if (!tmdbRes.ok) return;
+              const m = await tmdbRes.json();
+              if (m.id) {
+                const castDetails = m.credits?.cast?.slice(0, 8).map((c: any) => ({
+                   id: String(c.id),
+                   name: c.name,
+                   role: c.character,
+                   imageUrl: c.profile_path ? `https://image.tmdb.org/t/p/w200${c.profile_path}` : undefined
+                })) || [];
+                const similar = m.similar?.results?.slice(0, 8).map((sm: any) => ({
+                   id: String(sm.id) + (isTv ? "-tv" : ""),
+                   tmdbId: String(sm.id),
+                   isTv,
+                   title: isTv ? sm.name : sm.title,
+                   description: sm.overview,
+                   posterUrl: sm.poster_path ? `https://image.tmdb.org/t/p/w500${sm.poster_path}` : "",
+                   backdropUrl: sm.backdrop_path ? `https://image.tmdb.org/t/p/w780${sm.backdrop_path}` : "",
+                   year: sm.release_date ? parseInt(sm.release_date.split("-")[0]) : (sm.first_air_date ? parseInt(sm.first_air_date.split("-")[0]) : 0)
+                })) || [];
+                const logos = m.images?.logos || [];
+                const bestLogo = logos.find((l: any) => l.iso_639_1 === 'en') || logos[0];
+                const logoUrl = bestLogo ? `https://image.tmdb.org/t/p/w500${bestLogo.file_path}` : "";
+                
+                setFullMovie(prev => prev ? {...prev, castDetails, similar, logoUrl, hasLogo: !!logoUrl} : null);
+              }
+            } catch (e) {
+              console.error("TMDB Fallback failed:", e);
+            }
+          }
+        });
     }
   }, [movie]);
 

@@ -2,9 +2,9 @@ const fs = require('fs');
 let code = fs.readFileSync('src/components/MovieDetailView.tsx', 'utf-8');
 
 code = code.replace(
-  /fetch\(\`\/api\/movie\/\$\{movie\.providerIds\?\.Tmdb \? \(movie\.isTv \? movie\.providerIds\.Tmdb \+ "-tv" : movie\.providerIds\.Tmdb\) : movie\.id\}\`\)/,
-  'fetch(`/api/movie/${movie.providerIds?.Tmdb ? (movie.isTv ? movie.providerIds.Tmdb + "-tv" : movie.providerIds.Tmdb) : (movie.tmdbId ? (movie.isTv ? movie.tmdbId + "-tv" : movie.tmdbId) : movie.id)}`)'
+  /const \[fullMovie, setFullMovie\] = React\.useState<Movie>\(movie\);/,
+  `const [fullMovie, setFullMovie] = React.useState<Movie>(movie);\n  console.log("MovieDetailView render", fullMovie.id, "hasLogo:", fullMovie.hasLogo, "castDetails:", fullMovie.castDetails?.length, "similar:", fullMovie.similar?.length);`
 );
 
 fs.writeFileSync('src/components/MovieDetailView.tsx', code, 'utf-8');
-console.log("Patched movie detail");
+console.log("Patched MovieDetailView logs");

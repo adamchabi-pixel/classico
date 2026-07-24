@@ -17,6 +17,9 @@ export default function MovieDetailView({
   onSimilarClick,
 }: MovieDetailViewProps) {
   const [fullMovie, setFullMovie] = React.useState<Movie>(movie);
+  React.useEffect(() => {
+    setFullMovie(movie);
+  }, [movie]);
   const [selectedSeason, setSelectedSeason] = React.useState(fullMovie.seasons && fullMovie.seasons.length > 0 ? fullMovie.seasons[0].season_number : 1);
   const [episodes, setEpisodes] = React.useState<any[]>([]);
   const [isSeasonDropdownOpen, setIsSeasonDropdownOpen] = React.useState(false);

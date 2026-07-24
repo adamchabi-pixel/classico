@@ -3,7 +3,7 @@ import Hls from "hls.js";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Languages, 
-  Maximize2, ArrowLeft, Loader2, Sparkles, AlertCircle, Captions, Lock, Menu, Cast, Settings, ChevronRight, ChevronLeft
+  Maximize2, ArrowLeft, Loader2, Sparkles, AlertCircle, Captions, Lock, Menu, Cast, Settings, ChevronRight, ChevronLeft, X
 } from "lucide-react";
 import EmbedPlayer from "./EmbedPlayer";
 import { allMoviesData } from "../data/all_movies";
@@ -229,6 +229,9 @@ export default function CinemaPlayerView({
   const [isActuallyPlaying, setIsActuallyPlaying] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
+  const [showAdblockBanner, setShowAdblockBanner] = useState(() => {
+    return sessionStorage.getItem("adblockBannerDismissed") !== "true";
+  });
   
   const [isCurtainOpen, setIsCurtainOpen] = useState(false);
   const [forceJellyfin, setForceJellyfin] = useState(false);
@@ -781,9 +784,9 @@ export default function CinemaPlayerView({
             let cleanId = finalTmdbId;
             if (cleanId.endsWith('-tv')) cleanId = cleanId.replace('-tv', '');
             if (isTv && season && episode) {
-              iframeUrl = `https://player.videasy.net/tv/${cleanId}/${season}/${episode}?color=FFD700&overlay=true`;
+              iframeUrl = `https://111movies.net/tv/${cleanId}/${season}/${episode}`;
             } else {
-              iframeUrl = `https://player.videasy.net/movie/${cleanId}?color=FFD700&overlay=true`;
+              iframeUrl = `https://111movies.net/movie/${cleanId}`;
             }
             const newServers = [
               { name: "Videasy (Premium)", url: iframeUrl }
@@ -867,7 +870,7 @@ export default function CinemaPlayerView({
                   if (itemData.ProviderIds.Tmdb) {
                     data.isIframeEmbed = true;
                     const srvs = [
-                      { name: "Videasy (Premium)", url: `https://player.videasy.net/movie/${itemData.ProviderIds.Tmdb}?color=FFD700&overlay=true` }
+                      { name: "Videasy (Premium)", url: `https://111movies.net/movie/${itemData.ProviderIds.Tmdb}` }
                     ];
                     setAvailableServers(srvs);
                     data.iframeSrc = srvs[activeServerIndex]?.url || srvs[0].url;
@@ -876,7 +879,7 @@ export default function CinemaPlayerView({
                 // Fallback for testing if jellyfin bugs and no provider IDs are found
                 if (!forceJellyfin && !data.isIframeEmbed) {
                    data.isIframeEmbed = true;
-                   data.iframeSrc = "https://player.videasy.net/movie/1368337?color=FFD700&overlay=true";
+                   data.iframeSrc = "https://111movies.net/movie/1368337";
                 }
 
                 const mediaSources = itemData.MediaSources || [];
@@ -1725,6 +1728,24 @@ export default function CinemaPlayerView({
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col justify-center items-center select-none overflow-hidden cursor-default">
+      {showAdblockBanner && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[70] bg-black/90 border border-yellow-500/50 rounded-lg px-4 py-2.5 flex items-center gap-4 shadow-2xl backdrop-blur-md">
+          <div className="flex items-center gap-2 text-yellow-500">
+            <AlertCircle className="w-4 h-4" />
+            <span className="text-sm font-medium whitespace-nowrap">We recommend using AdBlock for a better experience</span>
+          </div>
+          <button 
+            onClick={() => {
+              setShowAdblockBanner(false);
+              sessionStorage.setItem("adblockBannerDismissed", "true");
+            }}
+            className="text-gray-400 hover:text-white transition-colors ml-2 pointer-events-auto cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* UPPER DECK (GO BACK) */}
       <div className="absolute top-0 left-0 right-0 p-6 pt-[calc(1.5rem+env(safe-area-inset-top))] flex items-center justify-between z-[60] pointer-events-none">
         <div className="flex items-center gap-4">

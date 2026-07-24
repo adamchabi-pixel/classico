@@ -276,7 +276,7 @@ if (typeof window !== "undefined") {
             cast: [],
             genre: [],
             isIframeEmbed: true,
-            iframeSrc: m.media_type === "tv" ? "" : `https://player.videasy.net/movie/${m.id}?color=FFD700&overlay=true`
+            iframeSrc: m.media_type === "tv" ? "" : `https://111movies.net/movie/${m.id}`
           }));
           return new Response(JSON.stringify({ success: true, results: enriched }), { status: 200 });
         } catch (e: any) {
@@ -289,13 +289,9 @@ if (typeof window !== "undefined") {
           const u = new URL(url, window.location.origin);
           const query = u.searchParams.get("query");
           if (!query) return new Response(JSON.stringify({ success: true, results: [] }), { status: 200 });
-          const [r1, r2] = await Promise.all([
-            fetch(`https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(query)}&language=en-US&page=1`, { headers: { "Authorization": `Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs`, "Accept": "application/json" } }),
-            fetch(`https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(query)}&language=en-US&page=2`, { headers: { "Authorization": `Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs`, "Accept": "application/json" } })
-          ]);
+          const r1 = await fetch(`https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(query)}&language=en-US&page=1`, { headers: { "Authorization": `Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs`, "Accept": "application/json" } });
           const d1 = await r1.json();
-          const d2 = r2.ok ? await r2.json() : { results: [] };
-          const combined = [...(d1.results || []), ...(d2.results || [])];
+          const combined = [...(d1.results || [])];
           const validRaw = combined.filter((m: any) => m.media_type === "movie" || m.media_type === "tv");
           const uniqueIds = new Set();
           const valid = [];
@@ -333,7 +329,7 @@ if (typeof window !== "undefined") {
             cast: [],
             genre: [],
             isIframeEmbed: true,
-            iframeSrc: m.media_type === "tv" ? "" : `https://player.videasy.net/movie/${m.id}?color=FFD700&overlay=true`
+            iframeSrc: m.media_type === "tv" ? "" : `https://111movies.net/movie/${m.id}`
           }));
           return new Response(JSON.stringify({ success: true, results: enriched }), { status: 200 });
         } catch (e: any) {
@@ -403,7 +399,7 @@ if (typeof window !== "undefined") {
             voteAverage: m.vote_average,
             isIframeEmbed: true,
             seasons: seasons,
-            iframeSrc: isTv ? "" : `https://player.videasy.net/movie/${m.id}?color=FFD700&overlay=true`
+            iframeSrc: isTv ? "" : `https://111movies.net/movie/${m.id}`
           };
           return new Response(JSON.stringify({ success: true, movie: movieData }), { status: 200 });
         } catch (e: any) {

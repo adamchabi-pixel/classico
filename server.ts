@@ -4,6 +4,8 @@ import compression from "compression";
 import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
+import { importedMoviesData } from "./src/data/imported_movies";
+import { allMoviesData } from "./src/data/all_movies";
 
 const app = express();
 app.use(compression());
@@ -68,17 +70,10 @@ app.get("/api/search", async (req, res) => {
     
     
     const searchUrl1 = `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(query)}&language=en-US&page=1`;
-    const searchUrl2 = `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(query)}&language=en-US&page=2`;
-    const [searchRes1, searchRes2] = await Promise.all([
-      fetch(searchUrl1, { headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" } }),
-      fetch(searchUrl2, { headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" } })
-    ]);
-    
+    const searchRes1 = await fetch(searchUrl1, { headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" } });
     if (!searchRes1.ok) throw new Error("TMDB search failed");
     const searchData1 = await searchRes1.json();
-    const searchData2 = searchRes2.ok ? await searchRes2.json() : { results: [] };
-    
-    const combinedResults = [...(searchData1.results || []), ...(searchData2.results || [])];
+    const combinedResults = [...(searchData1.results || [])];
     const validResults = combinedResults.filter((m: any) => m.media_type === "movie" || m.media_type === "tv");
 
     
@@ -116,7 +111,7 @@ app.get("/api/search", async (req, res) => {
         cast: [],
         genre: [],
         isIframeEmbed: true,
-        iframeSrc: isTv ? "" : `https://player.videasy.net/movie/${m.id}?color=FFD700&overlay=true`
+        iframeSrc: isTv ? "" : `https://111movies.net/movie/${m.id}`
       };
     });
     
@@ -130,11 +125,23 @@ app.get("/api/movie/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const isTv = id.endsWith('-tv');
-    const actualId = isTv ? id.replace('-tv', '') : id;
+    let actualId = isTv ? id.replace('-tv', '') : id;
+    
+    // Look up tmdbId if the id is a jellyfin hash
+    if (actualId.length > 20) {
+      let match = importedMoviesData.find(m => m.id === actualId);
+      if (!match) {
+        match = allMoviesData.find(m => m.id === actualId);
+      }
+      if (match && (match.tmdbId || (match.providerIds && match.providerIds.Tmdb))) {
+        actualId = match.tmdbId || match.providerIds.Tmdb;
+      }
+    }
+
     
     const url = isTv 
-      ? `https://api.themoviedb.org/3/tv/${actualId}?append_to_response=credits,videos,similar&language=en-US`
-      : `https://api.themoviedb.org/3/movie/${actualId}?append_to_response=credits,videos,similar&language=en-US`;
+      ? `https://api.themoviedb.org/3/tv/${actualId}?append_to_response=credits,videos,similar,images&include_image_language=en,null&language=en-US`
+      : `https://api.themoviedb.org/3/movie/${actualId}?append_to_response=credits,videos,similar,images&include_image_language=en,null&language=en-US`;
       
     const response = await fetch(url, {
       headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
@@ -150,8 +157,10 @@ app.get("/api/movie/:id", async (req, res) => {
       director = m.credits?.crew?.find((c: any) => c.job === "Director")?.name || "Unknown";
     }
     const cast = m.credits?.cast?.slice(0, 4).map((c: any) => c.name) || [];
-    
     const releaseDate = isTv ? m.first_air_date : m.release_date;
+    const logos = m.images?.logos || [];
+    const bestLogo = logos.find((l: any) => l.iso_639_1 === 'en') || logos[0];
+    const logoUrl = bestLogo ? `https://image.tmdb.org/t/p/w500${bestLogo.file_path}` : "";
     
     let seasons = [];
     if (isTv && m.seasons) {
@@ -181,6 +190,8 @@ app.get("/api/movie/:id", async (req, res) => {
       duration: isTv ? (m.episode_run_time?.[0] || 45) : (m.runtime || 120),
       director: director,
       cast: cast,
+      logoUrl: logoUrl,
+      hasLogo: !!logoUrl,
       castDetails: m.credits?.cast?.slice(0, 8).map((c: any) => ({
         id: String(c.id),
         name: c.name,
@@ -201,7 +212,7 @@ app.get("/api/movie/:id", async (req, res) => {
       voteAverage: m.vote_average,
       isIframeEmbed: true,
       seasons: seasons,
-      iframeSrc: isTv ? "" : `https://player.videasy.net/movie/${m.id}?color=FFD700&overlay=true`
+      iframeSrc: isTv ? "" : `https://111movies.net/movie/${m.id}`
     };
     
     // Auto-save logic

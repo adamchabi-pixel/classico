@@ -715,6 +715,8 @@ export const COLLECTIONS: Collection[] = [
       {
         id: "bond-dr-no",
         title: "James Bond contre Dr No",
+        tmdbId: "646",
+        posterUrl: "https://image.tmdb.org/t/p/w500/f9HsemSsBEHN5eoMble1bj6fDxs.jpg",
         year: 1962,
         duration: "110 min",
         rating: "7.2",
@@ -731,6 +733,8 @@ export const COLLECTIONS: Collection[] = [
       {
         id: "bond-goldfinger",
         title: "Goldfinger",
+        tmdbId: "10611",
+        posterUrl: "https://image.tmdb.org/t/p/w500/aKNFzaqQgPzsGXnsMc4kJH5hFIV.jpg",
         year: 1964,
         duration: "110 min",
         rating: "7.7",

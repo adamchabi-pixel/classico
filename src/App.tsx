@@ -666,15 +666,16 @@ function enrichDynamicMovie(m: Movie, contextID: string): Movie {
 export default function App() {
   const [tmdbCache, setTmdbCache] = useState<Movie[]>(() => {
     try {
-      const stored = localStorage.getItem("classico_tmdb_cache");
-      return stored ? JSON.parse(stored) : [];
+      // FORCE clear cache once to fix poisoned data (missing cast/logos)
+      localStorage.removeItem("classico_tmdb_cache");
+      return [];
     } catch (e) {
       return [];
     }
   });
   const allMoviesBase = React.useMemo(() => {
     const map = new Map();
-    [...allMoviesData, ...importedMoviesData].forEach(m => map.set(m.id, m));
+    [...importedMoviesData, ...allMoviesData].forEach(m => map.set(m.id, m));
     return Array.from(map.values());
   }, []);
   const [activeTab, setActiveTab ] = useState<"accueil" | "collections" | "profil" | "collection-detail" | "movie" | "player">("accueil");
@@ -1055,7 +1056,30 @@ export default function App() {
   };
 
   // Load library movies from backend
-    const loadJellyfinLibrary = async () => {};
+    
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      setRoutePath(path);
+      if (path === "/") setActiveTab("accueil");
+      else if (path === "/collections") setActiveTab("collections");
+      else if (path === "/profil") setActiveTab("profil");
+      else if (path.startsWith("/collection/")) {
+        setSelectedCollectionId(path.split("/")[2]);
+        setActiveTab("collection-detail");
+      }
+      else if (path.startsWith("/player/")) {
+        setActiveTab("player");
+      }
+      else if (path.startsWith("/movie/")) {
+        setActiveTab("movie");
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const loadJellyfinLibrary = async () => {};
 
   useEffect(() => {
     loadJellyfinLibrary();
@@ -1159,11 +1183,9 @@ export default function App() {
   };
 
   const goBackOrHome = () => {
-    if (Object.keys(routeScrollPositions.current).length > 0) {
-      window.history.back();
-    } else {
-      navigateTo("/");
-    }
+    // Relying on history.back() in an iframe often fails.
+    // Instead, navigate manually depending on where we came from, or just go home.
+    navigateTo("/");
   };
 
   const handleOpenMovie = (movie: Movie, immediatePlay = false) => {
@@ -1307,7 +1329,7 @@ export default function App() {
     }
     
     setIsSearchingTmdb(true);
-
+    const delayDebounceFn = setTimeout(() => {
       fetch(`/api/search?query=${encodeURIComponent(searchQuery)}`)
         .then(res => res.json())
         .then(data => {
@@ -1323,9 +1345,8 @@ export default function App() {
           }
         })
         .finally(() => setIsSearchingTmdb(false));
-
-
-
+    }, 400);
+    return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
 
   const searchedMovies = React.useMemo(() => {
@@ -1393,16 +1414,16 @@ export default function App() {
 
   // Fetch missing movie data if navigated directly
   useEffect(() => {
-    if (targetMovieId && (!activeMovie || !activeMovie.director || activeMovie.tagline === undefined || (activeMovie.isTv && !activeMovie.seasons))) {
+    if (targetMovieId && (!activeMovie || !activeMovie.director || activeMovie.tagline === undefined || !activeMovie.castDetails || (activeMovie.isTv && !activeMovie.seasons))) {
       setMovieLoadError(null);
       setMovieLoadError(null);
-      fetch(`/api/movie/${targetMovieId}`)
+      fetch(`/api/movie/${activeMovie?.providerIds?.Tmdb ? (activeMovie.isTv ? activeMovie.providerIds.Tmdb + "-tv" : activeMovie.providerIds.Tmdb) : targetMovieId}`)
         .then(res => res.json())
         .then(data => {
           if (data.success && data.movie) {
             setTmdbCache(prev => {
               const map = new Map(prev.map(m => [m.id, m]));
-              map.set(data.movie.id, data.movie);
+              map.set(targetMovieId, { ...(activeMovie || {}), ...data.movie, id: targetMovieId });
               const newCache = Array.from(map.values());
               localStorage.setItem("classico_tmdb_cache", JSON.stringify(newCache));
               return newCache;
@@ -2406,6 +2427,7 @@ export default function App() {
       <MovieModal
         movie={selectedMovie}
         onPlay={(id) => navigateTo("/player/" + id)}
+        onSimilarClick={(id) => { setSelectedMovie(null); navigateTo("/movie/" + id); }}
         onClose={() => {
           setSelectedMovie(null);
           const savedProgress = localStorage.getItem("classico_progress");

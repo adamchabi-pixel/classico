@@ -687,14 +687,17 @@ export default function App() {
   const [tmdbCache, setTmdbCache] = useState<Movie[]>(() => {
     try {
       const saved = localStorage.getItem("classico_tmdb_cache");
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+         const parsed = JSON.parse(saved);
+         if (Array.isArray(parsed)) return parsed.filter(Boolean);
+      }
       return [];
     } catch (e) {
       return [];
     }
   });
   const allMoviesBase = React.useMemo(() => {
-    const combined = [...importedMoviesData, ...allMoviesData].filter(m => !isAnimeOrAdult(m as unknown as Movie));
+    const combined = [...importedMoviesData, ...allMoviesData].filter(m => m && !isAnimeOrAdult(m as unknown as Movie));
     const groups = new Map();
     
     const cleanTitle = (t: string) => t ? t.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
@@ -778,7 +781,50 @@ export default function App() {
   const isJellyfinLoading = false;
   const jellyfinConfig = null;
 
+  const loadProgress = () => {
+    const savedProgress = localStorage.getItem("classico_progress");
+    if (savedProgress) {
+      try {
+        const parsed = JSON.parse(savedProgress);
+        const newProgressData: Record<string, number> = {};
+        Object.keys(parsed).forEach(k => {
+           let pct = 0;
+           if (typeof parsed[k] === 'number') pct = parsed[k];
+           else if (parsed[k] && parsed[k].type === "tv" && parsed[k].show_progress) {
+             const s = parsed[k].last_season_watched || 1;
+             const e = parsed[k].last_episode_watched || 1;
+             const epProg = parsed[k].show_progress[`s${s}e${e}`];
+             if (epProg && epProg.progress) {
+                 const duration = epProg.progress.duration || 0;
+                 pct = duration > 0 ? (epProg.progress.watched / duration) : (epProg.progress.watched > 0 ? 0.5 : 0);
+             }
+           }
+           else if (parsed[k] && parsed[k].currentTime !== undefined) {
+             const duration = parsed[k].duration || 0;
+             pct = duration > 0 ? (parsed[k].currentTime / duration) : (parsed[k].currentTime > 0 ? 0.5 : 0);
+           } else if (parsed[k] && parsed[k].duration) {
+             pct = parsed[k].currentTime / parsed[k].duration;
+           }
+           
+           newProgressData[k] = pct;
+           if (!k.endsWith("-tv")) {
+               newProgressData[k + "-tv"] = pct;
+           }
+           if (k.endsWith("-tv")) {
+               newProgressData[k.replace("-tv", "")] = pct;
+           }
+        });
+        setProgressData(newProgressData);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  };
+
   const navigateTo = (path: string) => {
+    if (path === "/" || path.startsWith("/movie/")) {
+      loadProgress();
+    }
     setRouteScrollPositions(prev => ({ ...prev, [activeTab]: window.scrollY }));
     window.history.pushState({}, "", path);
     setRoutePath(path);
@@ -1235,21 +1281,30 @@ export default function App() {
         const parsed = JSON.parse(savedProgress);
         const newProgressData: Record<string, number> = {};
         Object.keys(parsed).forEach(k => {
-           if (typeof parsed[k] === 'number') newProgressData[k] = parsed[k];
+           let pct = 0;
+           if (typeof parsed[k] === 'number') pct = parsed[k];
            else if (parsed[k] && parsed[k].type === "tv" && parsed[k].show_progress) {
              const s = parsed[k].last_season_watched || 1;
              const e = parsed[k].last_episode_watched || 1;
              const epProg = parsed[k].show_progress[`s${s}e${e}`];
              if (epProg && epProg.progress) {
                  const duration = epProg.progress.duration || 0;
-                 newProgressData[k] = duration > 0 ? (epProg.progress.watched / duration) : (epProg.progress.watched > 0 ? 0.5 : 0);
+                 pct = duration > 0 ? (epProg.progress.watched / duration) : (epProg.progress.watched > 0 ? 0.5 : 0);
              }
            }
            else if (parsed[k] && parsed[k].currentTime !== undefined) {
              const duration = parsed[k].duration || 0;
-             newProgressData[k] = duration > 0 ? (parsed[k].currentTime / duration) : (parsed[k].currentTime > 0 ? 0.5 : 0);
+             pct = duration > 0 ? (parsed[k].currentTime / duration) : (parsed[k].currentTime > 0 ? 0.5 : 0);
            } else if (parsed[k] && parsed[k].duration) {
-             newProgressData[k] = parsed[k].currentTime / parsed[k].duration;
+             pct = parsed[k].currentTime / parsed[k].duration;
+           }
+           
+           newProgressData[k] = pct;
+           if (!k.endsWith("-tv")) {
+               newProgressData[k + "-tv"] = pct;
+           }
+           if (k.endsWith("-tv")) {
+               newProgressData[k.replace("-tv", "")] = pct;
            }
         });
         setProgressData(newProgressData);
@@ -1603,7 +1658,7 @@ export default function App() {
     }).forEach(tmdbMovie => {
       // Check if we already have this TMDB id in local (local might use imdbId as id, but tmdbMovie has tmdbId)
       // We check both id and tmdbId
-      const existsLocal = merged.some(m => String(m.tmdbId) === String(tmdbMovie.tmdbId) || String(m.id) === String(tmdbMovie.id) || String(m.imdbId) === String(tmdbMovie.tmdbId) || (m.providerIds && m.providerIds.Tmdb && String(m.providerIds.Tmdb) === String(tmdbMovie.tmdbId)) || (m.title && tmdbMovie.title && m.title.toLowerCase() === tmdbMovie.title.toLowerCase() && m.year === tmdbMovie.year));
+      const existsLocal = merged.some(m => m && (String(m.tmdbId) === String(tmdbMovie.tmdbId) || String(m.id) === String(tmdbMovie.id) || String(m.imdbId) === String(tmdbMovie.tmdbId) || (m.providerIds && m.providerIds.Tmdb && String(m.providerIds.Tmdb) === String(tmdbMovie.tmdbId)) || (m.title && tmdbMovie.title && m.title.toLowerCase() === tmdbMovie.title.toLowerCase() && m.year === tmdbMovie.year)));
       if (!existsLocal) {
         merged.push(tmdbMovie);
       }
@@ -1674,9 +1729,8 @@ export default function App() {
   useEffect(() => {
     if (targetMovieId && (!activeMovie || !activeMovie.director || activeMovie.tagline === undefined || !activeMovie.castDetails || (activeMovie.isTv && !activeMovie.seasons))) {
       setMovieLoadError(null);
-      setMovieLoadError(null);
-      const tmdbId = activeMovie.tmdbId || activeMovie.providerIds?.Tmdb;
-      fetch(`/api/movie/${tmdbId ? (activeMovie.isTv ? tmdbId + "-tv" : tmdbId) : targetMovieId}`)
+      const tmdbId = activeMovie?.tmdbId || activeMovie?.providerIds?.Tmdb;
+      fetch(`/api/movie/${tmdbId ? (activeMovie?.isTv ? tmdbId + "-tv" : tmdbId) : targetMovieId}`)
         .then(res => res.json())
         .then(data => {
           if (data.success && data.movie) {
@@ -2191,7 +2245,7 @@ export default function App() {
               <div className="max-w-[2000px] mx-auto px-4 sm:px-8 space-y-12 pb-16">
                 
                 {/* Reprendre la lecture Section */}
-                {history.some(id => progressData[id] > 0 && progressData[id] < 0.95) && (
+                {(history.filter(id => progressData[id] > 0 && progressData[id] < 0.95).map(id => allMovies.find(m => m.id === id || m.id === id + "-tv" || m.id === id.replace("-tv", ""))).filter(m => !!m).length > 0) && (
                   <div className="space-y-4 text-left pt-6 sm:pt-8">
                     <div className="flex flex-row items-center sm:items-end justify-between gap-2 sm:gap-3 border-b border-zinc-900 pb-2 sm:pb-3">
                       <div className="space-y-0.5 max-w-[80%]">
@@ -2236,7 +2290,7 @@ export default function App() {
                       >
                         {history
                           .filter(id => progressData[id] > 0 && progressData[id] < 0.95)
-                          .map(id => allMovies.find(m => m.id === id))
+                          .map(id => allMovies.find(m => m.id === id || m.id === id + "-tv" || m.id === id.replace("-tv", "")))
                           .filter((m): m is Movie => !!m)
                           .map((movie, idx) => (
                             <LazyVirtualCard key={`resume-${movie.id}-${idx}`} priority={idx < 6}>
@@ -2654,8 +2708,9 @@ export default function App() {
 
                     {history.length > 0 ? (
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-8 justify-items-center">
-                        {allMovies
-                          .filter(m => history.includes(m.id))
+                        {history
+                          .map(id => allMovies.find(m => m.id === id || m.id === id + "-tv" || m.id === id.replace("-tv", "")))
+                          .filter((m): m is Movie => !!m)
                           .map((movie, idx) => (
                             <LazyVirtualCard key={`${movie.id}-history-${idx}`} priority={idx < 8}>
                               <MovieCard
@@ -2713,12 +2768,30 @@ export default function App() {
               const parsed = JSON.parse(savedProgress);
               const newProgressData: Record<string, number> = {};
               Object.keys(parsed).forEach(k => {
-                 if (typeof parsed[k] === 'number') newProgressData[k] = parsed[k];
+                 let pct = 0;
+                 if (typeof parsed[k] === 'number') pct = parsed[k];
+                 else if (parsed[k] && parsed[k].type === "tv" && parsed[k].show_progress) {
+                   const s = parsed[k].last_season_watched || 1;
+                   const e = parsed[k].last_episode_watched || 1;
+                   const epProg = parsed[k].show_progress[`s${s}e${e}`];
+                   if (epProg && epProg.progress) {
+                       const duration = epProg.progress.duration || 0;
+                       pct = duration > 0 ? (epProg.progress.watched / duration) : (epProg.progress.watched > 0 ? 0.5 : 0);
+                   }
+                 }
                  else if (parsed[k] && parsed[k].currentTime !== undefined) {
                    const duration = parsed[k].duration || 0;
-                   newProgressData[k] = duration > 0 ? (parsed[k].currentTime / duration) : (parsed[k].currentTime > 0 ? 0.5 : 0);
+                   pct = duration > 0 ? (parsed[k].currentTime / duration) : (parsed[k].currentTime > 0 ? 0.5 : 0);
                  } else if (parsed[k] && parsed[k].duration) {
-                   newProgressData[k] = parsed[k].currentTime / parsed[k].duration;
+                   pct = parsed[k].currentTime / parsed[k].duration;
+                 }
+                 
+                 newProgressData[k] = pct;
+                 if (!k.endsWith("-tv")) {
+                     newProgressData[k + "-tv"] = pct;
+                 }
+                 if (k.endsWith("-tv")) {
+                     newProgressData[k.replace("-tv", "")] = pct;
                  }
               });
               setProgressData(newProgressData);

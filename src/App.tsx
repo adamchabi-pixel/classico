@@ -806,12 +806,12 @@ export default function App() {
              pct = parsed[k].currentTime / parsed[k].duration;
            }
            
-           newProgressData[k] = pct;
+           if (pct > (newProgressData[k] || 0) || !newProgressData[k]) newProgressData[k] = pct;
            if (!k.endsWith("-tv")) {
-               newProgressData[k + "-tv"] = pct;
+               if (pct > (newProgressData[k + "-tv"] || 0) || !newProgressData[k + "-tv"]) newProgressData[k + "-tv"] = pct;
            }
            if (k.endsWith("-tv")) {
-               newProgressData[k.replace("-tv", "")] = pct;
+               if (pct > (newProgressData[k.replace("-tv", "")] || 0) || !newProgressData[k.replace("-tv", "")]) newProgressData[k.replace("-tv", "")] = pct;
            }
         });
         setProgressData(newProgressData);
@@ -1299,12 +1299,12 @@ export default function App() {
              pct = parsed[k].currentTime / parsed[k].duration;
            }
            
-           newProgressData[k] = pct;
+           if (pct > (newProgressData[k] || 0) || !newProgressData[k]) newProgressData[k] = pct;
            if (!k.endsWith("-tv")) {
-               newProgressData[k + "-tv"] = pct;
+               if (pct > (newProgressData[k + "-tv"] || 0) || !newProgressData[k + "-tv"]) newProgressData[k + "-tv"] = pct;
            }
            if (k.endsWith("-tv")) {
-               newProgressData[k.replace("-tv", "")] = pct;
+               if (pct > (newProgressData[k.replace("-tv", "")] || 0) || !newProgressData[k.replace("-tv", "")]) newProgressData[k.replace("-tv", "")] = pct;
            }
         });
         setProgressData(newProgressData);
@@ -1374,7 +1374,7 @@ export default function App() {
         });
       (window as any).playbackPrefetches = prefetches;
 
-      navigateTo("/player/" + movie.id);
+      navigateTo("/player/" + pId);
     } else {
       navigateTo("/movie/" + movie.id);
     }
@@ -2786,12 +2786,12 @@ export default function App() {
                    pct = parsed[k].currentTime / parsed[k].duration;
                  }
                  
-                 newProgressData[k] = pct;
+                 if (pct > (newProgressData[k] || 0) || !newProgressData[k]) newProgressData[k] = pct;
                  if (!k.endsWith("-tv")) {
-                     newProgressData[k + "-tv"] = pct;
+                     if (pct > (newProgressData[k + "-tv"] || 0) || !newProgressData[k + "-tv"]) newProgressData[k + "-tv"] = pct;
                  }
                  if (k.endsWith("-tv")) {
-                     newProgressData[k.replace("-tv", "")] = pct;
+                     if (pct > (newProgressData[k.replace("-tv", "")] || 0) || !newProgressData[k.replace("-tv", "")]) newProgressData[k.replace("-tv", "")] = pct;
                  }
               });
               setProgressData(newProgressData);

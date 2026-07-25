@@ -6,6 +6,7 @@ export interface Movie {
   logoUrl?: string;
   id: string;
   isIframeEmbed?: boolean;
+  iframeSrc?: string;
   title: string;
   year: number;
   duration: string;

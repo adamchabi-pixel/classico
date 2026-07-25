@@ -733,6 +733,13 @@ export default function App() {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<any | null>(null);
+
+  // Library specific states
+  const [librarySearch, setLibrarySearch] = useState("");
+  const [libraryGenre, setLibraryGenre] = useState<string>("All");
+  const [libraryYear, setLibraryYear] = useState<string>("All");
+  const [libraryType, setLibraryType] = useState<"all" | "movie" | "tv">("all");
+  const [librarySort, setLibrarySort] = useState<"popularity" | "rating" | "year" | "title">("popularity");
   const [progressData, setProgressData] = useState<Record<string, number>>({});
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [history, setHistory] = useState<string[]>([]);
@@ -1256,8 +1263,20 @@ export default function App() {
       (window as any).moviePlayClickTime = performance.now();
       console.log("%c[CHRONO LECTEUR] Clic sur le film : 0.000s (Début du flux)", "color: #a855f7; font-weight: bold; font-size: 13px;");
       
+      let pId = movie.id;
+      if (movie.isTv) {
+        try {
+          const tvState = JSON.parse(localStorage.getItem("classico_tv_state") || "{}");
+          const state = tvState[movie.id];
+          const s = state ? state.season : 1;
+          const e = state ? state.episode : 1;
+          pId = `${movie.id}-S${s}E${e}`;
+        } catch(e) {
+          pId = `${movie.id}-S1E1`;
+        }
+      }
+      
       // Préchargement immédiat de l'API de playback au clic pour devancer la navigation de la page
-      const pId = movie.id;
       const prefetches = (window as any).playbackPrefetches || {};
       prefetches[pId] = fetch(`/api/playback/${encodeURIComponent(pId)}`)
         .then(res => {
@@ -1453,6 +1472,60 @@ export default function App() {
     }, 15);
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
+
+  const libraryGenres = React.useMemo(() => {
+    const genres = new Set<string>();
+    allMovies.forEach(m => m.genre?.forEach(g => genres.add(g)));
+    return ["All", ...Array.from(genres).sort()];
+  }, [allMovies]);
+
+  const libraryYears = React.useMemo(() => {
+    const years = new Set<string>();
+    allMovies.forEach(m => { if(m.year) years.add(m.year.toString()); });
+    return ["All", ...Array.from(years).sort((a, b) => Number(b) - Number(a))];
+  }, [allMovies]);
+
+  const filteredLibraryMovies = React.useMemo(() => {
+    let filtered = allMovies;
+
+    if (librarySearch.trim() !== "") {
+      const q = librarySearch.toLowerCase();
+      filtered = filtered.filter(m => 
+        (m.title && m.title.toLowerCase().includes(q)) ||
+        (m.originalTitle && m.originalTitle.toLowerCase().includes(q)) ||
+        (m.director && m.director.toLowerCase().includes(q))
+      );
+    }
+
+    if (libraryGenre !== "All") {
+      filtered = filtered.filter(m => m.genre?.includes(libraryGenre));
+    }
+
+    if (libraryYear !== "All") {
+      filtered = filtered.filter(m => m.year?.toString() === libraryYear);
+    }
+
+    if (libraryType !== "all") {
+      filtered = filtered.filter(m => libraryType === "tv" ? !!m.isTv : !m.isTv);
+    }
+
+    // Sort
+    return [...filtered].sort((a, b) => {
+      if (librarySort === "popularity") {
+        // Mock popularity via vote average & year
+        const popA = (a.voteAverage || 0) * (a.year || 2000);
+        const popB = (b.voteAverage || 0) * (b.year || 2000);
+        return popB - popA;
+      } else if (librarySort === "rating") {
+        return (b.voteAverage || 0) - (a.voteAverage || 0);
+      } else if (librarySort === "year") {
+        return (b.year || 0) - (a.year || 0);
+      } else if (librarySort === "title") {
+        return (a.title || "").localeCompare(b.title || "");
+      }
+      return 0;
+    });
+  }, [allMovies, librarySearch, libraryGenre, libraryYear, libraryType, librarySort]);
 
   const searchedMovies = React.useMemo(() => {
     if (searchQuery.trim() === "") return [];
@@ -2265,81 +2338,103 @@ export default function App() {
             </motion.div>
           ) : activeTab === "collections" ? (
             /* ========================================================== */
-            /* VIEW B: COLLECTIONS INDEX GRID OVERVIEW (GRID VIEW)         */
+            /* VIEW B: LIBRARY (GRID VIEW)                                */
             /* ========================================================== */
             <motion.div
               key="tab-collections"
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
-              className="max-w-[2000px] mx-auto px-4 sm:px-8 pt-4 pb-8 sm:py-8 space-y-8 sm:space-y-12"
+              className="w-full flex flex-col min-h-screen pb-20"
             >
-              <div className="text-left space-y-2 max-w-2xl">
-                <p className="text-xs font-mono uppercase tracking-[3px] text-zinc-500">THEMATIC INDEXES</p>
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-signature text-[#f4ecd8] leading-none filter drop-shadow-[0_0_4px_rgba(244,236,216,0.2)]">
-                  Collections
-                </h1>
-                <p className="text-sm sm:text-base text-zinc-400 font-sans leading-relaxed">
-                  Discover our exclusive folders by emblematic director, infinite sagas, or epic themes that redefined world cinema history.
-                </p>
+              {/* STICKY FILTER HEADER */}
+              <div className="sticky top-[64px] md:top-[60px] z-30 bg-neutral-950/90 backdrop-blur-xl border-b border-zinc-800/60 pb-3 pt-4 px-4 sm:px-8 space-y-4">
+                <div className="flex flex-col md:flex-row gap-4 items-center justify-between max-w-[2000px] mx-auto w-full">
+                  
+                  {/* Dedicated Search */}
+                  <div className="flex flex-1 items-center gap-3 w-full md:max-w-md relative">
+                    <Search className="w-4 h-4 text-amber-500 absolute left-3.5" />
+                    <input
+                      type="text"
+                      placeholder="Rechercher dans la bibliothèque..."
+                      value={librarySearch}
+                      onChange={(e) => setLibrarySearch(e.target.value)}
+                      className="w-full bg-zinc-900/60 border border-zinc-800 text-white rounded-full pl-10 pr-4 py-2 focus:outline-none focus:border-amber-500/50 focus:bg-zinc-900 transition-all font-sans text-sm"
+                    />
+                  </div>
+
+                  {/* Filters */}
+                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full md:w-auto pb-1 md:pb-0">
+                    <select
+                      value={libraryType}
+                      onChange={(e) => setLibraryType(e.target.value as any)}
+                      className="bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 text-zinc-300 rounded-full px-4 py-2 text-[11px] sm:text-xs font-semibold uppercase tracking-wider outline-none focus:border-amber-500/50 transition-colors cursor-pointer appearance-none"
+                    >
+                      <option value="all">Tout</option>
+                      <option value="movie">Films</option>
+                      <option value="tv">Séries</option>
+                    </select>
+
+                    <select
+                      value={libraryGenre}
+                      onChange={(e) => setLibraryGenre(e.target.value)}
+                      className="bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 text-zinc-300 rounded-full px-4 py-2 text-[11px] sm:text-xs font-semibold uppercase tracking-wider outline-none focus:border-amber-500/50 max-w-[120px] sm:max-w-none transition-colors cursor-pointer appearance-none"
+                    >
+                      {libraryGenres.map(g => (
+                        <option key={g} value={g}>{g}</option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={libraryYear}
+                      onChange={(e) => setLibraryYear(e.target.value)}
+                      className="bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 text-zinc-300 rounded-full px-4 py-2 text-[11px] sm:text-xs font-semibold uppercase tracking-wider outline-none focus:border-amber-500/50 transition-colors cursor-pointer appearance-none"
+                    >
+                      {libraryYears.map(y => (
+                        <option key={y} value={y}>{y}</option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={librarySort}
+                      onChange={(e) => setLibrarySort(e.target.value as any)}
+                      className="bg-amber-500/10 border border-amber-500/20 hover:border-amber-500/40 text-amber-500 rounded-full px-4 py-2 text-[11px] sm:text-xs font-semibold uppercase tracking-wider outline-none focus:border-amber-500/50 transition-colors cursor-pointer appearance-none ml-2"
+                    >
+                      <option value="popularity">Populaire</option>
+                      <option value="rating">Mieux Notés</option>
+                      <option value="year">Récent</option>
+                      <option value="title">A-Z</option>
+                    </select>
+                  </div>
+                </div>
               </div>
 
-              {/* Collections Grid Layout cards */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-8 pt-2">
-                {mappedCollections.map((c, i) => {
-                  const representative = c.movies[0];
-                  return (
-                    <div 
-                      id={`collection-folder-${c.id}`}
-                      key={c.id}
-                      className="relative overflow-hidden group bg-neutral-900/60 rounded-2xl border border-zinc-800/80 p-4 sm:p-8 flex flex-col justify-between gap-4 sm:gap-6 hover:border-amber-400/40 transition-all duration-300 text-left cursor-pointer"
-                      onClick={() => {
-                        navigateTo("/collection-detail/" + c.id);
-                        window.scrollTo({ top: 0, behavior: "smooth" });
-                      }}
-                    >
-                      {/* background gradient matching representative movie */}
-                      <div className={`absolute right-0 top-0 w-2/3 h-full bg-gradient-to-l ${representative.gradient} opacity-20 group-hover:opacity-40 blur-lg rounded-r-2xl transition-all duration-500 pointer-events-none`} />
-
-                      <div className="space-y-2 sm:space-y-3 relative z-10">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[9px] sm:text-[10px] font-mono font-medium tracking-widest text-amber-400 uppercase bg-black/40 border border-amber-500/20 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md">
-                            {c.movies.length} MOVIES
-                          </span>
-                        </div>
-
-                        <h3 className="text-sm sm:text-2xl font-cinzel font-bold text-white tracking-widest uppercase transition-all duration-300">
-                          {c.title}
-                        </h3>
-
-                        <p className="text-zinc-400 text-[10px] sm:text-sm leading-relaxed font-sans line-clamp-2 sm:line-clamp-3">
-                          {c.description}
-                        </p>
-                      </div>
-
-                      {/* Display movie list previews inside card folder */}
-                      <div className="hidden sm:block relative z-10 pt-4 border-t border-zinc-800/60">
-                        <p className="text-[10px] font-mono uppercase tracking-[2px] text-zinc-500 mb-3 font-semibold">Included in Collection:</p>
-                        <div className="flex overflow-x-auto no-scrollbar flex-nowrap md:flex-wrap gap-2 pb-1 md:pb-0">
-                          {c.movies.slice(0, 4).map((movie, idx) => (
-                            <span 
-                              key={`${movie.id}-prev-${idx}`}
-                              className="whitespace-nowrap bg-black/40 hover:bg-neutral-800 text-zinc-300 text-[11px] font-mono px-2 py-1 rounded border border-zinc-800/70"
-                            >
-                              {movie.title}
-                            </span>
-                          ))}
-                          {c.movies.length > 4 && (
-                            <span className="whitespace-nowrap bg-amber-500/10 text-amber-400 text-[10px] font-mono font-extrabold px-2 py-1 rounded border border-amber-500/20">
-                              + {c.movies.length - 4} ENCORE
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                    </div>
-                  );
-                })}
+              {/* MOVIE GRID */}
+              <div className="max-w-[2000px] mx-auto w-full px-4 sm:px-8 py-6 sm:py-8">
+                {filteredLibraryMovies.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 opacity-50">
+                    <FilmIcon className="w-16 h-16 text-zinc-600" />
+                    <h3 className="text-xl font-display font-bold text-white">Aucun résultat</h3>
+                    <p className="text-zinc-400">Essayez de modifier vos filtres de recherche.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 sm:gap-4 md:gap-5">
+                    {filteredLibraryMovies.map((movie) => (
+                      <LazyVirtualCard key={movie.id} className="w-full aspect-[2/3]">
+                        <MovieCard
+                          movie={movie}
+                          onSelect={(m) => {
+                            setSelectedMovie(m);
+                          }}
+                          onPlay={(m) => {
+                            handlePlayClick(m);
+                          }}
+                          progressPercent={progressData[movie.id]}
+                        />
+                      </LazyVirtualCard>
+                    ))}
+                  </div>
+                )}
               </div>
             </motion.div>
           ) : activeTab === "collection-detail" ? (

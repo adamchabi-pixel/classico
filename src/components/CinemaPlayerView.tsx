@@ -807,9 +807,9 @@ export default function CinemaPlayerView({
               iframeUrlVideasy = `https://player.videasy.net/movie/${cleanId}`;
             }
             const newServers = [
-              { name: "Serveur 1 ⭐", url: iframeUrlVideasy },
-              { name: "Serveur 2", url: iframeUrl111 },
-              { name: "Serveur 3", url: iframeUrlPeach }
+              { name: "Server 1 ⭐", url: iframeUrlVideasy },
+              { name: "Server 2", url: iframeUrl111 },
+              { name: "Server 3", url: iframeUrlPeach }
             ];
             setAvailableServers(newServers);
             
@@ -902,9 +902,9 @@ export default function CinemaPlayerView({
                         u3 = `https://player.videasy.net/movie/${itemData.ProviderIds.Tmdb}`;
                     }
                     const srvs = [
-                      { name: "Serveur 1 ⭐", url: u3 },
-                      { name: "Serveur 2", url: u2 },
-                      { name: "Serveur 3", url: u1 }
+                      { name: "Server 1 ⭐", url: u3 },
+                      { name: "Server 2", url: u2 },
+                      { name: "Server 3", url: u1 }
                     ];
                     setAvailableServers(srvs);
                     const safeIndex = activeServerIndex >= srvs.length ? 0 : activeServerIndex;
@@ -1524,9 +1524,30 @@ export default function CinemaPlayerView({
       setIsStreamLoading(false);
     };
 
+    let lastSaveTime = 0;
+    const handleTimeUpdate = () => {
+      setProgress(video.currentTime);
+      const now = Date.now();
+      if (now - lastSaveTime > 5000) {
+        lastSaveTime = now;
+        try {
+          const saved = JSON.parse(localStorage.getItem("classico_progress") || "{}");
+          if (movieId) {
+              saved[movieId] = { 
+                currentTime: video.currentTime, 
+                timestamp: now,
+                duration: video.duration || playbackInfo?.duration || 0
+              };
+              localStorage.setItem("classico_progress", JSON.stringify(saved));
+          }
+        } catch(e) {}
+      }
+    };
+
     video.addEventListener("loadedmetadata", handleLoadedMetadata);
     video.addEventListener("canplay", handleCanPlay);
     video.addEventListener("loadeddata", handleLoadedData);
+    video.addEventListener("timeupdate", handleTimeUpdate);
 
     const streamMode = playbackInfo.isDirect ? "DirectPlay" : "Transcoding / HLS";
 
@@ -1653,6 +1674,7 @@ export default function CinemaPlayerView({
       video.removeEventListener("loadedmetadata", handleLoadedMetadata);
       video.removeEventListener("canplay", handleCanPlay);
       video.removeEventListener("loadeddata", handleLoadedData);
+      video.removeEventListener("timeupdate", handleTimeUpdate);
       if (hlsRef.current) {
         hlsRef.current.destroy();
         hlsRef.current = null;
@@ -1737,7 +1759,11 @@ export default function CinemaPlayerView({
             const currentTime = event.data.data.currentTime;
             const saved = JSON.parse(localStorage.getItem("classico_progress") || "{}");
             if (movieId) {
-                saved[movieId] = { currentTime: currentTime, timestamp: Date.now() };
+                saved[movieId] = { 
+                  currentTime: currentTime, 
+                  timestamp: Date.now(),
+                  duration: event.data.data.duration || duration || 0
+                };
                 localStorage.setItem("classico_progress", JSON.stringify(saved));
             }
           } catch(e) {}
@@ -1793,7 +1819,7 @@ export default function CinemaPlayerView({
 
   if (!serverSelected && availableServers.length > 0) {
     return (
-      <div className="fixed inset-0 z-50 bg-neutral-900 flex flex-col justify-center items-center select-none cursor-default bg-cover bg-center" style={{ backgroundImage: `url(${movieBackdrop || ''})`}}>
+      <div className="fixed inset-0 w-screen h-[100dvh] z-50 bg-neutral-900 flex flex-col justify-center items-center select-none cursor-default bg-cover bg-center" style={{ backgroundImage: `url(${movieBackdrop || ''})`}}>
         <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-0" />
         
         {/* UPPER DECK (GO BACK) */}
@@ -1803,7 +1829,7 @@ export default function CinemaPlayerView({
             <button
               onClick={() => onClose()}
               className="pointer-events-auto p-2 rounded-full bg-black/50 hover:bg-black/80 text-white transition-all cursor-pointer backdrop-blur-md"
-              title="Fermer"
+              title="Close"
             >
               <X className="w-6 h-6" />
             </button>
@@ -1812,8 +1838,8 @@ export default function CinemaPlayerView({
 
         <div className="z-10 w-full max-w-md bg-neutral-900/90 border border-white/10 rounded-2xl p-6 shadow-2xl flex flex-col gap-6 backdrop-blur-md relative pointer-events-auto mx-4">
           <div className="flex flex-col gap-2 text-center">
-            <h2 className="text-2xl font-bold text-white tracking-tight">Sélection du serveur</h2>
-            <p className="text-sm text-neutral-400">Choisissez un serveur de streaming pour lancer la vidéo.</p>
+            <h2 className="text-2xl font-bold text-white tracking-tight">Server Selection</h2>
+            <p className="text-sm text-neutral-400">Choose a streaming server to launch the video.</p>
           </div>
 
           <div className="flex flex-col gap-3">
@@ -1868,7 +1894,7 @@ export default function CinemaPlayerView({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col justify-center items-center select-none overflow-hidden cursor-default">
+    <div className="fixed inset-0 w-screen h-[100dvh] z-50 bg-black flex flex-col justify-center items-center select-none overflow-hidden cursor-default">
       {/* INTERCEPTOR OVERLAY TO WAKE UP CONTROLS (IFRAME ONLY) */}
       {!controlsVisible && playbackInfo?.isIframeEmbed && (
         <div 
@@ -1904,17 +1930,17 @@ export default function CinemaPlayerView({
                   setShowServerMenu(!showServerMenu);
                 }}
                 className={`pointer-events-auto px-3 py-1.5 sm:px-4 sm:py-2 rounded-full transition-all cursor-pointer flex items-center justify-center gap-1.5 backdrop-blur-md bg-black/50 hover:bg-black/80 text-white border border-transparent`}
-                title="Changer de serveur"
+                title="Change Server"
               >
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="text-[10px] sm:text-xs font-medium whitespace-nowrap">{availableServers[activeServerIndex]?.name || 'Serveur'}</span>
+                <span className="text-[10px] sm:text-xs font-medium whitespace-nowrap">{availableServers[activeServerIndex]?.name || 'Server'}</span>
                 <ChevronDown className="w-3 h-3 opacity-70" />
               </button>
               
               {showServerMenu && (
                 <div id="cinema-server-menu" className="absolute top-full left-0 mt-2 min-w-[200px] bg-black/90 border border-white/10 rounded-xl overflow-hidden shadow-2xl backdrop-blur-xl pointer-events-auto z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="p-2 border-b border-white/10 text-xs font-semibold text-white/50 uppercase tracking-wider">
-                    Serveur de lecture
+                    Playback Server
                   </div>
                   <div className="flex flex-col py-1">
                     {availableServers.map((server, idx) => (
@@ -1959,13 +1985,13 @@ export default function CinemaPlayerView({
       >
         <Loader2 className={`w-10 h-10 ${(isLoading || isStreamLoading || (playbackInfo?.isIframeEmbed && isIframeLoading)) ? 'animate-spin' : ''}`} />
         <div className="text-sm font-mono tracking-widest text-amber-500/80 uppercase">
-          Connexion au serveur...
+          Connecting to server...
         </div>
       </div>
       
       {/* Actual player/iframe */}
       {playbackInfo?.iframeSrc ? (
-        <div className="absolute inset-0 w-full h-full bg-black z-40 pointer-events-auto flex items-center justify-center">
+        <div className="absolute inset-0 w-full h-full bg-black z-40 pointer-events-auto flex items-center justify-center pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
           <iframe
             key={playbackInfo.iframeSrc}
             src={playbackInfo.iframeSrc}
@@ -1990,7 +2016,7 @@ export default function CinemaPlayerView({
         </div>
       ) : !isLoading && !isStreamLoading ? (
         <div className="absolute inset-0 flex items-center justify-center text-rose-500 font-mono text-xs p-4 bg-black/80 z-30">
-          Source introuvable.
+          Source not found.
         </div>
       ) : null}
     </div>

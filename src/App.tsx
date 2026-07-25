@@ -10,7 +10,7 @@ import {
 import { COLLECTIONS as RAW_COLLECTIONS, Movie, Collection } from "./data";
 import { allMoviesData } from "./data/all_movies";
 import { importedMoviesData } from "./data/imported_movies";
-import { heroMoviesData } from "./data/hero_movies";
+
 const COLLECTIONS: Collection[] = [...RAW_COLLECTIONS].sort((a, b) => { if (a.id === "trending-now") return -1; if (b.id === "trending-now") return 1; return a.title.localeCompare(b.title); });
 
 import MovieCard from "./components/MovieCard";
@@ -663,6 +663,25 @@ function enrichDynamicMovie(m: Movie, contextID: string): Movie {
     tagline};
 }
 
+
+const isAnimeOrAdult = (m: any) => {
+  if (m.adult) return true;
+  const hasBannedGenre = m.genre?.some((g: string) => {
+    const lower = g.toLowerCase();
+    return lower.includes('anime') || lower.includes('hentai') || lower.includes('adult') || lower.includes('japanimation');
+  });
+  const lowerTitle = (m.title || (m as any).name || m.originalTitle || '').toLowerCase();
+  const hasBannedTitle = lowerTitle.includes('hentai') || lowerTitle.includes('naruto') || lowerTitle.includes('boruto') || lowerTitle.includes('dragon ball') || lowerTitle.includes('one piece') || lowerTitle.includes('bleach') || lowerTitle.includes('attack on titan') || lowerTitle.includes('jujutsu kaisen') || lowerTitle.includes('demon slayer') || lowerTitle.includes('my hero academia');
+  const hasTmdbAnime = m.providerIds?.Tmdb && m.originalLanguage === 'ja' && m.genre?.includes('Animation');
+  return hasBannedGenre || hasBannedTitle || hasTmdbAnime;
+};
+
+const isAnimeOrAdultKeyword = (q: string) => {
+  const term = q.toLowerCase();
+  const banned = ['anime', 'animé', 'hentai', 'manga', 'japanimation', 'ecchi', 'naruto', 'boruto', 'dragon ball', 'one piece', 'bleach', 'attack on titan', 'jujutsu kaisen', 'demon slayer', 'my hero academia'];
+  return banned.some(b => term.includes(b));
+};
+
 export default function App() {
   const [tmdbCache, setTmdbCache] = useState<Movie[]>(() => {
     try {
@@ -674,7 +693,7 @@ export default function App() {
     }
   });
   const allMoviesBase = React.useMemo(() => {
-    const combined = [...importedMoviesData, ...allMoviesData];
+    const combined = [...importedMoviesData, ...allMoviesData].filter(m => !isAnimeOrAdult(m as unknown as Movie));
     const groups = new Map();
     
     const cleanTitle = (t: string) => t ? t.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
@@ -682,7 +701,7 @@ export default function App() {
     combined.forEach(m => {
       let key = null;
       if (m.tmdbId) key = `tmdb_${m.tmdbId}`;
-      else if (m.providerIds && m.providerIds.Tmdb) key = `tmdb_${m.providerIds.Tmdb}`;
+      else if ((m as any).providerIds && (m as any).providerIds.Tmdb) key = `tmdb_${(m as any).providerIds.Tmdb}`;
       else if (m.id && /^\d+$/.test(m.id)) key = `tmdb_${m.id}`; // Assuming numeric IDs are TMDB
       else key = `title_${cleanTitle(m.title)}`;
       
@@ -694,7 +713,7 @@ export default function App() {
     
     groups.forEach(group => {
       // Prioritize Jellyfin object as the base so we keep the streamUrl and Jellyfin ID
-      let baseMovie = group.find((m: Movie) => m.isJellyfin || m.streamUrl) || group[0];
+      let baseMovie = group.find((m: Movie) => false) || group[0];
       let merged = { ...baseMovie };
       
       group.forEach((m: Movie) => {
@@ -751,7 +770,7 @@ export default function App() {
   const [direction, setDirection] = useState(0);
   const [routeScrollPositions, setRouteScrollPositions] = useState<Record<string, number>>({});
     
-    const jellyfinHeroMovies = heroMoviesData.heroes;
+    const jellyfinHeroMovies: any[] = [];
   const jellyfinHeroMovie = jellyfinHeroMovies[currentHeroIndex] || null;
   const useTextTitleForJellyfinHero = false;
   const setUseTextTitleForJellyfinHero = (val: boolean) => {};
@@ -789,6 +808,7 @@ export default function App() {
 
   // Dynamically map movies into collections & genres by checking server presence
   const mappedCollections = React.useMemo(() => {
+
     if (!allMoviesBase || allMoviesBase.length === 0) return [];
 
     const matchedServersMovieIds = new Set<string>();
@@ -807,7 +827,7 @@ export default function App() {
               id: match.id, // Use server id to play correctly
               tmdbId: match.tmdbId || movie.tmdbId,
               imdbId: match.imdbId || movie.imdbId,
-              providerIds: match.providerIds || movie.providerIds,
+              providerIds_unused: match.providerIds || movie.providerIds,
               isTv: match.isTv !== undefined ? match.isTv : movie.isTv,
               streamUrl: match.streamUrl,
               posterUrl: match.posterUrl || movie.posterUrl,
@@ -1332,6 +1352,7 @@ export default function App() {
 
 
   const allMovies = React.useMemo(() => {
+
     const map = new Map<string, Movie>();
     
     // Add custom mapped collection movies first (they have beautiful gradients, symbols, etc., and are now enriched with Jellyfin dynamic streams!)
@@ -1348,16 +1369,18 @@ export default function App() {
     
     // Add TMDB cache movies
     tmdbCache.forEach(m => {
-      if (!map.has(m.id)) {
-        map.set(m.id, m);
-      } else {
-        // Merge in missing details (like seasons)
-        const existing = map.get(m.id)!;
-        map.set(m.id, { ...existing, ...m });
+      if (true) {
+        if (!map.has(m.id)) {
+          map.set(m.id, m);
+        } else {
+          // Merge in missing details (like seasons)
+          const existing = map.get(m.id)!;
+          map.set(m.id, { ...existing, ...m });
+        }
       }
     });
 
-    return Array.from(map.values());
+    return Array.from(map.values()).filter(m => !isAnimeOrAdult(m));
   }, [mappedCollections, allMoviesBase, tmdbCache]);
 
     const unmatchedMovies = React.useMemo(() => {
@@ -1412,7 +1435,22 @@ export default function App() {
         if (res.ok) {
           const m = await res.json();
           if (m.results) {
-            const formatted = m.results.map((r: any) => {
+            const isAnimeOrAdult = (r: any) => {
+              if (r.adult) return true;
+              if (r.original_language === 'ja' || r.original_language === 'ko' || r.original_language === 'zh') return true;
+              if (r.origin_country && (r.origin_country.includes('JP') || r.origin_country.includes('KR') || r.origin_country.includes('CN'))) return true;
+              
+              const title = (r.title || r.name || r.original_title || r.original_name || '').toLowerCase();
+              if (title.includes('naruto') || title.includes('boruto') || title.includes('dragon ball') || title.includes('one piece') || title.includes('bleach') || title.includes('attack on titan')) return true;
+              
+              if (r.genre_ids && r.genre_ids.includes(16)) {
+                if (r.origin_country && r.origin_country.includes('JP')) return true;
+                if (r.original_language === 'ja') return true;
+              }
+              return false;
+            };
+            const validResults = m.results.filter((r: any) => !isAnimeOrAdult(r));
+            const formatted = validResults.map((r: any) => {
               const isTv = r.media_type === "tv";
               return {
                 id: String(r.id) + (isTv ? "-tv" : ""),
@@ -1446,8 +1484,10 @@ export default function App() {
   }, []);
 
   
+
+
   useEffect(() => {
-    if (!searchQuery.trim()) {
+    if (!searchQuery.trim() || isAnimeOrAdultKeyword(searchQuery)) {
       setTmdbSearchResults([]);
       return;
     }
@@ -1486,7 +1526,10 @@ export default function App() {
   }, [allMovies]);
 
   const filteredLibraryMovies = React.useMemo(() => {
-    let filtered = allMovies;
+    const map = new Map<string, Movie>();
+    mappedCollections.flatMap(c => c.movies).forEach(m => map.set(m.id, m));
+    allMoviesBase.forEach(m => { if (!map.has(m.id)) map.set(m.id, m); });
+    let filtered = Array.from(map.values()).filter(m => !isAnimeOrAdult(m));
 
     if (librarySearch.trim() !== "") {
       const q = librarySearch.toLowerCase();
@@ -1509,12 +1552,18 @@ export default function App() {
       filtered = filtered.filter(m => libraryType === "tv" ? !!m.isTv : !m.isTv);
     }
 
+    // Filter out movies without posters to clean up the library
+    filtered = filtered.filter(m => m.posterUrl && m.posterUrl.trim() !== "");
+
     // Sort
     return [...filtered].sort((a, b) => {
       if (librarySort === "popularity") {
-        // Mock popularity via vote average & year
-        const popA = (a.voteAverage || 0) * (a.year || 2000);
-        const popB = (b.voteAverage || 0) * (b.year || 2000);
+        // Better mock popularity: prioritize trending/curated movies, then vote average
+        const isCuratedA = mappedCollections.some(c => c.movies.some(cm => cm.id === a.id)) ? 1000 : 0;
+        const isCuratedB = mappedCollections.some(c => c.movies.some(cm => cm.id === b.id)) ? 1000 : 0;
+        
+        const popA = isCuratedA + (a.voteAverage || 0) * 10 + ((a.year && a.year > 2015) ? (a.year - 2015) * 2 : 0);
+        const popB = isCuratedB + (b.voteAverage || 0) * 10 + ((b.year && b.year > 2015) ? (b.year - 2015) * 2 : 0);
         return popB - popA;
       } else if (librarySort === "rating") {
         return (b.voteAverage || 0) - (a.voteAverage || 0);
@@ -1525,12 +1574,12 @@ export default function App() {
       }
       return 0;
     });
-  }, [allMovies, librarySearch, libraryGenre, libraryYear, libraryType, librarySort]);
+  }, [allMoviesBase, mappedCollections, librarySearch, libraryGenre, libraryYear, libraryType, librarySort]);
 
   const searchedMovies = React.useMemo(() => {
     if (searchQuery.trim() === "") return [];
     
-    const localMatches = allMovies.filter(m => 
+    const localMatches = isAnimeOrAdultKeyword(searchQuery) ? [] : allMovies.filter(m => 
         (m.title && m.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (m.director && m.director.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (m.genre && m.genre.some(g => g.toLowerCase().includes(searchQuery.toLowerCase())))
@@ -1540,7 +1589,10 @@ export default function App() {
     const merged = [...localMatches];
     const localIds = new Set(localMatches.map(m => String(m.id)));
     
-    tmdbSearchResults.forEach(tmdbMovie => {
+    tmdbSearchResults.filter(m => {
+      const title = (m.title || (m as any).name || '').toLowerCase();
+      return !isAnimeOrAdultKeyword(title);
+    }).forEach(tmdbMovie => {
       // Check if we already have this TMDB id in local (local might use imdbId as id, but tmdbMovie has tmdbId)
       // We check both id and tmdbId
       const existsLocal = merged.some(m => String(m.tmdbId) === String(tmdbMovie.tmdbId) || String(m.id) === String(tmdbMovie.id) || String(m.imdbId) === String(tmdbMovie.tmdbId) || (m.providerIds && m.providerIds.Tmdb && String(m.providerIds.Tmdb) === String(tmdbMovie.tmdbId)) || (m.title && tmdbMovie.title && m.title.toLowerCase() === tmdbMovie.title.toLowerCase() && m.year === tmdbMovie.year));
@@ -2423,12 +2475,8 @@ export default function App() {
                       <LazyVirtualCard key={movie.id} className="w-full aspect-[2/3]">
                         <MovieCard
                           movie={movie}
-                          onSelect={(m) => {
-                            setSelectedMovie(m);
-                          }}
-                          onPlay={(m) => {
-                            handlePlayClick(m);
-                          }}
+                          onSelect={(m) => handleOpenMovie(m, false)}
+                          onPlay={(m) => handleOpenMovie(m, true)}
                           progressPercent={progressData[movie.id]}
                         />
                       </LazyVirtualCard>

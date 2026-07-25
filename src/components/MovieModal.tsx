@@ -372,7 +372,7 @@ export default function MovieModal({
                         key={idx}
                         onClick={() => {
                           onClose();
-                          if (onSimilarClick) { onSimilarClick(sim.id); } else { window.location.href = "/movie/" + sim.id; }
+                          if (onSimilarClick) { onSimilarClick(sim.id); }
                         }}
                         className="shrink-0 w-28 sm:w-32 group cursor-pointer text-left"
                       >

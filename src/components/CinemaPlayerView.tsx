@@ -423,12 +423,24 @@ export default function CinemaPlayerView({
     if (movieId) {
       try {
         const saved = JSON.parse(localStorage.getItem("classico_progress") || "{}");
-        if (saved[movieId] && saved[movieId].currentTime > 0) {
-           savedRestoreTimeRef.current = saved[movieId].currentTime;
+        let restoredTime = 0;
+        if (isTv && season && episode) {
+          const baseId = movieId.replace(/-tv$/, "").replace(/-S\d+E\d+$/, "");
+          if (saved[baseId] && saved[baseId].type === "tv" && saved[baseId].show_progress) {
+             const epProg = saved[baseId].show_progress[`s${season}e${episode}`];
+             if (epProg && epProg.progress && epProg.progress.watched > 0) {
+                 restoredTime = epProg.progress.watched;
+             }
+          }
+        } else if (saved[movieId] && saved[movieId].currentTime > 0) {
+           restoredTime = saved[movieId].currentTime;
+        }
+        if (restoredTime > 0) {
+           savedRestoreTimeRef.current = restoredTime;
         }
       } catch(e) {}
     }
-  }, [movieId]);
+  }, [movieId, isTv, season, episode]);
   useEffect(() => {
     if (!(window as any).moviePlayClickTime) {
       (window as any).moviePlayClickTime = performance.now();
@@ -1532,13 +1544,45 @@ export default function CinemaPlayerView({
         lastSaveTime = now;
         try {
           const saved = JSON.parse(localStorage.getItem("classico_progress") || "{}");
-          if (movieId) {
+          if (isTv && season && episode) {
+              const baseId = movieId ? movieId.replace(/-tv$/, "").replace(/-S\d+E\d+$/, "") : null;
+              if (baseId) {
+                if (!saved[baseId] || saved[baseId].type !== "tv") {
+                   saved[baseId] = {
+                       id: baseId,
+                       type: "tv",
+                       last_season_watched: season,
+                       last_episode_watched: episode,
+                       show_progress: {}
+                   };
+                }
+                saved[baseId].last_season_watched = season;
+                saved[baseId].last_episode_watched = episode;
+                if (!saved[baseId].show_progress) saved[baseId].show_progress = {};
+                saved[baseId].show_progress[`s${season}e${episode}`] = {
+                    season: season,
+                    episode: episode,
+                    progress: { watched: video.currentTime, duration: video.duration || playbackInfo?.duration || 0 }
+                };
+              }
+          } else if (movieId) {
               saved[movieId] = { 
                 currentTime: video.currentTime, 
                 timestamp: now,
                 duration: video.duration || playbackInfo?.duration || 0
               };
-              localStorage.setItem("classico_progress", JSON.stringify(saved));
+          }
+          localStorage.setItem("classico_progress", JSON.stringify(saved));
+          
+          if (isTv && season && episode) {
+             const baseId = movieId ? movieId.replace(/-tv$/, "").replace(/-S\d+E\d+$/, "") : null;
+             if (baseId) {
+                 try {
+                     const tvState = JSON.parse(localStorage.getItem("classico_tv_state") || "{}");
+                     tvState[baseId] = { season: season, episode: episode };
+                     localStorage.setItem("classico_tv_state", JSON.stringify(tvState));
+                 } catch(e) {}
+             }
           }
         } catch(e) {}
       }
@@ -1753,18 +1797,67 @@ export default function CinemaPlayerView({
       }
 
       // 2. Existing progress tracking logic
-      if (event.data) {
-        if (event.data.type === 'PLAYER_EVENT' && event.data.data?.currentTime !== undefined) {
+      if (event.data && event.data.data) {
+        let currentTime = undefined;
+        let durationValue = undefined;
+        let pSeason = season;
+        let pEpisode = episode;
+        let pIsTv = isTv;
+        let pTmdbId = movieId ? movieId.replace(/-tv$/, "").replace(/-S\d+E\d+$/, "") : null;
+
+        if (event.data.type === 'PLAYER_EVENT' && event.data.data.currentTime !== undefined) {
+            currentTime = event.data.data.currentTime;
+            durationValue = event.data.data.duration || duration || 0;
+            if (event.data.data.mediaType === 'tv') pIsTv = true;
+            if (event.data.data.tmdbId || event.data.data.id) pTmdbId = event.data.data.tmdbId || event.data.data.id;
+            if (event.data.data.season) pSeason = event.data.data.season;
+            if (event.data.data.episode) pEpisode = event.data.data.episode;
+        } else if (event.data.type === 'MEDIA_DATA' && event.data.data.watched !== undefined) {
+            currentTime = event.data.data.watched;
+            durationValue = event.data.data.duration || duration || 0;
+            if (event.data.data.mediaType === 'tv') pIsTv = true;
+            if (event.data.data.tmdbId || event.data.data.id) pTmdbId = event.data.data.tmdbId || event.data.data.id;
+            if (event.data.data.season) pSeason = event.data.data.season;
+            if (event.data.data.episode) pEpisode = event.data.data.episode;
+        }
+        
+        if (currentTime !== undefined) {
           try {
-            const currentTime = event.data.data.currentTime;
             const saved = JSON.parse(localStorage.getItem("classico_progress") || "{}");
-            if (movieId) {
+            if (pIsTv && pSeason && pEpisode && pTmdbId) {
+                if (!saved[pTmdbId] || saved[pTmdbId].type !== "tv") {
+                   saved[pTmdbId] = {
+                       id: pTmdbId,
+                       type: "tv",
+                       last_season_watched: pSeason,
+                       last_episode_watched: pEpisode,
+                       show_progress: {}
+                   };
+                }
+                saved[pTmdbId].last_season_watched = pSeason;
+                saved[pTmdbId].last_episode_watched = pEpisode;
+                if (!saved[pTmdbId].show_progress) saved[pTmdbId].show_progress = {};
+                saved[pTmdbId].show_progress[`s${pSeason}e${pEpisode}`] = {
+                    season: pSeason,
+                    episode: pEpisode,
+                    progress: { watched: currentTime, duration: durationValue }
+                };
+            } else if (movieId) {
                 saved[movieId] = { 
                   currentTime: currentTime, 
                   timestamp: Date.now(),
-                  duration: event.data.data.duration || duration || 0
+                  duration: durationValue
                 };
-                localStorage.setItem("classico_progress", JSON.stringify(saved));
+            }
+            localStorage.setItem("classico_progress", JSON.stringify(saved));
+            
+            // Also maintain legacy classico_tv_state for App.tsx and MovieDetailView.tsx compatibility
+            if (pIsTv && pSeason && pEpisode && pTmdbId) {
+                try {
+                    const tvState = JSON.parse(localStorage.getItem("classico_tv_state") || "{}");
+                    tvState[pTmdbId] = { season: pSeason, episode: pEpisode };
+                    localStorage.setItem("classico_tv_state", JSON.stringify(tvState));
+                } catch(e) {}
             }
           } catch(e) {}
         }
@@ -1819,7 +1912,7 @@ export default function CinemaPlayerView({
 
   if (!serverSelected && availableServers.length > 0) {
     return (
-      <div className="fixed inset-0 w-screen h-[100dvh] z-50 bg-neutral-900 flex flex-col justify-center items-center select-none cursor-default bg-cover bg-center" style={{ backgroundImage: `url(${movieBackdrop || ''})`}}>
+      <div className="fixed inset-0 z-50 bg-neutral-900 flex flex-col justify-center items-center select-none cursor-default bg-cover bg-center" style={{ backgroundImage: `url(${movieBackdrop || ''})`}}>
         <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-0" />
         
         {/* UPPER DECK (GO BACK) */}
@@ -1894,7 +1987,7 @@ export default function CinemaPlayerView({
   }
 
   return (
-    <div className="fixed inset-0 w-screen h-[100dvh] z-50 bg-black flex flex-col justify-center items-center select-none overflow-hidden cursor-default">
+    <div className="fixed inset-0 z-50 bg-black flex flex-col justify-center items-center select-none overflow-hidden cursor-default">
       {/* INTERCEPTOR OVERLAY TO WAKE UP CONTROLS (IFRAME ONLY) */}
       {!controlsVisible && playbackInfo?.isIframeEmbed && (
         <div 
@@ -1991,7 +2084,7 @@ export default function CinemaPlayerView({
       
       {/* Actual player/iframe */}
       {playbackInfo?.iframeSrc ? (
-        <div className="absolute inset-0 w-full h-full bg-black z-40 pointer-events-auto flex items-center justify-center pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+        <div className="absolute inset-0 w-full h-full bg-black z-40 pointer-events-auto flex items-center justify-center">
           <iframe
             key={playbackInfo.iframeSrc}
             src={playbackInfo.iframeSrc}
@@ -2006,7 +2099,7 @@ export default function CinemaPlayerView({
                 setTimeout(() => setIsIframeLoading(false), 4000);
               }
             }}
-            className="absolute inset-0 w-full h-full border-0"
+            className="w-full h-full border-0"
             // @ts-ignore
             webkitallowfullscreen="true"
             // @ts-ignore

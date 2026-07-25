@@ -809,14 +809,16 @@ export default function CinemaPlayerView({
             let iframeUrlVideasy = "";
             let cleanId = finalTmdbId;
             if (cleanId.endsWith('-tv')) cleanId = cleanId.replace('-tv', '');
+            const timeParam = savedRestoreTimeRef.current > 0 ? `?t=${Math.floor(savedRestoreTimeRef.current)}` : "";
+            
             if (isTv && season && episode) {
-              iframeUrl111 = `https://111movies.net/tv/${cleanId}/${season}/${episode}`;
-              iframeUrlPeach = `https://peachify.pro/embed/tv/${cleanId}/${season}/${episode}`;
-              iframeUrlVideasy = `https://player.videasy.net/tv/${cleanId}/${season}/${episode}`;
+              iframeUrl111 = `https://111movies.net/tv/${cleanId}/${season}/${episode}${timeParam}`;
+              iframeUrlPeach = `https://peachify.pro/embed/tv/${cleanId}/${season}/${episode}${timeParam}`;
+              iframeUrlVideasy = `https://player.videasy.net/tv/${cleanId}/${season}/${episode}${timeParam}`;
             } else {
-              iframeUrl111 = `https://111movies.net/movie/${cleanId}`;
-              iframeUrlPeach = `https://peachify.pro/embed/movie/${cleanId}`;
-              iframeUrlVideasy = `https://player.videasy.net/movie/${cleanId}`;
+              iframeUrl111 = `https://111movies.net/movie/${cleanId}${timeParam}`;
+              iframeUrlPeach = `https://peachify.pro/embed/movie/${cleanId}${timeParam}`;
+              iframeUrlVideasy = `https://player.videasy.net/movie/${cleanId}${timeParam}`;
             }
             const newServers = [
               { name: "Server 1 ⭐", url: iframeUrlVideasy },
@@ -904,14 +906,15 @@ export default function CinemaPlayerView({
                   if (itemData.ProviderIds.Tmdb) {
                     data.isIframeEmbed = true;
                     let u1 = "", u2 = "", u3 = "";
+                    const timeParam = savedRestoreTimeRef.current > 0 ? `?t=${Math.floor(savedRestoreTimeRef.current)}` : "";
                     if (itemData.Type === "Episode" && itemData.ParentIndexNumber && itemData.IndexNumber) {
-                        u1 = `https://peachify.pro/embed/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}`;
-                        u2 = `https://111movies.net/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}`;
-                        u3 = `https://player.videasy.net/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}`;
+                        u1 = `https://peachify.pro/embed/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}${timeParam}`;
+                        u2 = `https://111movies.net/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}${timeParam}`;
+                        u3 = `https://player.videasy.net/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}${timeParam}`;
                     } else {
-                        u1 = `https://peachify.pro/embed/movie/${itemData.ProviderIds.Tmdb}`;
-                        u2 = `https://111movies.net/movie/${itemData.ProviderIds.Tmdb}`;
-                        u3 = `https://player.videasy.net/movie/${itemData.ProviderIds.Tmdb}`;
+                        u1 = `https://peachify.pro/embed/movie/${itemData.ProviderIds.Tmdb}${timeParam}`;
+                        u2 = `https://111movies.net/movie/${itemData.ProviderIds.Tmdb}${timeParam}`;
+                        u3 = `https://player.videasy.net/movie/${itemData.ProviderIds.Tmdb}${timeParam}`;
                     }
                     const srvs = [
                       { name: "Server 1 ⭐", url: u3 },

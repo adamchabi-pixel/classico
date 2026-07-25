@@ -10,6 +10,7 @@ import {
 import { COLLECTIONS as RAW_COLLECTIONS, Movie, Collection } from "./data";
 import { allMoviesData } from "./data/all_movies";
 import { importedMoviesData } from "./data/imported_movies";
+import { heroMoviesData } from "./data/hero_movies";
 
 const COLLECTIONS: Collection[] = [...RAW_COLLECTIONS].sort((a, b) => { if (a.id === "trending-now") return -1; if (b.id === "trending-now") return 1; return a.title.localeCompare(b.title); });
 
@@ -770,10 +771,10 @@ export default function App() {
   const [direction, setDirection] = useState(0);
   const [routeScrollPositions, setRouteScrollPositions] = useState<Record<string, number>>({});
     
-    const jellyfinHeroMovies: any[] = [];
-  const jellyfinHeroMovie = jellyfinHeroMovies[currentHeroIndex] || null;
-  const useTextTitleForJellyfinHero = false;
-  const setUseTextTitleForJellyfinHero = (val: boolean) => {};
+    const heroMovies = heroMoviesData.heroes;
+  const heroMovie = heroMovies[currentHeroIndex] || null;
+  const useTextTitleForHero = false;
+  const setUseTextTitleForHero = (val: boolean) => {};
   const isJellyfinLoading = false;
   const jellyfinConfig = null;
 
@@ -1171,18 +1172,18 @@ export default function App() {
 
   // Reset title display preferences when user slides to a different hero film
   useEffect(() => {
-    setUseTextTitleForJellyfinHero(false);
+    setUseTextTitleForHero(false);
   }, [currentHeroIndex]);
 
   // Automatic advances interval for dynamic Jellyfin Hero banner collection (10s loops)
   useEffect(() => {
-    if (jellyfinHeroMovies.length <= 1) return;
+    if (heroMovies.length <= 1) return;
     const interval = setInterval(() => {
       setDirection(1);
-      setCurrentHeroIndex((prev) => (prev + 1) % jellyfinHeroMovies.length);
+      setCurrentHeroIndex((prev) => (prev + 1) % heroMovies.length);
     }, 10000);
     return () => clearInterval(interval);
-  }, [jellyfinHeroMovies.length]);
+  }, [heroMovies.length]);
 
 // Load Jellyfin Hero effect removed
 
@@ -1235,6 +1236,15 @@ export default function App() {
         const newProgressData: Record<string, number> = {};
         Object.keys(parsed).forEach(k => {
            if (typeof parsed[k] === 'number') newProgressData[k] = parsed[k];
+           else if (parsed[k] && parsed[k].type === "tv" && parsed[k].show_progress) {
+             const s = parsed[k].last_season_watched || 1;
+             const e = parsed[k].last_episode_watched || 1;
+             const epProg = parsed[k].show_progress[`s${s}e${e}`];
+             if (epProg && epProg.progress) {
+                 const duration = epProg.progress.duration || 0;
+                 newProgressData[k] = duration > 0 ? (epProg.progress.watched / duration) : (epProg.progress.watched > 0 ? 0.5 : 0);
+             }
+           }
            else if (parsed[k] && parsed[k].currentTime !== undefined) {
              const duration = parsed[k].duration || 0;
              newProgressData[k] = duration > 0 ? (parsed[k].currentTime / duration) : (parsed[k].currentTime > 0 ? 0.5 : 0);
@@ -1262,11 +1272,9 @@ export default function App() {
   };
 
   const handleAddToHistory = (movieID: string) => {
-    if (!history.includes(movieID)) {
-      const updated = [movieID, ...history].slice(0, 10); // Keep last 10
-      setHistory(updated);
-      localStorage.setItem("classico_history", JSON.stringify(updated));
-    }
+    const updated = [movieID, ...history.filter(id => id !== movieID)].slice(0, 15);
+    setHistory(updated);
+    localStorage.setItem("classico_history", JSON.stringify(updated));
   };
 
   const goBackOrHome = () => {
@@ -1968,7 +1976,7 @@ export default function App() {
               {/* Grand Showcase Spotlight Hero Section (Premium Netflix/Apple TV style) */}
               {isHeroLoading ? (
                 <HeroSkeleton />
-              ) : jellyfinHeroMovies.length > 0 && jellyfinHeroMovie ? (
+              ) : heroMovies.length > 0 && heroMovie ? (
                 <div 
                   className="relative w-full h-[85vh] [@media(max-height:500px)_and_(orientation:landscape)]:h-[100vh] md:h-screen bg-black overflow-hidden flex items-end select-none"
                   onTouchStart={(e) => {
@@ -1980,14 +1988,14 @@ export default function App() {
                     const diff = heroTouchStartX.current - touchEndX;
                     
                     if (Math.abs(diff) > 50) { // threshold for swipe
-                      if (diff > 0 && jellyfinHeroMovies.length > 1) {
+                      if (diff > 0 && heroMovies.length > 1) {
                         // Swiped left, go to next
                         setDirection(1);
-                        setCurrentHeroIndex((prev) => (prev + 1) % jellyfinHeroMovies.length);
-                      } else if (diff < 0 && jellyfinHeroMovies.length > 1) {
+                        setCurrentHeroIndex((prev) => (prev + 1) % heroMovies.length);
+                      } else if (diff < 0 && heroMovies.length > 1) {
                         // Swiped right, go to prev
                         setDirection(-1);
-                        setCurrentHeroIndex((prev) => (prev - 1 + jellyfinHeroMovies.length) % jellyfinHeroMovies.length);
+                        setCurrentHeroIndex((prev) => (prev - 1 + heroMovies.length) % heroMovies.length);
                       }
                     }
                     heroTouchStartX.current = null;
@@ -1996,7 +2004,7 @@ export default function App() {
                   
                   <AnimatePresence initial={false} custom={direction}>
                     <motion.div
-                      key={jellyfinHeroMovie.id}
+                      key={heroMovie.id}
                       custom={direction}
                       variants={{
                         enter: (dir: number) => ({
@@ -2022,8 +2030,8 @@ export default function App() {
                       {/* Cinematic background image wrapper covering the full width */}
                       <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
                         <motion.img
-                          src={jellyfinHeroMovie.backdropUrl || CLASSICO_HERO_BACKDROP}
-                          alt={jellyfinHeroMovie.title}
+                          src={heroMovie.backdropUrl || CLASSICO_HERO_BACKDROP}
+                          alt={heroMovie.title}
                           referrerPolicy="no-referrer"
                           className="w-full h-full object-cover object-center md:object-top"
                           style={{ willChange: "transform" }}
@@ -2055,15 +2063,15 @@ export default function App() {
                           className="space-y-4 sm:space-y-5 w-full md:max-w-[35%] lg:max-w-[35%] min-w-[280px] sm:min-w-[360px] md:min-w-[0px] z-20 [@media(max-height:500px)_and_(orientation:landscape)]:space-y-2"
                         >
                           {/* Poster Style Cinematic Title or Logo with dynamic fallback to text based styling */}
-                          {jellyfinHeroMovie.hasLogo && jellyfinHeroMovie.logoUrl && !useTextTitleForJellyfinHero ? (
+                          {heroMovie.hasLogo && heroMovie.logoUrl && !useTextTitleForHero ? (
                             <div className="scale-75 sm:scale-100 origin-left select-none my-2 relative group uppercase italic leading-[0.9]">
                               <img 
-                                src={jellyfinHeroMovie.logoUrl} 
-                                alt={jellyfinHeroMovie.title}
+                                src={heroMovie.logoUrl} 
+                                alt={heroMovie.title}
                                 className="h-12 xs:h-16 sm:h-20 lg:h-24 object-contain max-w-[85%] sm:max-w-[75%] select-none pointer-events-none filter brightness-100 drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]"
                                 referrerPolicy="no-referrer"
                                 onError={() => {
-                                  setUseTextTitleForJellyfinHero(true);
+                                  setUseTextTitleForHero(true);
                                 }}
                               />
                               {/* Subtle user feedback action to bypass logo if it's white or unreadable */}
@@ -2071,7 +2079,7 @@ export default function App() {
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setUseTextTitleForJellyfinHero(true);
+                                  setUseTextTitleForHero(true);
                                 }}
                                 className="absolute -bottom-6 left-0 opacity-0 group-hover:opacity-100 text-[9.5px] font-sans text-zinc-400 hover:text-white transition-opacity bg-black/80 px-2 py-0.5 rounded border border-white/10"
                               >
@@ -2081,14 +2089,14 @@ export default function App() {
                           ) : (
                             <div className="relative group my-1">
                               <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-sans font-black tracking-tight text-white uppercase italic leading-[1.05] filter drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] transform -skew-x-2">
-                                {jellyfinHeroMovie.title}
+                                {heroMovie.title}
                               </h1>
-                              {jellyfinHeroMovie.hasLogo && jellyfinHeroMovie.logoUrl && (
+                              {heroMovie.hasLogo && heroMovie.logoUrl && (
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setUseTextTitleForJellyfinHero(false);
+                                    setUseTextTitleForHero(false);
                                   }}
                                   className="mt-1.5 inline-flex items-center gap-1 opacity-60 hover:opacity-100 text-[9px] text-amber-400/90 hover:text-amber-300 bg-stone-900/60 hover:bg-stone-900 border border-white/5 hover:border-amber-400/20 px-2.5 py-0.5 rounded transition-all cursor-pointer font-mono"
                                 >
@@ -2101,21 +2109,21 @@ export default function App() {
                           {/* Premium Discrete Pills / Badges for movie tags */}
                            <div className="flex w-full justify-start items-center gap-1.5 text-[10px] md:text-[9.5px] font-mono uppercase tracking-[0.08em] pb-1 md:pb-0">
                             <div className="hidden md:flex items-center gap-1.5">
-                              {jellyfinHeroMovie.genre && jellyfinHeroMovie.genre.slice(0, 4).map((g: string) => (
+                              {heroMovie.genre && heroMovie.genre.slice(0, 4).map((g: string) => (
                                 <span key={g} className="whitespace-nowrap px-1.5 py-0.5 bg-white/5 border border-white/10 hover:border-white/20 text-zinc-300 rounded-full font-sans font-bold tracking-wider transition-colors duration-200">
                                   {g}
                                 </span>
                               ))}
                             </div>
                             <span className="whitespace-nowrap px-1.5 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold tracking-wider rounded-full">
-                              {jellyfinHeroMovie.year}
+                              {heroMovie.year}
                             </span>
                             <span className="whitespace-nowrap px-1.5 py-0.5 bg-white/5 border border-white/10 text-zinc-400 tracking-wider rounded-full">
-                              {jellyfinHeroMovie.duration}
+                              {heroMovie.duration}
                             </span>
-                            {jellyfinHeroMovie.rating && jellyfinHeroMovie.rating !== "N/A" && (
+                            {heroMovie.rating && heroMovie.rating !== "N/A" && (
                               <span className="whitespace-nowrap px-1.5 py-0.5 bg-white/5 border border-white/10 text-zinc-300 font-bold tracking-wider rounded-full">
-                                <span className="text-amber-500 font-extrabold mr-0.5">★</span>{jellyfinHeroMovie.rating}
+                                <span className="text-amber-500 font-extrabold mr-0.5">★</span>{heroMovie.rating}
                               </span>
                             )}
                           </div>
@@ -2125,14 +2133,14 @@ export default function App() {
                             className="text-zinc-300 text-[11px] sm:text-xs md:text-sm leading-relaxed font-sans filter drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)] line-clamp-2 md:line-clamp-3 overflow-hidden text-ellipsis whitespace-normal max-w-[70%] md:max-w-full"
                             style={{ textShadow: "0 2px 8px rgba(0,0,0,0.95), 0 1px 3px rgba(0,0,0,0.95)" }}
                           >
-                            {jellyfinHeroMovie.description}
+                            {heroMovie.description}
                           </p>
 
                           {/* Netflix & Apple TV Styled Fluid Selection Buttons */}
                           <div className="flex items-center gap-2.5 pt-1.5">
                             <button
                               id="hero-play-btn"
-                              onClick={() => handleOpenMovie(jellyfinHeroMovie, true)}
+                              onClick={() => handleOpenMovie(heroMovie, true)}
                               className="group flex items-center justify-center gap-1.5 sm:gap-2 bg-white hover:bg-neutral-100 text-stone-950 font-sans font-black px-4.5 py-2.5 sm:px-8 sm:py-3.5 rounded-full text-[10.5px] sm:text-xs md:text-sm tracking-widest uppercase transition-all duration-300 hover:shadow-[0_0_24px_rgba(255,255,255,0.25)] hover:scale-103 active:scale-95 cursor-pointer"
                             >
                               <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current text-stone-950 group-hover:scale-110 transition-transform duration-250" />
@@ -2141,7 +2149,7 @@ export default function App() {
 
                             <button
                               id="hero-info-btn"
-                              onClick={() => handleOpenMovie(jellyfinHeroMovie, false)}
+                              onClick={() => handleOpenMovie(heroMovie, false)}
                               className="group flex items-center justify-center gap-1.5 sm:gap-2 bg-transparent hover:bg-white/10 border border-white/40 hover:border-white text-white font-sans font-black px-4 py-2.5 sm:px-7 sm:py-3.5 rounded-full text-[10.5px] sm:text-xs md:text-sm tracking-widest uppercase transition-all duration-300 hover:scale-102 active:scale-95 cursor-pointer"
                             >
                               <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white group-hover:scale-110 transition-transform duration-250" />
@@ -2157,7 +2165,7 @@ export default function App() {
 
                   {/* Carousel Dots Navigation Indicator at the bottom center */}
                   <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/5 shadow-lg">
-                    {jellyfinHeroMovies.map((_, idx) => (
+                    {heroMovies.map((_, idx) => (
                       <button
                         key={idx}
                         onClick={() => {

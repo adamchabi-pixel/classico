@@ -1723,6 +1723,14 @@ export default function CinemaPlayerView({
     if (!playbackInfo?.isIframeEmbed) return;
     
     const handleMessage = (event: MessageEvent) => {
+      // 1. Peachify loading screen logic
+      if (event.origin === 'https://peachify.pro') {
+        if (event.data?.type === 'PLAYER_EVENT' && event.data.data?.event === 'play') {
+          setIsIframeLoading(false);
+        }
+      }
+
+      // 2. Existing progress tracking logic
       if (event.data) {
         if (event.data.type === 'PLAYER_EVENT' && event.data.data?.currentTime !== undefined) {
           try {
@@ -1946,14 +1954,14 @@ export default function CinemaPlayerView({
       </div>
 
       {/* Loader overlay */}
-      {(isLoading || isStreamLoading || (playbackInfo?.isIframeEmbed && isIframeLoading)) && (
-        <div className="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center gap-4 text-amber-500">
-          <Loader2 className="w-10 h-10 animate-spin" />
-          <div className="text-sm font-mono tracking-widest text-amber-500/80 uppercase">
-            Connexion au serveur...
-          </div>
+      <div 
+        className={`absolute inset-0 z-[60] bg-black flex flex-col items-center justify-center gap-4 text-amber-500 transition-opacity duration-1000 ease-in-out ${(isLoading || isStreamLoading || (playbackInfo?.isIframeEmbed && isIframeLoading)) ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+      >
+        <Loader2 className={`w-10 h-10 ${(isLoading || isStreamLoading || (playbackInfo?.isIframeEmbed && isIframeLoading)) ? 'animate-spin' : ''}`} />
+        <div className="text-sm font-mono tracking-widest text-amber-500/80 uppercase">
+          Connexion au serveur...
         </div>
-      )}
+      </div>
       
       {/* Actual player/iframe */}
       {playbackInfo?.iframeSrc ? (
@@ -1963,7 +1971,15 @@ export default function CinemaPlayerView({
             src={playbackInfo.iframeSrc}
             allowFullScreen={true}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-            onLoad={() => setIsIframeLoading(false)}
+            onLoad={() => {
+              const isPeach = playbackInfo.iframeSrc?.includes('peachify.pro');
+              if (!isPeach) {
+                setIsIframeLoading(false);
+              } else {
+                // Safety timeout in case 'play' event never fires from Peachify
+                setTimeout(() => setIsIframeLoading(false), 4000);
+              }
+            }}
             className="absolute inset-0 w-full h-full border-0"
             // @ts-ignore
             webkitallowfullscreen="true"

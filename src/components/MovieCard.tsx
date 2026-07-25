@@ -13,6 +13,13 @@ interface MovieCardProps {
 }
 
 export default function MovieCard({ movie, onSelect, onPlay, progressPercent, trendingIndex }: MovieCardProps) {
+  const getSubtitle = () => {
+    if (movie.director && movie.director.trim() !== "" && movie.director !== "Unknown") {
+      return movie.director;
+    }
+    return movie.isTv ? "Série" : "Film";
+  };
+
   return (
     <div
       id={`movie-card-${movie.id}`}
@@ -56,7 +63,7 @@ export default function MovieCard({ movie, onSelect, onPlay, progressPercent, tr
             {movie.posterUrl && <div className="flex-grow" />}
             <div className="space-y-1">
               <p className="text-xs font-mono uppercase tracking-widest font-extrabold bg-gradient-to-r from-[#BF953F] via-[#FCF6BA] to-[#B38728] bg-clip-text text-transparent drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                {movie.director && movie.director !== "Unknown" ? movie.director.split(' ').pop() : (movie.isTv ? "Série" : "Film")}
+                {getSubtitle()}
               </p>
               <h3 className="text-sm sm:text-base font-display font-extrabold uppercase tracking-tight text-white leading-tight line-clamp-2 drop-shadow-lg">
                 {movie.title}

@@ -666,8 +666,8 @@ function enrichDynamicMovie(m: Movie, contextID: string): Movie {
 export default function App() {
   const [tmdbCache, setTmdbCache] = useState<Movie[]>(() => {
     try {
-      // FORCE clear cache once to fix poisoned data (missing cast/logos)
-      localStorage.removeItem("classico_tmdb_cache");
+      const saved = localStorage.getItem("classico_tmdb_cache");
+      if (saved) return JSON.parse(saved);
       return [];
     } catch (e) {
       return [];
@@ -795,8 +795,13 @@ export default function App() {
           if (match) {
             matchedServersMovieIds.add(match.id);
             return {
+              ...match,
               ...movie,
               id: match.id, // Use server id to play correctly
+              tmdbId: match.tmdbId || movie.tmdbId,
+              imdbId: match.imdbId || movie.imdbId,
+              providerIds: match.providerIds || movie.providerIds,
+              isTv: match.isTv !== undefined ? match.isTv : movie.isTv,
               streamUrl: match.streamUrl,
               posterUrl: match.posterUrl || movie.posterUrl,
               backdropUrl: match.backdropUrl || movie.backdropUrl,
@@ -807,6 +812,12 @@ export default function App() {
               genre: (movie.genre && movie.genre.length > 0) ? movie.genre : match.genre,
               description: movie.description || match.description,
               cast: (movie.cast && movie.cast.length > 0) ? movie.cast : match.cast,
+              castDetails: match.castDetails || movie.castDetails,
+              logoUrl: match.logoUrl || movie.logoUrl,
+              hasLogo: match.hasLogo || movie.hasLogo,
+              similar: match.similar || movie.similar,
+              isIframeEmbed: match.isIframeEmbed,
+              iframeSrc: match.iframeSrc,
               tagline: movie.tagline || match.tagline,
               rating: movie.rating && movie.rating !== "N/A" ? movie.rating : match.rating
             } as Movie;
@@ -1197,7 +1208,12 @@ export default function App() {
         const newProgressData: Record<string, number> = {};
         Object.keys(parsed).forEach(k => {
            if (typeof parsed[k] === 'number') newProgressData[k] = parsed[k];
-           else if (parsed[k] && parsed[k].duration) newProgressData[k] = parsed[k].currentTime / parsed[k].duration;
+           else if (parsed[k] && parsed[k].currentTime !== undefined) {
+             const duration = parsed[k].duration || 0;
+             newProgressData[k] = duration > 0 ? (parsed[k].currentTime / duration) : (parsed[k].currentTime > 0 ? 0.5 : 0);
+           } else if (parsed[k] && parsed[k].duration) {
+             newProgressData[k] = parsed[k].currentTime / parsed[k].duration;
+           }
         });
         setProgressData(newProgressData);
       } catch (e) {
@@ -1434,7 +1450,7 @@ export default function App() {
           }
         })
         .finally(() => setIsSearchingTmdb(false));
-    }, 400);
+    }, 15);
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
 
@@ -1461,8 +1477,28 @@ export default function App() {
     });
     
     
+    const uniqueMerged = [];
+    const seenTmdbIds = new Set();
+    const seenTitles = new Set();
+    
+    for (const m of merged) {
+      const isTvStr = m.isTv ? 'tv' : 'movie';
+      
+      const tmdbKey = m.tmdbId ? `${m.tmdbId}-${isTvStr}` : null;
+      const titleKey = `${(m.title || '').toLowerCase()}-${m.year}-${isTvStr}`;
+      
+      const hasTmdb = tmdbKey && seenTmdbIds.has(tmdbKey);
+      const hasTitle = seenTitles.has(titleKey);
+      
+      if (!hasTmdb && !hasTitle) {
+        if (tmdbKey) seenTmdbIds.add(tmdbKey);
+        seenTitles.add(titleKey);
+        uniqueMerged.push(m);
+      }
+    }
+
     const lowerQuery = searchQuery.toLowerCase().trim();
-    merged.sort((a, b) => {
+    uniqueMerged.sort((a, b) => {
       const aTitle = (a.title || "").toLowerCase();
       const bTitle = (b.title || "").toLowerCase();
       const aExact = aTitle === lowerQuery;
@@ -1479,7 +1515,7 @@ export default function App() {
       return 0; // preserve original order (tmdb is already popularity sorted)
     });
 
-    return merged;
+    return uniqueMerged;
   }, [searchQuery, allMovies, tmdbSearchResults]);
 
   const targetMovieId = React.useMemo(() => {
@@ -1506,7 +1542,8 @@ export default function App() {
     if (targetMovieId && (!activeMovie || !activeMovie.director || activeMovie.tagline === undefined || !activeMovie.castDetails || (activeMovie.isTv && !activeMovie.seasons))) {
       setMovieLoadError(null);
       setMovieLoadError(null);
-      fetch(`/api/movie/${activeMovie?.providerIds?.Tmdb ? (activeMovie.isTv ? activeMovie.providerIds.Tmdb + "-tv" : activeMovie.providerIds.Tmdb) : targetMovieId}`)
+      const tmdbId = activeMovie.tmdbId || activeMovie.providerIds?.Tmdb;
+      fetch(`/api/movie/${tmdbId ? (activeMovie.isTv ? tmdbId + "-tv" : tmdbId) : targetMovieId}`)
         .then(res => res.json())
         .then(data => {
           if (data.success && data.movie) {
@@ -2526,7 +2563,12 @@ export default function App() {
               const newProgressData: Record<string, number> = {};
               Object.keys(parsed).forEach(k => {
                  if (typeof parsed[k] === 'number') newProgressData[k] = parsed[k];
-                 else if (parsed[k] && parsed[k].duration) newProgressData[k] = parsed[k].currentTime / parsed[k].duration;
+                 else if (parsed[k] && parsed[k].currentTime !== undefined) {
+                   const duration = parsed[k].duration || 0;
+                   newProgressData[k] = duration > 0 ? (parsed[k].currentTime / duration) : (parsed[k].currentTime > 0 ? 0.5 : 0);
+                 } else if (parsed[k] && parsed[k].duration) {
+                   newProgressData[k] = parsed[k].currentTime / parsed[k].duration;
+                 }
               });
               setProgressData(newProgressData);
             } catch (e) {}

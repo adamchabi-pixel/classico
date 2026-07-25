@@ -9,7 +9,7 @@ import { allMoviesData } from "./src/data/all_movies";
 
 const app = express();
 app.use(compression());
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 app.use(express.json());
 
 const TMDB_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs";
@@ -158,7 +158,7 @@ app.get("/api/movie/:id", async (req, res) => {
     }
     const cast = m.credits?.cast?.slice(0, 4).map((c: any) => c.name) || [];
     const releaseDate = isTv ? m.first_air_date : m.release_date;
-    const logos = m.images?.logos || [];
+    const logos = (m.images?.logos || []).filter((l: any) => l.file_path && l.file_path.endsWith('.png'));
     const bestLogo = logos.find((l: any) => l.iso_639_1 === 'en') || logos[0];
     const logoUrl = bestLogo ? `https://image.tmdb.org/t/p/w500${bestLogo.file_path}` : "";
     
@@ -192,13 +192,13 @@ app.get("/api/movie/:id", async (req, res) => {
       cast: cast,
       logoUrl: logoUrl,
       hasLogo: !!logoUrl,
-      castDetails: m.credits?.cast?.slice(0, 8).map((c: any) => ({
+      castDetails: m.credits?.cast?.filter((c: any) => c.profile_path).slice(0, 8).map((c: any) => ({
         id: String(c.id),
         name: c.name,
         role: c.character,
-        imageUrl: c.profile_path ? `https://image.tmdb.org/t/p/w200${c.profile_path}` : undefined
+        imageUrl: `https://image.tmdb.org/t/p/w200${c.profile_path}`
       })) || [],
-      similar: m.similar?.results?.slice(0, 8).map((sm: any) => ({
+      similar: (m.similar?.results?.length > 0 ? m.similar.results : (m.recommendations?.results || [])).slice(0, 8).map((sm: any) => ({
         id: String(sm.id) + (isTv ? "-tv" : ""),
         tmdbId: String(sm.id),
         isTv,

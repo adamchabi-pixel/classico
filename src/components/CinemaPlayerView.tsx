@@ -807,9 +807,9 @@ export default function CinemaPlayerView({
               iframeUrlVideasy = `https://player.videasy.net/movie/${cleanId}`;
             }
             const newServers = [
-              { name: "Serveur 1 ⭐", url: iframeUrlPeach },
+              { name: "Serveur 1 ⭐", url: iframeUrlVideasy },
               { name: "Serveur 2", url: iframeUrl111 },
-              { name: "Serveur 3", url: iframeUrlVideasy }
+              { name: "Serveur 3", url: iframeUrlPeach }
             ];
             setAvailableServers(newServers);
             
@@ -902,9 +902,9 @@ export default function CinemaPlayerView({
                         u3 = `https://player.videasy.net/movie/${itemData.ProviderIds.Tmdb}`;
                     }
                     const srvs = [
-                      { name: "Serveur 1 ⭐", url: u1 },
+                      { name: "Serveur 1 ⭐", url: u3 },
                       { name: "Serveur 2", url: u2 },
-                      { name: "Serveur 3", url: u3 }
+                      { name: "Serveur 3", url: u1 }
                     ];
                     setAvailableServers(srvs);
                     const safeIndex = activeServerIndex >= srvs.length ? 0 : activeServerIndex;

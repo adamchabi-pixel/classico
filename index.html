@@ -2,8 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/app-icon.png" />
-    <link rel="apple-touch-icon" href="/app-icon.png" />
+    <link rel="icon" type="image/png" href="/app-icon.png?v=2" />
+    <link rel="apple-touch-icon" href="/app-icon.png?v=2" />
     <link rel="manifest" href="/manifest.json?v=5" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -25,13 +25,13 @@
           The Best
         </span>
         <div style="display:flex;gap:8px;margin-top:32px;">
-          <div style="width:8px;height:8px;border-radius:50%;background-color:#bf953f;animation:illuminate 1.5s infinite both;animation-delay:0ms;"></div>
-          <div style="width:8px;height:8px;border-radius:50%;background-color:#bf953f;animation:illuminate 1.5s infinite both;animation-delay:300ms;"></div>
-          <div style="width:8px;height:8px;border-radius:50%;background-color:#bf953f;animation:illuminate 1.5s infinite both;animation-delay:600ms;"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background-color:#bf953f;animation:illuminate 1.5s infinite;animation-delay:0s;"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background-color:#bf953f;animation:illuminate 1.5s infinite;animation-delay:0.2s;"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background-color:#bf953f;animation:illuminate 1.5s infinite;animation-delay:0.4s;"></div>
         </div>
         <style>
           @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Pinyon+Script&display=swap');
-          @keyframes illuminate { 0%, 100% { opacity: 0.2; box-shadow: none; } 50% { opacity: 1; box-shadow: 0 0 10px rgba(252, 246, 186, 0.8); background-color: #fcf6ba; } }
+          @keyframes illuminate { 0%, 60%, 100% { opacity: 0.2; box-shadow: none; background-color: #bf953f; } 30% { opacity: 1; box-shadow: 0 0 10px rgba(252, 246, 186, 0.8); background-color: #fcf6ba; } }
           @media (min-width: 640px) {
              span:first-child { font-size: 2.25rem !important; }
              span:nth-child(2) { font-size: 1.5rem !important; margin-top:-4px !important; }

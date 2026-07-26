@@ -234,17 +234,47 @@ export default function CinemaPlayerView({
   
   const [isCurtainOpen, setIsCurtainOpen] = useState(false);
   const [forceJellyfin, setForceJellyfin] = useState(false);
-  const [activeServerIndex, setActiveServerIndex] = useState(() => {
+    const [activeServerIndex, setActiveServerIndex] = useState(() => {
     try {
+      // Check for per-movie/show server preference
+      const savedStr = localStorage.getItem("classico_progress");
+      if (savedStr) {
+        const saved = JSON.parse(savedStr);
+        let baseId = movieId;
+        if (movieId && movieId.endsWith('-tv')) {
+            baseId = movieId.replace(/-tv$/, "").replace(/-S\d+E\d+$/, "");
+        }
+        if (saved[baseId] && typeof saved[baseId].server_index === 'number') {
+            return saved[baseId].server_index;
+        }
+        if (movieId && saved[movieId] && typeof saved[movieId].server_index === 'number') {
+            return saved[movieId].server_index;
+        }
+      }
+      
       const globalServer = localStorage.getItem("classico_global_server_index");
       if (globalServer !== null) return parseInt(globalServer, 10);
     } catch(e) {}
     return 0;
   });
-  const [serverSelected, setServerSelected] = useState(() => {
+    const [serverSelected, setServerSelected] = useState(() => {
     try {
       if (localStorage.getItem("classico_global_server_index") !== null) {
           return true;
+      }
+      const savedStr = localStorage.getItem("classico_progress");
+      if (savedStr) {
+        const saved = JSON.parse(savedStr);
+        let baseId = movieId;
+        if (movieId && movieId.endsWith('-tv')) {
+            baseId = movieId.replace(/-tv$/, "").replace(/-S\d+E\d+$/, "");
+        }
+        if (saved[baseId] && typeof saved[baseId].server_index === 'number') {
+            return true;
+        }
+        if (movieId && saved[movieId] && typeof saved[movieId].server_index === 'number') {
+            return true;
+        }
       }
     } catch(e) {}
     return false;
@@ -2060,7 +2090,7 @@ export default function CinemaPlayerView({
                     {availableServers.map((server, idx) => (
                       <button
                         key={idx}
-                        onClick={(e) => {
+                                                onClick={(e) => {
                           e.stopPropagation();
                           setActiveServerIndex(idx);
                           if (playbackInfo) {
@@ -2070,6 +2100,8 @@ export default function CinemaPlayerView({
                               streamUrl: server.url
                             });
                           }
+                          localStorage.setItem("classico_global_server_index", String(idx));
+                          setServerSelected(true);
                           setShowServerMenu(false);
                         }}
                         className={`px-4 py-3 text-sm flex items-center gap-3 transition-colors ${activeServerIndex === idx ? 'bg-amber-500/10 text-amber-500' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}

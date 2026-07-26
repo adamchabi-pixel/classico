@@ -15,6 +15,7 @@ import { heroMoviesData } from "./data/hero_movies";
 const COLLECTIONS: Collection[] = [...RAW_COLLECTIONS].sort((a, b) => { if (a.id === "trending-now") return -1; if (b.id === "trending-now") return 1; return a.title.localeCompare(b.title); });
 
 import MovieCard from "./components/MovieCard";
+import LibraryView from "./components/LibraryView";
 const MovieModal = React.lazy(() => import("./components/MovieModal"));
 import MovieDetailView from "./components/MovieDetailView";
 const CinemaPlayerView = React.lazy(() => import("./components/CinemaPlayerView"));
@@ -684,6 +685,12 @@ const isAnimeOrAdultKeyword = (q: string) => {
 };
 
 export default function App() {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowWelcomeModal(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
   const [tmdbCache, setTmdbCache] = useState<Movie[]>(() => {
     try {
       const saved = localStorage.getItem("classico_tmdb_cache");
@@ -745,7 +752,8 @@ export default function App() {
     
     return finalMovies;
   }, []);
-  const [activeTab, setActiveTab ] = useState<"accueil" | "collections" | "profil" | "collection-detail" | "movie" | "player">("accueil");
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [activeTab, setActiveTab ] = useState<"accueil" | "collections" | "series" | "profil" | "collection-detail" | "movie" | "player">("accueil");
   const [routePath, setRoutePath] = useState(window.location.pathname);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -830,6 +838,7 @@ export default function App() {
     setRoutePath(path);
     if (path === "/") setActiveTab("accueil");
     else if (path === "/collections") setActiveTab("collections");
+    else if (path === "/series") setActiveTab("series");
     else if (path === "/profil") setActiveTab("profil");
     else if (path.startsWith("/collection/")) {
       setSelectedCollectionId(path.split("/")[2]);
@@ -1790,6 +1799,17 @@ export default function App() {
     );
   }
 
+  const getProgress = (id: string) => {
+    let pct = progressData[id] || 0;
+    if (pct === 0) {
+      const m = allMovies.find(m => m.id === id || m.id === id + "-tv" || m.id === id.replace("-tv", ""));
+      if (m && m.tmdbId && progressData[m.tmdbId]) {
+         pct = progressData[m.tmdbId];
+      }
+    }
+    return pct;
+  };
+
   return (
     <div className="min-h-screen bg-black text-stone-100 font-sans selection:bg-amber-500 selection:text-black antialiased overflow-x-hidden font-sans">
       
@@ -1872,8 +1892,8 @@ export default function App() {
             <nav className="hidden md:flex items-center gap-1 sm:gap-2 font-sans">
               {[
                 { id: "accueil", label: "Home", icon: Compass },
-                { id: "collections", label: "Library", icon: FilmIcon },
-                
+                { id: "collections", label: "Movies", icon: FilmIcon },
+                { id: "series", label: "Series", icon: Tv },
                 { id: "profil", label: "My Profile", icon: User }
               ].map((tab) => {
                 const IconComp = tab.icon;
@@ -1921,8 +1941,8 @@ export default function App() {
               <nav className="flex flex-col py-2 px-2 gap-1">
                 {[
                   { id: "accueil", label: "Home", icon: Compass },
-                  { id: "collections", label: "Library", icon: FilmIcon },
-                  
+                  { id: "collections", label: "Movies", icon: FilmIcon },
+                  { id: "series", label: "Series", icon: Tv },
                   { id: "profil", label: "My Profile", icon: User }
                 ].map((tab) => {
                   const IconComp = tab.icon;
@@ -1965,7 +1985,7 @@ export default function App() {
       {/* ========================================================== */}
       {/* 2. MAIN VIEWER CONTENT CONTAINER                           */}
       {/* ========================================================== */}
-      <main className="pb-16 min-h-[75vh]">
+      <main className={(activeTab === "collections" || activeTab === "series") ? "min-h-screen" : "pb-16 min-h-[75vh]"}>
         <AnimatePresence mode="wait">
 
           {/* SEARCH RESULTS SHOWCASE GRID OVERLAY */}
@@ -2245,7 +2265,7 @@ export default function App() {
               <div className="max-w-[2000px] mx-auto px-4 sm:px-8 space-y-12 pb-16">
                 
                 {/* Reprendre la lecture Section */}
-                {(history.filter(id => progressData[id] > 0 && progressData[id] < 0.95).map(id => allMovies.find(m => m.id === id || m.id === id + "-tv" || m.id === id.replace("-tv", ""))).filter(m => !!m).length > 0) && (
+                {(history.filter(id => getProgress(id) > 0 && getProgress(id) < 0.95).map(id => allMovies.find(m => m.id === id || m.id === id + "-tv" || m.id === id.replace("-tv", ""))).filter(m => !!m).length > 0) && (
                   <div className="space-y-4 text-left pt-6 sm:pt-8">
                     <div className="flex flex-row items-center sm:items-end justify-between gap-2 sm:gap-3 border-b border-zinc-900 pb-2 sm:pb-3">
                       <div className="space-y-0.5 max-w-[80%]">
@@ -2289,7 +2309,7 @@ export default function App() {
                         className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar pt-4 px-1 pb-6 sm:pb-10"
                       >
                         {history
-                          .filter(id => progressData[id] > 0 && progressData[id] < 0.95)
+                          .filter(id => getProgress(id) > 0 && getProgress(id) < 0.95)
                           .map(id => allMovies.find(m => m.id === id || m.id === id + "-tv" || m.id === id.replace("-tv", "")))
                           .filter((m): m is Movie => !!m)
                           .map((movie, idx) => (
@@ -2298,7 +2318,7 @@ export default function App() {
                                 movie={movie}
                                 onSelect={(m) => handleOpenMovie(m, false)}
                                 onPlay={(m) => handleOpenMovie(m, true)}
-                                progressPercent={progressData[movie.id]}
+                                progressPercent={getProgress(movie.id)}
                               />
                             </LazyVirtualCard>
                           ))}
@@ -2454,99 +2474,24 @@ export default function App() {
             /* ========================================================== */
             /* VIEW B: LIBRARY (GRID VIEW)                                */
             /* ========================================================== */
-            <motion.div
-              key="tab-collections"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              className="w-full flex flex-col min-h-screen pb-20"
-            >
-              {/* STICKY FILTER HEADER */}
-              <div className="sticky top-[64px] md:top-[60px] z-30 bg-neutral-950/90 backdrop-blur-xl border-b border-zinc-800/60 pb-3 pt-4 px-4 sm:px-8 space-y-4">
-                <div className="flex flex-col md:flex-row gap-4 items-center justify-between max-w-[2000px] mx-auto w-full">
-                  
-                  {/* Dedicated Search */}
-                  <div className="flex flex-1 items-center gap-3 w-full md:max-w-md relative">
-                    <Search className="w-4 h-4 text-amber-500 absolute left-3.5" />
-                    <input
-                      type="text"
-                      placeholder="Rechercher dans la bibliothèque..."
-                      value={librarySearch}
-                      onChange={(e) => setLibrarySearch(e.target.value)}
-                      className="w-full bg-zinc-900/60 border border-zinc-800 text-white rounded-full pl-10 pr-4 py-2 focus:outline-none focus:border-amber-500/50 focus:bg-zinc-900 transition-all font-sans text-sm"
-                    />
-                  </div>
-
-                  {/* Filters */}
-                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full md:w-auto pb-1 md:pb-0">
-                    <select
-                      value={libraryType}
-                      onChange={(e) => setLibraryType(e.target.value as any)}
-                      className="bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 text-zinc-300 rounded-full px-4 py-2 text-[11px] sm:text-xs font-semibold uppercase tracking-wider outline-none focus:border-amber-500/50 transition-colors cursor-pointer appearance-none"
-                    >
-                      <option value="all">Tout</option>
-                      <option value="movie">Films</option>
-                      <option value="tv">Séries</option>
-                    </select>
-
-                    <select
-                      value={libraryGenre}
-                      onChange={(e) => setLibraryGenre(e.target.value)}
-                      className="bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 text-zinc-300 rounded-full px-4 py-2 text-[11px] sm:text-xs font-semibold uppercase tracking-wider outline-none focus:border-amber-500/50 max-w-[120px] sm:max-w-none transition-colors cursor-pointer appearance-none"
-                    >
-                      {libraryGenres.map(g => (
-                        <option key={g} value={g}>{g}</option>
-                      ))}
-                    </select>
-
-                    <select
-                      value={libraryYear}
-                      onChange={(e) => setLibraryYear(e.target.value)}
-                      className="bg-zinc-900/80 border border-zinc-800 hover:border-zinc-700 text-zinc-300 rounded-full px-4 py-2 text-[11px] sm:text-xs font-semibold uppercase tracking-wider outline-none focus:border-amber-500/50 transition-colors cursor-pointer appearance-none"
-                    >
-                      {libraryYears.map(y => (
-                        <option key={y} value={y}>{y}</option>
-                      ))}
-                    </select>
-
-                    <select
-                      value={librarySort}
-                      onChange={(e) => setLibrarySort(e.target.value as any)}
-                      className="bg-amber-500/10 border border-amber-500/20 hover:border-amber-500/40 text-amber-500 rounded-full px-4 py-2 text-[11px] sm:text-xs font-semibold uppercase tracking-wider outline-none focus:border-amber-500/50 transition-colors cursor-pointer appearance-none ml-2"
-                    >
-                      <option value="popularity">Populaire</option>
-                      <option value="rating">Mieux Notés</option>
-                      <option value="year">Récent</option>
-                      <option value="title">A-Z</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* MOVIE GRID */}
-              <div className="max-w-[2000px] mx-auto w-full px-4 sm:px-8 py-6 sm:py-8">
-                {filteredLibraryMovies.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 opacity-50">
-                    <FilmIcon className="w-16 h-16 text-zinc-600" />
-                    <h3 className="text-xl font-display font-bold text-white">Aucun résultat</h3>
-                    <p className="text-zinc-400">Essayez de modifier vos filtres de recherche.</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3 sm:gap-4 md:gap-5">
-                    {filteredLibraryMovies.map((movie) => (
-                      <LazyVirtualCard key={movie.id} className="w-full aspect-[2/3]">
-                        <MovieCard
-                          movie={movie}
-                          onSelect={(m) => handleOpenMovie(m, false)}
-                          onPlay={(m) => handleOpenMovie(m, true)}
-                          progressPercent={progressData[movie.id]}
-                        />
-                      </LazyVirtualCard>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </motion.div>
+            <LibraryView 
+              key="library-movies"
+              type="movie"
+              onSelect={(m) => handleOpenMovie(m, false)}
+              onPlay={(m) => handleOpenMovie(m, true)}
+              getProgress={getProgress}
+            />
+          ) : activeTab === "series" ? (
+            /* ========================================================== */
+            /* VIEW B2: LIBRARY SERIES (GRID VIEW)                        */
+            /* ========================================================== */
+            <LibraryView 
+              key="library-series"
+              type="tv"
+              onSelect={(m) => handleOpenMovie(m, false)}
+              onPlay={(m) => handleOpenMovie(m, true)}
+              getProgress={getProgress}
+            />
           ) : activeTab === "collection-detail" ? (
             /* ========================================================== */
             /* VIEW D: COLLECTION DETAIL PAGE VIEW                        */
@@ -2800,8 +2745,50 @@ export default function App() {
         }}
       />
 
-
-
+      {/* WELCOME POPUP MODAL */}
+      <AnimatePresence>
+        {showWelcomeModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="relative w-full max-w-[450px] bg-neutral-950 border border-amber-500/30 rounded-2xl shadow-2xl overflow-hidden p-8 text-center"
+            >
+              <button
+                onClick={() => setShowWelcomeModal(false)}
+                className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors text-zinc-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              
+              <div className="mb-6 mx-auto flex items-center justify-center w-14 h-14 rounded-full bg-amber-500/10 text-amber-500">
+                <Info className="w-7 h-7" />
+              </div>
+              
+              <h2 className="text-xl sm:text-2xl font-bold font-cinzel text-white mb-4 tracking-wide uppercase gold-metallic-text">
+                Welcome to Classico
+              </h2>
+              
+              <p className="text-sm sm:text-base text-zinc-300 leading-relaxed font-medium mb-8">
+                We advise you using an AdBlock for a better experience. However, be reassured: the ads have zero risk. Even if you see fake virus warnings, they are just pop-ups. Enjoy your streaming!
+              </p>
+              
+              <button
+                onClick={() => setShowWelcomeModal(false)}
+                className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm uppercase tracking-wider rounded-xl transition-all duration-300 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)]"
+              >
+                Got it!
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       </div>
   );

@@ -21,7 +21,8 @@ export default function MovieModal({
    
   
   startAsPlaying = false,
-  onPlay 
+  onPlay,
+  onSimilarClick
 }: MovieModalProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [fullMovie, setFullMovie] = useState<Movie | null>(null);

@@ -234,7 +234,16 @@ export default function CinemaPlayerView({
   
   const [isCurtainOpen, setIsCurtainOpen] = useState(false);
   const [forceJellyfin, setForceJellyfin] = useState(false);
-  const [activeServerIndex, setActiveServerIndex] = useState(0);
+  const [activeServerIndex, setActiveServerIndex] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("classico_progress") || "{}");
+      const baseId = isTv ? (movieId ? movieId.replace(/-tv$/, "").replace(/-S\d+E\d+$/, "") : null) : movieId;
+      if (baseId && saved[baseId] && saved[baseId].server_index !== undefined) {
+          return saved[baseId].server_index;
+      }
+    } catch(e) {}
+    return 0;
+  });
   const [serverSelected, setServerSelected] = useState(false);
   const [availableServers, setAvailableServers] = useState<{name: string, url: string}[]>([]);
   const [playing, setPlaying] = useState(true);
@@ -1561,6 +1570,7 @@ export default function CinemaPlayerView({
                 }
                 saved[baseId].last_season_watched = season;
                 saved[baseId].last_episode_watched = episode;
+                saved[baseId].server_index = activeServerIndex;
                 if (!saved[baseId].show_progress) saved[baseId].show_progress = {};
                 saved[baseId].show_progress[`s${season}e${episode}`] = {
                     season: season,
@@ -1572,7 +1582,8 @@ export default function CinemaPlayerView({
               saved[movieId] = { 
                 currentTime: video.currentTime, 
                 timestamp: now,
-                duration: video.duration || playbackInfo?.duration || 0
+                duration: video.duration || playbackInfo?.duration || 0,
+                server_index: activeServerIndex
               };
           }
           localStorage.setItem("classico_progress", JSON.stringify(saved));
@@ -1727,7 +1738,7 @@ export default function CinemaPlayerView({
         hlsRef.current = null;
       }
     };
-  }, [playbackInfo?.streamUrl, isInitialized, isLoading]);
+  }, [playbackInfo?.streamUrl, isInitialized, isLoading, activeServerIndex]);
 
   // 4. SYNC PLAY ACTIONS WITH HTML5 VIDEO ELEMENT (For subsequent user play/pause button actions)
   useEffect(() => {
@@ -1839,6 +1850,7 @@ export default function CinemaPlayerView({
                 }
                 saved[pTmdbId].last_season_watched = pSeason;
                 saved[pTmdbId].last_episode_watched = pEpisode;
+                saved[pTmdbId].server_index = activeServerIndex;
                 if (!saved[pTmdbId].show_progress) saved[pTmdbId].show_progress = {};
                 saved[pTmdbId].show_progress[`s${pSeason}e${pEpisode}`] = {
                     season: pSeason,
@@ -1849,7 +1861,8 @@ export default function CinemaPlayerView({
                 saved[movieId] = { 
                   currentTime: currentTime, 
                   timestamp: Date.now(),
-                  duration: durationValue
+                  duration: durationValue,
+                  server_index: activeServerIndex
                 };
             }
             localStorage.setItem("classico_progress", JSON.stringify(saved));
@@ -1869,7 +1882,7 @@ export default function CinemaPlayerView({
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [playbackInfo, movieId]);
+  }, [playbackInfo, movieId, activeServerIndex]);
 
   // Format second timestamps to MM:SS
   const formatTime = (secs: number) => {
@@ -2087,7 +2100,7 @@ export default function CinemaPlayerView({
       
       {/* Actual player/iframe */}
       {playbackInfo?.iframeSrc ? (
-        <div className="absolute inset-0 w-full h-full bg-black z-40 pointer-events-auto flex items-center justify-center">
+        <div className="absolute inset-0 w-full h-full bg-black z-40 pointer-events-auto flex items-center justify-center pt-[max(env(safe-area-inset-top),44px)] md:pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
           <iframe
             key={playbackInfo.iframeSrc}
             src={playbackInfo.iframeSrc}
@@ -2099,7 +2112,7 @@ export default function CinemaPlayerView({
                 setIsIframeLoading(false);
               } else {
                 // Safety timeout in case 'play' event never fires from Peachify
-                setTimeout(() => setIsIframeLoading(false), 4000);
+                setTimeout(() => setIsIframeLoading(false), 800);
               }
             }}
             className="w-full h-full border-0"

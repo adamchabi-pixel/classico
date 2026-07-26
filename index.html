@@ -15,12 +15,32 @@
   </head>
   <body class="bg-black text-white">
     <div id="root">
-      <div style="display:flex;justify-content:center;align-items:center;height:100vh;background-color:#000;">
-        <svg style="animation: spin 1s linear infinite; height: 2rem; width: 2rem; color: #f59e0b;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle style="opacity: 0.25;" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path style="opacity: 0.75;" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <style>@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }</style>
+      <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;background-color:#000;pointer-events:none;user-select:none;">
+        <div style="position:relative;overflow:hidden;display:flex;align-items:center;">
+          <span style="font-family:'Cinzel',serif;font-weight:700;font-size:1.875rem;letter-spacing:0.22em;text-transform:uppercase;line-height:1;background:linear-gradient(135deg, #bf953f 0%, #fcf6ba 15%, #b38728 35%, #fbf5b7 55%, #aa771c 75%, #fcf6ba 90%, #bf953f 100%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+            CLASSICO
+          </span>
+        </div>
+        <span style="font-family:'Pinyon Script',cursive;display:block;font-size:1.25rem;color:#f4ecd8;line-height:1;margin-top:-2px;user-select:none;text-align:center;transform:translateX(-3px);filter:drop-shadow(0 0 4px rgba(244,236,216,0.2));">
+          The Best
+        </span>
+        <div style="display:flex;gap:8px;margin-top:32px;">
+          <div style="width:8px;height:8px;border-radius:50%;background-color:#bf953f;animation:illuminate 1.5s infinite both;animation-delay:0ms;"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background-color:#bf953f;animation:illuminate 1.5s infinite both;animation-delay:300ms;"></div>
+          <div style="width:8px;height:8px;border-radius:50%;background-color:#bf953f;animation:illuminate 1.5s infinite both;animation-delay:600ms;"></div>
+        </div>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Pinyon+Script&display=swap');
+          @keyframes illuminate { 0%, 100% { opacity: 0.2; box-shadow: none; } 50% { opacity: 1; box-shadow: 0 0 10px rgba(252, 246, 186, 0.8); background-color: #fcf6ba; } }
+          @media (min-width: 640px) {
+             span:first-child { font-size: 2.25rem !important; }
+             span:nth-child(2) { font-size: 1.5rem !important; margin-top:-4px !important; }
+          }
+          @media (min-width: 768px) {
+             span:first-child { font-size: 3rem !important; }
+             span:nth-child(2) { font-size: 1.875rem !important; margin-top:-4px !important; }
+          }
+        </style>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>

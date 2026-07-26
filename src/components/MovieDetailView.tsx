@@ -98,7 +98,7 @@ export default function MovieDetailView({
     <div className="min-h-screen bg-stone-950 text-stone-100 font-sans antialiased pb-20">
       
       {/* 1. TOP SECURE HEADER & NAVIGATION BREADCRUMB */}
-      <div className="absolute top-20 md:top-24 left-4 sm:left-8 z-10">
+      <div className="absolute top-28 md:top-32 left-4 sm:left-8 z-10">
         <button
           onClick={onBack}
           className="inline-flex items-center justify-center p-2.5 bg-black/40 backdrop-blur-sm rounded-full border border-white/10 text-white hover:bg-white/20 hover:scale-105 transition-all duration-200 cursor-pointer"

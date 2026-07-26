@@ -685,12 +685,8 @@ const isAnimeOrAdultKeyword = (q: string) => {
 };
 
 export default function App() {
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowWelcomeModal(true);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
+
+  const [isAppReady, setIsAppReady] = useState(true);
   const [tmdbCache, setTmdbCache] = useState<Movie[]>(() => {
     try {
       const saved = localStorage.getItem("classico_tmdb_cache");
@@ -753,6 +749,14 @@ export default function App() {
     return finalMovies;
   }, []);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  useEffect(() => {
+    if (!localStorage.getItem("classico_welcome_shown")) {
+      const timer = setTimeout(() => {
+        setShowWelcomeModal(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, []);
   const [activeTab, setActiveTab ] = useState<"accueil" | "collections" | "series" | "profil" | "collection-detail" | "movie" | "player">("accueil");
   const [routePath, setRoutePath] = useState(window.location.pathname);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -1810,6 +1814,34 @@ export default function App() {
     return pct;
   };
 
+  if (!isAppReady) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-black select-none pointer-events-none">
+        <div className="relative overflow-hidden flex items-center">
+          <span className="font-cinzel font-bold text-3xl sm:text-4xl md:text-5xl tracking-[0.22em] gold-metallic-text uppercase leading-none">
+            CLASSICO
+          </span>
+        </div>
+        <span className="block font-signature text-xl sm:text-2xl md:text-3xl text-[#f4ecd8] leading-none mt-[-2px] sm:mt-[-4px] select-none text-center translate-x-[-3px] filter drop-shadow-[0_0_4px_rgba(244,236,216,0.2)]">
+          The Best
+        </span>
+        <div className="flex gap-2 mt-8 items-center justify-center">
+          <div className="w-2 h-2 rounded-full bg-[#bf953f]" style={{ animation: "illuminate 1.5s infinite both", animationDelay: "0ms" }}></div>
+          <div className="w-2 h-2 rounded-full bg-[#bf953f]" style={{ animation: "illuminate 1.5s infinite both", animationDelay: "300ms" }}></div>
+          <div className="w-2 h-2 rounded-full bg-[#bf953f]" style={{ animation: "illuminate 1.5s infinite both", animationDelay: "600ms" }}></div>
+        </div>
+        <style>
+          {`
+            @keyframes illuminate {
+              0%, 100% { opacity: 0.2; box-shadow: none; }
+              50% { opacity: 1; box-shadow: 0 0 10px rgba(252, 246, 186, 0.8); background-color: #fcf6ba; }
+            }
+          `}
+        </style>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-stone-100 font-sans selection:bg-amber-500 selection:text-black antialiased overflow-x-hidden font-sans">
       
@@ -2780,7 +2812,7 @@ export default function App() {
               </p>
               
               <button
-                onClick={() => setShowWelcomeModal(false)}
+                onClick={() => { setShowWelcomeModal(false); localStorage.setItem("classico_welcome_shown", "true"); }}
                 className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm uppercase tracking-wider rounded-xl transition-all duration-300 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:shadow-[0_0_25px_rgba(245,158,11,0.4)]"
               >
                 Got it!

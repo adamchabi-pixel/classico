@@ -3835,5 +3835,402 @@
     "isIframeEmbed": true,
     "seasons": [],
     "iframeSrc": "https://111movies.net/movie/693134"
+  },
+  {
+    "id": "1399-tv",
+    "tmdbId": "1399",
+    "imdbId": "1399",
+    "isTv": true,
+    "tagline": "Winter is coming.",
+    "title": "Game of Thrones",
+    "originalTitle": "Game of Thrones",
+    "originalLanguage": "en",
+    "description": "Seven noble families fight for control of the mythical land of Westeros. Friction between the houses leads to full-scale war. All while a very ancient evil awakens in the farthest north. Amidst the war, a neglected military order of misfits, the Night's Watch, is all that stands between the realms of men and icy horrors beyond.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/1XS1oqL89opfnbLl8WnZY1O1uJx.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/original/2OMB0ynKlyIenMJWI2Dy9IWT4c.jpg",
+    "year": 2011,
+    "duration": 45,
+    "director": "David Benioff",
+    "cast": [
+      "Peter Dinklage",
+      "Kit Harington",
+      "Nikolaj Coster-Waldau",
+      "Lena Headey"
+    ],
+    "logoUrl": "https://image.tmdb.org/t/p/w500/6pObznbCoxVpY1lPQwJxETd7Phe.png",
+    "hasLogo": true,
+    "castDetails": [
+      {
+        "id": "22970",
+        "name": "Peter Dinklage",
+        "role": "Tyrion 'The Halfman' Lannister",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/9CAd7wr8QZyIN0E7nm8v1B6WkGn.jpg"
+      },
+      {
+        "id": "239019",
+        "name": "Kit Harington",
+        "role": "Jon Snow",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/iGXlJbExWwZmo9sUDsYuzf4Sv4y.jpg"
+      },
+      {
+        "id": "12795",
+        "name": "Nikolaj Coster-Waldau",
+        "role": "Sir Jaime 'Kingslayer' Lannister",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/rpFOERbHkj7GWxkinUNiQ76sSGk.jpg"
+      },
+      {
+        "id": "17286",
+        "name": "Lena Headey",
+        "role": "Cersei Lannister",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/cDyZLf8ddz0EgoUjpv4jjzy7qxA.jpg"
+      },
+      {
+        "id": "1223786",
+        "name": "Emilia Clarke",
+        "role": "Daenerys Targaryen",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/iFY6t7Ux9r70WB7Sp0TTVz6eGtm.jpg"
+      },
+      {
+        "id": "15498",
+        "name": "Liam Cunningham",
+        "role": "Davos Seaworth",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/ljmFT9zYqh4k2bmEcNU6rxoE7fW.jpg"
+      },
+      {
+        "id": "1181313",
+        "name": "Maisie Williams",
+        "role": "Arya Stark",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/5RjD4dDpRDAhalFtvcUj7zdLWYB.jpg"
+      },
+      {
+        "id": "239020",
+        "name": "Isaac Hempstead Wright",
+        "role": "Brandon 'Bran' Stark",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/g6ZreLmGrrOzaUCGVFRNPAWfcso.jpg"
+      }
+    ],
+    "similar": [
+      {
+        "id": "240150-tv",
+        "tmdbId": "240150",
+        "isTv": true,
+        "title": "Fourever You",
+        "description": "Four friends navigate college life and chaotic romances as they each find their hearts entangled with medical students across four unique stories.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/pXVftluKQpsG2QhjBKQJAkVlAUR.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/ppqchUaqXjyVpxbxoCmzY7aoAb7.jpg",
+        "year": 2024
+      },
+      {
+        "id": "276253-tv",
+        "tmdbId": "276253",
+        "isTv": true,
+        "title": "The Brilliant Healer's New Life in the Shadows",
+        "description": "Banished as \"useless,\" Zenos, a self-taught healer from the slums, turns despair into defiance and opens a secret clinic in the city's shadows. With unlicensed, unmatched magic, he cures, comforts, and rights wrongs, quietly becoming a legend. But as his power grows, even the royal palace takes notice. Can he buck the odds and heal a world that cast him aside?",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/3RqQ6WNHaIyHJByEiRYTpbGCsms.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/sIiQObaCB7CrS1uum8R1HTPSlKR.jpg",
+        "year": 2025
+      },
+      {
+        "id": "4464-tv",
+        "tmdbId": "4464",
+        "isTv": true,
+        "title": "Homicide: Life on the Street",
+        "description": "An American police procedural chronicling the work of a fictional version of the Baltimore Police Department's Homicide Unit.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/nb5310xlFjx5r9TnpKoaOTQsAlP.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/sEkUddzvrgRd70o28aRiZdwdq2p.jpg",
+        "year": 1993
+      },
+      {
+        "id": "128008-tv",
+        "tmdbId": "128008",
+        "isTv": true,
+        "title": "Heirs to the Land",
+        "description": "Resourceful young Hugo Llor works to make a name for himself in 14th-century Barcelona while keeping a vow he made to the Estanyol family.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/zuYtzT6rLn5N4g5XHivpkaM5Yls.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/9KjiHBfeQAoRGhk6ts5p4mFUM5T.jpg",
+        "year": 2022
+      },
+      {
+        "id": "209737-tv",
+        "tmdbId": "209737",
+        "isTv": true,
+        "title": "Untitled His Majesty's Dragons Project",
+        "description": "Set during an alternate-history version of the Napoleonic Wars, in which dragons not only exist but are piloted like skyships and choose their own masters, the series centers primarily on events involving titular dragon Temeraire and his handler, Will Laurence.",
+        "posterUrl": "",
+        "backdropUrl": "",
+        "year": 2026
+      },
+      {
+        "id": "209749-tv",
+        "tmdbId": "209749",
+        "isTv": true,
+        "title": "NIMH",
+        "description": "Follow Mrs. Frisby, a mouse, who in an effort to save her family goes on a spectacular journey through an unfamiliar and underground world to discover a colony of escaped super-intelligent lab rats who help her on a thrilling adventure to relocate her home before the plows and exterminators arrive.",
+        "posterUrl": "",
+        "backdropUrl": "",
+        "year": 2026
+      },
+      {
+        "id": "209829-tv",
+        "tmdbId": "209829",
+        "isTv": true,
+        "title": "The Family Circumstances of the Irregular Witch",
+        "description": "When witch Alyssa found a baby on her doorstep, she didn’t expect her life to take a topsy-turvy turn. Despite her bewilderment, she names the child Viola and decides to raise her. Fast-forward 16 years, and her “daughter” Viola isn’t just taller—she’s towering! Join this bewitching duo in a hilariously chaotic journey of mistaken identities and supernatural shenanigans!",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/pGXu03mb6HdNCn41pfi4mTxRSIU.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/wlWLmOmJSrkAn5qUDplr1Bpu0Ek.jpg",
+        "year": 2023
+      },
+      {
+        "id": "209846-tv",
+        "tmdbId": "209846",
+        "isTv": true,
+        "title": "Medium Detective Hisui Jozuka",
+        "description": "Hisui Jozuka can “see” the culprits with her clairvoyance, but this won’t hold up as evidence. Just how will she solve complex cases? “I have the ability to know the truth, but why am I so useless?” Hisui, with her green eyes, is in anguish. As a medium, she can trace down culprits with her special gift of clairvoyance, but this won’t hold up as evidence. What must she do to get the police to investigate? Will they manage to catch the perpetrator? This is a unique detective drama series that features a psychic detective who goes face to face with criminals.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/onA2BQKzJ1IYm3qvjIhEXRo7lK7.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/lNl756ZsMf9Mf8xJZhTpMkl9fkk.jpg",
+        "year": 2022
+      }
+    ],
+    "genre": [
+      "Sci-Fi & Fantasy",
+      "Drama",
+      "Action & Adventure"
+    ],
+    "voteAverage": 8.467,
+    "isIframeEmbed": true,
+    "seasons": [
+      {
+        "season_number": 1,
+        "name": "Season 1",
+        "episode_count": 10,
+        "air_date": "2011-04-17",
+        "poster_path": "https://image.tmdb.org/t/p/w500/wgfKiqzuMrFIkU1M68DDDY8kGC1.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 2,
+        "name": "Season 2",
+        "episode_count": 10,
+        "air_date": "2012-04-01",
+        "poster_path": "https://image.tmdb.org/t/p/w500/9xfNkPwDOqyeUvfNhs1XlWA0esP.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 3,
+        "name": "Season 3",
+        "episode_count": 10,
+        "air_date": "2013-03-31",
+        "poster_path": "https://image.tmdb.org/t/p/w500/5MkZjRnCKiIGn3bkXrXfndEzqOU.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 4,
+        "name": "Season 4",
+        "episode_count": 10,
+        "air_date": "2014-04-06",
+        "poster_path": "https://image.tmdb.org/t/p/w500/jXIMScXE4J4EVHUba1JgxZnWbo4.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 5,
+        "name": "Season 5",
+        "episode_count": 10,
+        "air_date": "2015-04-12",
+        "poster_path": "https://image.tmdb.org/t/p/w500/7Q1Hy1AHxAzA2lsmzEMBvuWTX0x.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 6,
+        "name": "Season 6",
+        "episode_count": 10,
+        "air_date": "2016-04-24",
+        "poster_path": "https://image.tmdb.org/t/p/w500/p1udLh0gfqyZFmXBGa393gk8go5.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 7,
+        "name": "Season 7",
+        "episode_count": 7,
+        "air_date": "2017-07-16",
+        "poster_path": "https://image.tmdb.org/t/p/w500/oX51n32QyHeFP5kErksemJsJljL.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 8,
+        "name": "Season 8",
+        "episode_count": 6,
+        "air_date": "2019-04-14",
+        "poster_path": "https://image.tmdb.org/t/p/w500/yToCshWmirenreC6mrHwFAScFNJ.jpg",
+        "episodes": []
+      }
+    ],
+    "iframeSrc": ""
+  },
+  {
+    "id": "1084244",
+    "trailerUrl": "https://www.youtube.com/watch?v=QftAW9TTmuQ",
+    "tmdbId": "1084244",
+    "imdbId": "tt29355505",
+    "isTv": false,
+    "tagline": "It's on.",
+    "title": "Toy Story 5",
+    "originalTitle": "Toy Story 5",
+    "originalLanguage": "en",
+    "description": "When Bonnie receives a Lilypad tablet as a gift and becomes obsessed, Buzz, Woody, Jessie and the rest of the gang's jobs become exponentially harder when they have to go head to head with the all-new threat to playtime.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/sfQtVlIHljToOwYjhe21KPGzZWK.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/original/qjTqY5coNiz6sVtPng40IzltsoN.jpg",
+    "year": 2026,
+    "duration": 102,
+    "director": "Andrew Stanton",
+    "cast": [
+      "Tom Hanks",
+      "Tim Allen",
+      "Joan Cusack",
+      "Greta Lee"
+    ],
+    "logoUrl": "https://image.tmdb.org/t/p/w500/dpQ5yGNLRjEPh0mpX5iEYjqGEIJ.png",
+    "hasLogo": true,
+    "castDetails": [
+      {
+        "id": "31",
+        "name": "Tom Hanks",
+        "role": "Woody (voice)",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/oFvZoKI6lvU03n4YoNGAll9rkas.jpg"
+      },
+      {
+        "id": "12898",
+        "name": "Tim Allen",
+        "role": "Buzz Lightyear (voice)",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/woWhZzFILVhYMAvsPL171HjMY0y.jpg"
+      },
+      {
+        "id": "3234",
+        "name": "Joan Cusack",
+        "role": "Jessie (voice)",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/59UIeHZFYrKyP20lXqijtfTXglO.jpg"
+      },
+      {
+        "id": "1260481",
+        "name": "Greta Lee",
+        "role": "Lilypad (voice)",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/6SydTis4XUcovlwIGskT59JowLX.jpg"
+      },
+      {
+        "id": "81200",
+        "name": "Conan O'Brien",
+        "role": "Smarty Pants (voice)",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/deRbViPut0t80miscBpP2DhBJU5.jpg"
+      },
+      {
+        "id": "64342",
+        "name": "Craig Robinson",
+        "role": "Atlas (voice)",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/mTyTrOWUSOBJMOlDpnd4OYx7FlJ.jpg"
+      },
+      {
+        "id": "206869",
+        "name": "Shelby Rabara",
+        "role": "Snappy (voice)",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/ouMiEKlhCj2LFKEQtI6fGRMDemF.jpg"
+      },
+      {
+        "id": "25147",
+        "name": "Tony Hale",
+        "role": "Forky (voice)",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/ar4uapp4w5wMkThZcqWUNMSTO8z.jpg"
+      }
+    ],
+    "similar": [
+      {
+        "id": "107",
+        "tmdbId": "107",
+        "isTv": false,
+        "title": "Snatch",
+        "description": "Unscrupulous boxing promoters, violent bookies, a Russian gangster, incompetent amateur robbers, and supposedly Jewish jewellers fight to track down a priceless stolen diamond.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/kJZoAHq1SLDdWjeNGtlHAnGpmFV.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/gTghF8ardwJ48XLHkiapWk3ZmSo.jpg",
+        "year": 2000
+      },
+      {
+        "id": "121",
+        "tmdbId": "121",
+        "isTv": false,
+        "title": "The Lord of the Rings: The Two Towers",
+        "description": "Frodo Baggins and the other members of the Fellowship continue on their sacred quest to destroy the One Ring--but on separate paths. Their destinies lie at two towers--Orthanc Tower in Isengard, where the corrupt wizard Saruman awaits, and Sauron's fortress at Barad-dur, deep within the dark lands of Mordor. Frodo and Sam are trekking to Mordor to destroy the One Ring of Power while Gimli, Legolas and Aragorn search for the orc-captured Merry and Pippin. All along, nefarious wizard Saruman awaits the Fellowship members at the Orthanc Tower in Isengard.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/5VTN0pR8gcqV3EPUHHfMGnJYN9L.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/kWYfW2Re0rUDE6IHhy4CRuKWeFr.jpg",
+        "year": 2002
+      },
+      {
+        "id": "122",
+        "tmdbId": "122",
+        "isTv": false,
+        "title": "The Lord of the Rings: The Return of the King",
+        "description": "As armies mass for a final battle that will decide the fate of the world--and powerful, ancient forces of Light and Dark compete to determine the outcome--one member of the Fellowship of the Ring is revealed as the noble heir to the throne of the Kings of Men. Yet, the sole hope for triumph over evil lies with a brave hobbit, Frodo, who, accompanied by his loyal friend Sam and the hideous, wretched Gollum, ventures deep into the very dark heart of Mordor on his seemingly impossible quest to destroy the Ring of Power.​",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/rCzpDGLbOoPwLjy3OAm5NUPOTrC.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/2u7zbn8EudG6kLlBzUYqP8RyFU4.jpg",
+        "year": 2003
+      },
+      {
+        "id": "331",
+        "tmdbId": "331",
+        "isTv": false,
+        "title": "Jurassic Park III",
+        "description": "In need of funds for research, Dr. Alan Grant accepts a large sum of money to accompany Paul and Amanda Kirby on an aerial tour of the infamous Isla Sorna. It isn't long before all hell breaks loose and the stranded wayfarers must fight for survival as a host of new -- and even more deadly -- dinosaurs try to make snacks of them.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/oQXj4NUfS3r3gHXtDOzcJgj1lLc.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/8v8x4vVbRgrsdU3M4drnD7HQbfe.jpg",
+        "year": 2001
+      },
+      {
+        "id": "333",
+        "tmdbId": "333",
+        "isTv": false,
+        "title": "Bollywood/Hollywood",
+        "description": "Rahul Seth is a dashing young millionaire who believes he is \"western\" enough to rebel against his mother and grandmother. They are not too keen about his Caucasian girlfriend Kimberly who, to make matters worse, is a pop star. Before you can say \"karmic intervention,\" Kimberly dies in a freak accident and Rahul is devastated. Instead of allowing him to mourn in peace, Rahul's mother sees the opportunity she's been waiting for. She threatens to call off his sister's wedding unless he finds himself a \"nice Indian girl.\" Rahul enlists the services of Sue, a fiercely independent escort whom he believes to be Hispanic, and therefore not \"married\" to the conventions taught to young Indian women. With a wink in her eye, Sue accepts the deal to pose as his Indian bride-to-be. She needs the money and having never been a fan of the typical Indian male, she feels her heart is safe. The charade begins....",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/pXIVHT73QG70nZZdsVMwa0OgFUK.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/ahdc4lmShSJOkIGnbUI77xeh2Ze.jpg",
+        "year": 2002
+      },
+      {
+        "id": "1550797",
+        "tmdbId": "1550797",
+        "isTv": false,
+        "title": "Prep & Landing: The Snowball Protocol",
+        "description": "Christmas elves Lanny and Wayne panic when their holiday missions go awry, leaving Wayne thinking he's in BIG trouble with Santa and accidentally revealing other merry mishaps.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/olbxBEAGaYCgyi2EEecuwa5tuUl.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/tombkp3ir9tmm5v9QLnHaDZCWa7.jpg",
+        "year": 2025
+      },
+      {
+        "id": "496",
+        "tmdbId": "496",
+        "isTv": false,
+        "title": "Borat: Cultural Learnings of America for Make Benefit Glorious Nation of Kazakhstan",
+        "description": "Kazakh journalist Borat Sagdiyev travels to America to make a documentary. As he zigzags across the nation, Borat meets real people in real situations with hysterical consequences. His backwards behavior generates strong reactions around him exposing prejudices and hypocrisies in American culture.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/7g9kBHMN2KTr5KUf8aen187Mdn.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/jJYOr36wS1B6EyGjLY17r9kNHHh.jpg",
+        "year": 2006
+      },
+      {
+        "id": "532",
+        "tmdbId": "532",
+        "isTv": false,
+        "title": "A Close Shave",
+        "description": "Wallace's whirlwind romance with the proprietor of the local wool shop puts his head in a spin, and Gromit is framed for sheep-rustling in a fiendish criminal plot.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/qdIR27trLyrlJ5nmkbcG3Bomah6.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/aD8ZhhrlJ6PXDiyyIvaMltxfbSz.jpg",
+        "year": 1996
+      }
+    ],
+    "genre": [
+      "Animation",
+      "Family",
+      "Comedy",
+      "Adventure"
+    ],
+    "voteAverage": 7.419,
+    "isIframeEmbed": true,
+    "seasons": [],
+    "iframeSrc": "https://111movies.net/movie/1084244"
   }
 ]

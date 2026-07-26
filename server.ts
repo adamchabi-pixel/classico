@@ -191,8 +191,13 @@ app.get("/api/movie/:id", async (req, res) => {
       }));
     }
     
+    const videos = m.videos?.results || [];
+    const trailer = videos.find((v: any) => v.site === 'YouTube' && v.type === 'Trailer') || videos.find((v: any) => v.site === 'YouTube');
+    const trailerUrl = trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : undefined;
+
     const movieData = {
       id: id,
+      trailerUrl: trailerUrl,
       tmdbId: String(m.id),
       imdbId: m.imdb_id || String(m.id),
       isTv,

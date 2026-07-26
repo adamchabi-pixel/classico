@@ -236,15 +236,19 @@ export default function CinemaPlayerView({
   const [forceJellyfin, setForceJellyfin] = useState(false);
   const [activeServerIndex, setActiveServerIndex] = useState(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem("classico_progress") || "{}");
-      const baseId = isTv ? (movieId ? movieId.replace(/-tv$/, "").replace(/-S\d+E\d+$/, "") : null) : movieId;
-      if (baseId && saved[baseId] && saved[baseId].server_index !== undefined) {
-          return saved[baseId].server_index;
-      }
+      const globalServer = localStorage.getItem("classico_global_server_index");
+      if (globalServer !== null) return parseInt(globalServer, 10);
     } catch(e) {}
     return 0;
   });
-  const [serverSelected, setServerSelected] = useState(false);
+  const [serverSelected, setServerSelected] = useState(() => {
+    try {
+      if (localStorage.getItem("classico_global_server_index") !== null) {
+          return true;
+      }
+    } catch(e) {}
+    return false;
+  });
   const [availableServers, setAvailableServers] = useState<{name: string, url: string}[]>([]);
   const [playing, setPlaying] = useState(true);
   const [isMetadataLoaded, setIsMetadataLoaded] = useState(false);
@@ -1965,6 +1969,7 @@ export default function CinemaPlayerView({
                     });
                   }
                   setServerSelected(true);
+                    localStorage.setItem("classico_global_server_index", String(idx));
                   setIsIframeLoading(true);
                 }}
                 className={`w-full p-4 rounded-xl flex items-center justify-between transition-all group border ${idx === 0 ? 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30' : 'bg-white/5 hover:bg-white/10 border-white/5'}`}

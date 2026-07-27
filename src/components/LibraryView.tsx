@@ -111,7 +111,7 @@ export default function LibraryView({ onSelect, onPlay, getProgress, type = 'mov
            if (data && data.results) {
                const mapped = data.results.filter((r: any) => !r.adult).map((r: any) => {
                    return {
-                       id: String(r.id),
+                       id: (type === "tv" || r.media_type === "tv") ? String(r.id) + "-tv" : String(r.id),
                        tmdbId: String(r.id),
                        title: r.title || r.name,
                        originalTitle: r.original_title || r.original_name,
@@ -123,7 +123,7 @@ export default function LibraryView({ onSelect, onPlay, getProgress, type = 'mov
                        voteAverage: r.vote_average,
                        rating: r.vote_average ? r.vote_average.toFixed(1) : "?",
                        language: r.original_language,
-                       isTv: false,
+                       isTv: type === "tv" || r.media_type === "tv",
                        duration: "Unknown",
                        director: "Unknown",
                        cast: [],

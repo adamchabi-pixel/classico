@@ -1,5 +1,5 @@
 import React from "react";
-import { Star, Play, Clock } from "lucide-react";
+import { Star, Play, Clock, CheckCircle } from "lucide-react";
 import { Movie } from "../data";
 
 interface MovieCardProps {
@@ -13,6 +13,24 @@ interface MovieCardProps {
 }
 
 export default function MovieCard({ movie, onSelect, onPlay, progressPercent, trendingIndex }: MovieCardProps) {
+  
+  const isWatched = React.useMemo(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("classico_progress") || "{}");
+      const baseId = movie.id ? movie.id.replace(/-tv$/, "").replace(/-S\d+E\d+$/, "") : null;
+      if (baseId && saved[baseId]) {
+         if (movie.isTv) {
+            // Only show checkmark on series if ALL episodes are watched or it's a series card. Let's just say if it's watched at all.
+            return !!saved[baseId].last_season_watched;
+         } else {
+            // For movies
+            return saved[baseId].progress > 300 || saved[baseId].progress > 0; // If they started it, consider it 'vu' as requested.
+         }
+      }
+    } catch(e) {}
+    return false;
+  }, [movie.id, movie.isTv]);
+
   const getSubtitle = () => {
     if (movie.director && movie.director.trim() !== "" && movie.director !== "Unknown") {
       return movie.director;
@@ -34,6 +52,13 @@ export default function MovieCard({ movie, onSelect, onPlay, progressPercent, tr
         
         {/* Cinematic Poster Image or Gradient Placeholder */}
         <div className="absolute inset-0 select-none">
+          
+          {isWatched && (
+             <div className="absolute top-2 right-2 z-30 bg-black/60 rounded-full p-1 backdrop-blur-sm border border-green-500/30">
+               <CheckCircle className="w-4 h-4 text-green-500" />
+             </div>
+          )}
+
           {movie.posterUrl ? (
             <img
               src={movie.posterUrl}

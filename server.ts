@@ -37,6 +37,7 @@ app.get("/api/discover", async (req, res) => {
   try {
     const { type, page, activePlatform, activeGenre, activeLanguage, activeYear } = req.query;
     let url = `https://api.themoviedb.org/3/trending/${type || 'movie'}/day?language=en-US&page=${page || 1}`;
+    if (type === "tv") url += "&without_genres=16";
     
     if (activePlatform || activeGenre || activeLanguage || activeYear) {
        url = `https://api.themoviedb.org/3/discover/${type || 'movie'}?language=en-US&page=${page || 1}&watch_region=US`;
@@ -50,13 +51,15 @@ app.get("/api/discover", async (req, res) => {
        if (activePlatform) url += `&with_watch_providers=${activePlatform}`;
        if (activeGenre && activeGenre !== 'top_rated') url += `&with_genres=${activeGenre}`;
        if (activeLanguage) url += `&with_original_language=${activeLanguage}`;
+       if (type === "tv") url += `&without_genres=16`;
        if (activeYear) {
+           const dateField = type === "tv" ? "first_air_date" : "primary_release_date";
            if (activeYear === '2010') {
-               url += `&primary_release_date.gte=2010-01-01&primary_release_date.lte=2019-12-31`;
+               url += `&${dateField}.gte=2010-01-01&${dateField}.lte=2019-12-31`;
            } else if (activeYear === '2000') {
-               url += `&primary_release_date.gte=2000-01-01&primary_release_date.lte=2009-12-31`;
+               url += `&${dateField}.gte=2000-01-01&${dateField}.lte=2009-12-31`;
            } else {
-               url += `&primary_release_date.gte=${activeYear}-01-01&primary_release_date.lte=${activeYear}-12-31`;
+               url += `&${dateField}.gte=${activeYear}-01-01&${dateField}.lte=${activeYear}-12-31`;
            }
        }
     }
@@ -68,6 +71,9 @@ app.get("/api/discover", async (req, res) => {
     if (!response.ok) throw new Error("TMDB fetch failed");
     
     const data = await response.json();
+    if (data && data.results) {
+        data.results = data.results.filter((r: any) => !isAnimeOrAdult(r));
+    }
     res.json({ success: true, data });
   } catch (error: any) {
     res.status(500).json({ success: false, error: error.message });

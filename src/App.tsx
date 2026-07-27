@@ -842,6 +842,7 @@ export default function App() {
     setRoutePath(path);
     if (path === "/") setActiveTab("accueil");
     else if (path === "/collections") setActiveTab("collections");
+      else if (path === "/series") setActiveTab("series");
     else if (path === "/series") setActiveTab("series");
     else if (path === "/profil") setActiveTab("profil");
     else if (path.startsWith("/collection/")) {
@@ -1205,6 +1206,7 @@ export default function App() {
       setRoutePath(path);
       if (path === "/") setActiveTab("accueil");
       else if (path === "/collections") setActiveTab("collections");
+      else if (path === "/series") setActiveTab("series");
       else if (path === "/profil") setActiveTab("profil");
       else if (path.startsWith("/collection/")) {
         setSelectedCollectionId(path.split("/")[2]);
@@ -1345,10 +1347,13 @@ export default function App() {
     localStorage.setItem("classico_history", JSON.stringify(updated));
   };
 
-  const goBackOrHome = () => {
-    // Relying on history.back() in an iframe often fails.
-    // Instead, navigate manually depending on where we came from, or just go home.
-    navigateTo("/");
+    const goBackOrHome = () => {
+    // If we have history within the app, let's go back
+    if (window.history.state !== null || window.history.length > 2) {
+        window.history.back();
+    } else {
+        navigateTo("/");
+    }
   };
 
   const handleOpenMovie = (movie: Movie, immediatePlay = false) => {
@@ -1826,13 +1831,13 @@ export default function App() {
           The Best
         </span>
         <div className="flex gap-2 mt-8 items-center justify-center">
-          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#fcf6ba", boxShadow: "0 0 10px rgba(252, 246, 186, 0.8)", animation: "illuminate 1.5s infinite ease-in-out", animationDelay: "0s" }}></div>
-          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#fcf6ba", boxShadow: "0 0 10px rgba(252, 246, 186, 0.8)", animation: "illuminate 1.5s infinite ease-in-out", animationDelay: "0.2s" }}></div>
-          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#fcf6ba", boxShadow: "0 0 10px rgba(252, 246, 186, 0.8)", animation: "illuminate 1.5s infinite ease-in-out", animationDelay: "0.4s" }}></div>
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#fcf6ba", boxShadow: "0 0 10px rgba(252, 246, 186, 0.8)", animation: "illuminate 1.5s infinite ease-in-out both", animationDelay: "0s" }}></div>
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#fcf6ba", boxShadow: "0 0 10px rgba(252, 246, 186, 0.8)", animation: "illuminate 1.5s infinite ease-in-out both", animationDelay: "0.2s" }}></div>
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#fcf6ba", boxShadow: "0 0 10px rgba(252, 246, 186, 0.8)", animation: "illuminate 1.5s infinite ease-in-out both", animationDelay: "0.4s" }}></div>
         </div>
         <style>
           {`
-            @keyframes illuminate { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+            @keyframes illuminate { 0%, 100% { opacity: 0.2; transform: scale3d(0.8, 0.8, 1); } 50% { opacity: 1; transform: scale3d(1.2, 1.2, 1); } }
           `}
         </style>
       </div>

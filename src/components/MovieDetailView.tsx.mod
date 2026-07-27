@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { Plus, Play, ChevronDown, Award, Users, Film, ArrowLeft, Star, Clock, Heart, X, User, ChevronLeft, ChevronRight, Download, CheckCircle } from "lucide-react";
+import { Download, CheckCircle as CheckCircle2, motion, AnimatePresence } from "motion/react";
+import { Plus, Play, ChevronDown, Award, Users, Film, ArrowLeft, Star, Clock, Heart, X, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { Movie } from "../data";
 
 interface MovieDetailViewProps {
@@ -87,6 +87,7 @@ export default function MovieDetailView({
         if (saved[baseId] && saved[baseId].show_progress) {
             const we: Record<string, boolean> = {};
             for (const key in saved[baseId].show_progress) {
+                // key is like 's1e1'
                 if (saved[baseId].show_progress[key].progress && saved[baseId].show_progress[key].progress.watched > 0) {
                     we[key] = true;
                 }
@@ -235,11 +236,12 @@ export default function MovieDetailView({
                   TRAILER
                 </button>
                 
-                <a href={getDownloadUrl()} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-zinc-800/80 hover:bg-zinc-700/80 text-white rounded-full transition-all active:scale-95 cursor-pointer border border-zinc-700/50 hover:border-zinc-500/50 shrink-0" title="Télécharger">
-                  <Download className="w-5 h-5 sm:w-6 sm:h-6" />
+                <a href={getDownloadUrl()} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2.5 bg-[#BF953F]/20 hover:bg-[#BF953F]/40 text-[#FCF6BA] px-6 py-3 sm:px-8 sm:py-3.5 [@media(max-height:500px)_and_(orientation:landscape)]:px-4 [@media(max-height:500px)_and_(orientation:landscape)]:py-2 rounded-full text-[13px] [@media(max-height:500px)_and_(orientation:landscape)]:text-[11px] tracking-widest uppercase transition-all duration-200 active:scale-95 cursor-pointer font-bold border border-[#BF953F]/50">
+                  <Download className="w-4 h-4" />
+                  {fullMovie.isTv ? (lastWatched ? `DL S${String(lastWatched.season).padStart(2, '0')}E${String(lastWatched.episode).padStart(2, '0')}` : `DL S${String(selectedSeason || 1).padStart(2, '0')}E01`) : 'DL'}
                 </a>
 
-                <button onClick={() => console.log('Added to list')} className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-neutral-800/80 hover:bg-neutral-700/80 text-white rounded-full transition-all active:scale-95 cursor-pointer border border-neutral-700/50 hover:border-neutral-500/50 shrink-0">
+<button onClick={() => console.log('Added to list')} className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-neutral-800/80 hover:bg-neutral-700/80 text-white rounded-full transition-all active:scale-95 cursor-pointer border border-neutral-700/50 hover:border-neutral-500/50 shrink-0">
                   <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
               </div>
@@ -342,20 +344,19 @@ export default function MovieDetailView({
                       {ep.overview || "No description available."}
                     </p>
                   </div>
-                    <div className="shrink-0 pl-2">
-                      <a 
-                        href={getEpisodeDownloadUrl(selectedSeason, ep.episode_number)} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="p-2 rounded-full bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white transition-all flex items-center justify-center border border-amber-500/20 hover:scale-110"
-                        title="Télécharger"
-                      >
-                        <Download className="w-4 h-4" />
-                      </a>
-                    </div>
+                  <div className="shrink-0 pl-2">
+                    <a 
+                      href={getEpisodeDownloadUrl(selectedSeason, ep.episode_number)} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="p-2 rounded-full bg-amber-500/10 text-amber-500 hover:bg-amber-500 text-amber-500 hover:text-white transition-all flex items-center justify-center border border-amber-500/20 hover:scale-110"
+                      title="Télécharger"
+                    >
+                      <Download className="w-4 h-4" />
+                    </a>
 
-                </button>
+                  </button>
               ))
             ) : (
               <div className="flex justify-center py-8">

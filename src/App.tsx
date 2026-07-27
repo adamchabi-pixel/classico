@@ -43,7 +43,12 @@ const COLLECTION_BANNERS: Record<string, string> = {
   "terminator": "/src/assets/images/terminator_banner_1781396559445.jpg",
   "fast-and-furious": "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=80&w=1200&auto=format&fit=crop",
   "mafia-movies": "https://images.unsplash.com/photo-1574676101235-97e3cefa1212?q=80&w=1200&auto=format&fit=crop",
-  "mind-bending-mysteries": "https://images.unsplash.com/photo-1517765371796-58eb241caa36?q=80&w=1200&auto=format&fit=crop"
+  "mind-bending-mysteries": "https://images.unsplash.com/photo-1517765371796-58eb241caa36?q=80&w=1200&auto=format&fit=crop",
+  "frank-darabont": "https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=1200&auto=format&fit=crop",
+  "martin-scorsese": "https://images.unsplash.com/photo-1574676101235-97e3cefa1212?q=80&w=1200&auto=format&fit=crop",
+  "the-batman": "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?q=80&w=1200&auto=format&fit=crop",
+  "godzilla": "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1200&auto=format&fit=crop",
+  "jurassic-park": "https://images.unsplash.com/photo-1551624647-380d99dc0742?q=80&w=1200&auto=format&fit=crop"
 };
 
 // -------------------------------------------------------------
@@ -70,7 +75,7 @@ function cleanTitle(title: string): string {
 // HIGH-PRECISION SAGA & FRANCHISE DOMAIN CLASSIFIER
 // -------------------------------------------------------------
 interface ClassificationResult {
-  sagaId?: string;
+  sagaIds?: string[];
   franchiseId?: string;
   confidence: "high" | "low" | "none";
 }
@@ -80,18 +85,22 @@ function classifyMovie(
   originalTitle?: string, 
   director?: string, 
   genre?: string[],
-  studios?: string[]): ClassificationResult {
+  studios?: string[]
+): ClassificationResult {
   if (!title) return { confidence: "none" };
   const t = title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
   const ot = originalTitle ? originalTitle.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim() : "";
-  
-  // Safe bounds Check - To completely avoid "Casino" Scorsese (1995) matching Casino Royale James Bond
-  const isCasinoOnly = (t === "casino" || ot === "casino") && !t.includes("royale") && !ot.includes("royale");
-  if (isCasinoOnly) {
-    return { confidence: "none" };
-  }
+  const d = director ? director.toLowerCase() : "";
 
-  // 1. STAR WARS
+  const isCasinoOnly = (t === "casino" || ot === "casino") && !t.includes("royale") && !ot.includes("royale");
+  
+  const sagaIds = [];
+  
+  if (d.includes("quentin tarantino")) sagaIds.push("tarantino-collection");
+  if (d.includes("christopher nolan")) sagaIds.push("christopher-nolan");
+  if (d.includes("frank darabont")) sagaIds.push("frank-darabont");
+  if (d.includes("martin scorsese")) sagaIds.push("martin-scorsese");
+
   const swKeywords = [
     "star wars", "guerre des etoiles", "la menace fantome", "phantom menace", "clones", "revanche des sith",
     "revenge of the sith", "un nouvel espoir", "new hope", "empire contre attaque", "empire strikes back",
@@ -99,10 +108,9 @@ function classifyMovie(
     "ascension de skywalker", "rise of skywalker", "rogue one", "solo a star wars"
   ];
   if (swKeywords.some(kw => t.includes(kw) || ot.includes(kw)) || studios?.some(s => /lucasfilm/i.test(s))) {
-    return { sagaId: "star-wars", confidence: "high" };
+    sagaIds.push("star-wars");
   }
 
-  // 2. JAMES BOND
   const bondKeywords = [
     "007", "james bond", "dr no", "dr. no", "bons baisers de russie", "from russia with love",
     "goldfinger", "operation tonnerre", "thunderball", "on ne vit que deux fois", "you only live twice",
@@ -115,98 +123,49 @@ function classifyMovie(
     "le monde ne suffit pas", "the world is not enough", "meurs un autre jour", "die another day",
     "casino royale", "quantum of solace", "skyfall", "spectre", "mourir peut attendre", "no time to die"
   ];
-  if (bondKeywords.some(kw => t.includes(kw) || ot.includes(kw))) {
-    return { sagaId: "james-bond", confidence: "high" };
+  if (bondKeywords.some(kw => t === kw || ot === kw || t.includes(` ${kw}`) || t.startsWith(`${kw} `) || ot.includes(` ${kw}`) || ot.startsWith(`${kw} `))) {
+    if (!isCasinoOnly) sagaIds.push("james-bond");
   }
 
-  // 3. JOHN WICK
-  if (/\bjohn wick\b/i.test(title) || /\bjohn wick\b/i.test(originalTitle || "")) {
-    return { sagaId: "john-wick", confidence: "high" };
-  }
+  if (t.includes("batman") || ot.includes("batman") || t.includes("the dark knight") || ot.includes("the dark knight")) sagaIds.push("the-batman");
+  if (t.includes("godzilla") || ot.includes("godzilla")) sagaIds.push("godzilla");
+  if (t.includes("jurassic park") || ot.includes("jurassic park") || t.includes("jurassic world") || ot.includes("jurassic world")) sagaIds.push("jurassic-park");
 
-  // 4. INDIANA JONES
-  const indianaKeywords = [
-    "indiana jones", "les aventuriers de l arche perdue", "raiders of the lost ark", "temple maudit",
-    "temple of doom", "derniere croisade", "last crusade", "royaume du crane de cristal", "crystal skull",
-    "cadran de la destinee", "dial of destiny"
-  ];
-  if (indianaKeywords.some(kw => t.includes(kw) || ot.includes(kw))) {
-    return { sagaId: "indiana-jones", confidence: "high" };
-  }
+  if (/\bjohn wick\b/i.test(title) || /\bjohn wick\b/i.test(originalTitle || "")) sagaIds.push("john-wick");
+  
+  const indianaKeywords = ["indiana jones", "les aventuriers de l arche perdue", "raiders of the lost ark", "temple maudit", "temple of doom", "derniere croisade", "last crusade", "royaume du crane de cristal", "crystal skull", "cadran de la destinee", "dial of destiny"];
+  if (indianaKeywords.some(kw => t.includes(kw) || ot.includes(kw))) sagaIds.push("indiana-jones");
 
-  // 5. ROCKY
   const isRockyKeyword = /\brocky\b/i.test(title) || /\brocky\b/i.test(originalTitle || "");
   const isCreed = /\bcreed\b/i.test(title) || /\bcreed\b/i.test(originalTitle || "");
   const notRockyHorror = !t.includes("horror") && !t.includes("picture show");
-  if ((isRockyKeyword && notRockyHorror) || isCreed) {
-    return { sagaId: "rocky", confidence: "high" };
+  if ((isRockyKeyword && notRockyHorror) || isCreed) sagaIds.push("rocky");
+
+  if (/\bterminator\b/i.test(title) || /\bterminator\b/i.test(originalTitle || "")) sagaIds.push("terminator");
+  
+  let franchiseId = undefined;
+  if (/\bmatrix\b/i.test(title) || /\bmatrix\b/i.test(originalTitle || "")) franchiseId = "matrix";
+
+  const lotrKeywords = ["lord of the rings", "seigneur des anneaux", "la communaute de l anneau", "fellowship of the ring", "les deux tours", "the two towers", "le retour du roi", "return of the king", "le hobbit", "the hobbit", "un voyage inattendu", "unexpected journey", "la desolation de smaug", "desolation of smaug", "la bataille des cinq armees", "battle of the five armies"];
+  if (lotrKeywords.some(kw => t.includes(kw) || ot.includes(kw))) franchiseId = "lord-of-the-rings";
+
+  const hpKeywords = ["harry potter", "a l ecole des sorciers", "sorcerer's stone", "philosopher's stone", "chambre des secrets", "chamber of secrets", "prisonnier d azkaban", "prisoner of azkaban", "coupe de feu", "goblet of fire", "ordre du phenix", "order of the phoenix", "prince de sang mele", "half-blood prince", "reliques de la mort", "deathly hallows"];
+  if (hpKeywords.some(kw => t.includes(kw) || ot.includes(kw))) franchiseId = "harry-potter";
+
+  const isMarvel = /\b(avengers|iron man|captain america|thor|hulk|black widow|black panther|doctor strange|spider-man|guardians of the galaxy|ant-man|marvel)\b/i.test(title) || /\b(avengers|iron man|captain america|thor|hulk|black widow|black panther|doctor strange|spider-man|guardians of the galaxy|ant-man|marvel)\b/i.test(originalTitle || "");
+  const notSpiderVerse = !t.includes("spider-verse") && !t.includes("into the spider-verse") && !t.includes("across the spider-verse");
+  if (isMarvel && notSpiderVerse && !t.includes("venom") && !t.includes("morbius") && !t.includes("x-men") && !t.includes("deadpool") && !t.includes("wolverine") && !t.includes("logan") && !t.includes("fantastic four")) {
+    franchiseId = "marvel-mcu";
   }
 
-  // 6. TERMINATOR
-  const isTerminator = /\bterminator\b/i.test(title) || /\bterminator\b/i.test(originalTitle || "");
-  if (isTerminator) {
-    return { sagaId: "terminator", confidence: "high" };
-  }
+  const isPirates = /\b(pirates of the caribbean|pirates des caraibes)\b/i.test(title) || /\b(pirates of the caribbean|pirates des caraibes)\b/i.test(originalTitle || "");
+  if (isPirates) franchiseId = "pirates-caribbean";
 
-  // 7. MATRIX
-  const isMatrix = /\bmatrix\b/i.test(title) || /\bmatrix\b/i.test(originalTitle || "");
-  if (isMatrix) {
-    return { franchiseId: "matrix", confidence: "high" };
-  }
+  const isFast = /\b(fast and furious|fast & furious|furious 7|fast 5|fast x|the fate of the furious|hobbs and shaw|fast five)\b/i.test(title) || /\b(fast and furious|fast & furious|furious 7|fast 5|fast x|the fate of the furious|hobbs and shaw|fast five)\b/i.test(originalTitle || "");
+  if (isFast) franchiseId = "fast-and-furious";
 
-  // 8. LORD OF THE RINGS / HOBBIT
-  const lotrKeywords = [
-    "lord of the rings", "seigneur des anneaux", "la communaute de l anneau", "fellowship of the ring",
-    "les deux tours", "the two towers", "le retour du roi", "return of the king", "le hobbit", "the hobbit",
-    "un voyage inattendu", "unexpected journey", "la desolation de smaug", "desolation of smaug",
-    "la bataille des cinq armees", "battle of the five armies"
-  ];
-  if (lotrKeywords.some(kw => t.includes(kw) || ot.includes(kw))) {
-    return { franchiseId: "lord-of-the-rings", confidence: "high" };
-  }
-
-  // 9. HARRY POTTER
-  const isHP = /\bharry potter\b/i.test(title) || /\bharry potter\b/i.test(originalTitle || "");
-  if (isHP) {
-    return { franchiseId: "harry-potter", confidence: "high" };
-  }
-
-  // 10. GODFATHER
-  const isGodfather = /\bgodfather\b/i.test(title) || /\bparrain\b/i.test(title) || ot.includes("godfather");
-  if (isGodfather) {
-    return { franchiseId: "godfather", confidence: "high" };
-  }
-
-  // 11. MISSION IMPOSSIBLE
-  const isMI = /mission\s*:?\s*impossible|protocole\s*fantome|rogue\s*nation|fallout|dead\s*reckoning/i.test(t) || /mission\s*:?\s*impossible/i.test(ot);
-  if (isMI) {
-    return { franchiseId: "mission-impossible", confidence: "high" };
-  }
-
-  // 12. SPIDER-MAN
-  const isSpiderMan = /spider-?man/i.test(t) || /spider-?man/i.test(ot);
-  if (isSpiderMan) {
-    return { franchiseId: "spider-man", confidence: "high" };
-  }
-
-  // 13. ALIEN
-  const isAlienExact = t === "alien" || t === "aliens" || t.includes("alien le huitieme passager") || t.includes("alien resurrection") || t.includes("alien covenant") || t.includes("prometheus") || ot === "alien" || ot === "aliens" || ot.includes("covenant") || ot.includes("prometheus");
-  if (isAlienExact) {
-    return { franchiseId: "alien", confidence: "high" };
-  }
-
-  // 14. BACK TO THE FUTURE
-  const isBTTF = /retour\s*vers\s*le\s*futur|back\s*to\s*the\s*future/i.test(t) || /back\s*to\s*the\s*future/i.test(ot);
-  if (isBTTF) {
-    return { franchiseId: "back-to-the-future", confidence: "high" };
-  }
-
-  // 15. FAST AND FURIOUS & JUSTIN LIN MATCHERS
-  const isFastAndFurious = /fast\s*(and|&)?\s*furious|tokyo\s*drift|fast\s*(five|5|6|7|8|9|10)|furious\s*(7|8)|hobbs\s*(&|and)\s*shaw/i.test(t) || 
-                           /fast\s*(and|&)?\s*furious|tokyo\s*drift|fast\s*(five|5|6|7|8|9|10)|furious\s*(7|8)|hobbs\s*(&|and)\s*shaw/i.test(ot) ||
-                           /justin\s*lin/i.test(director || "");
-  if (isFastAndFurious) {
-    return { franchiseId: "fast-and-furious", confidence: "high" };
+  if (sagaIds.length > 0 || franchiseId) {
+    return { sagaIds, franchiseId, confidence: "high" };
   }
 
   return { confidence: "none" };
@@ -600,15 +559,15 @@ const FRANCHISES = [
 
 function isBondMovie(m: Movie): boolean {
   const result = classifyMovie(m.title, m.originalTitle || "", m.director || "", m.genre || [], m.studios || []);
-  return result.confidence === "high" && result.sagaId === "james-bond";
+  return result.confidence === "high" && result.sagaIds && result.sagaIds.includes("james-bond");
 }
 
-function getDynamicSagaId(m: Movie): string | null {
+function getDynamicSagaIds(m: Movie): string[] {
   const result = classifyMovie(m.title, m.originalTitle || "", m.director || "", m.genre || [], m.studios || []);
-  if (result.confidence === "high" && result.sagaId) {
-    return result.sagaId;
+  if (result.confidence === "high" && result.sagaIds) {
+    return result.sagaIds;
   }
-  return null;
+  return [];
 }
 
 function enrichDynamicMovie(m: Movie, contextID: string): Movie {
@@ -921,15 +880,13 @@ export default function App() {
 
       // Dynamically load unmatched movies from Jellyfin that belong to this saga!
       allMoviesBase.forEach((jf) => {
-        if (!matchedServersMovieIds.has(jf.id)) {
-          const sagaId = getDynamicSagaId(jf);
-          if (sagaId === collection.id) {
-            // Check if it's already represented to prevent duplicate titles
-            if (!enrichedMovies.some(m => isMovieMatch(m.title, jf.title))) {
-              const enriched = enrichDynamicMovie(jf, collection.id);
-              enrichedMovies.push(enriched);
-              matchedServersMovieIds.add(jf.id);
-            }
+        const sagaIds = getDynamicSagaIds(jf);
+        if (sagaIds.includes(collection.id)) {
+          // Check if it's already represented to prevent duplicate titles
+          if (!enrichedMovies.some(m => isMovieMatch(m.title, jf.title))) {
+            const enriched = enrichDynamicMovie(jf, collection.id);
+            enrichedMovies.push(enriched);
+            matchedServersMovieIds.add(jf.id);
           }
         }
       });
@@ -975,7 +932,7 @@ export default function App() {
       if (m.director && m.director.trim() !== "" && !/unknown|inconnu|divers|various|various directors/i.test(m.director)) {
         const dName = m.director.trim();
         // Skip directors already in main sagas (Quentin Tarantino and Christopher Nolan)
-        if (!/tarantino|nolan|avildsen|stallone|stalonne|fincher|wingard|wingrad|coogler|spielberg/i.test(dName)) {
+        if (!/tarantino|nolan|avildsen|stallone|stalonne|fincher|wingard|wingrad|coogler|spielberg|horvath|gareth edwards|justin lin/i.test(dName)) {
           if (!directorGroups[dName]) {
             directorGroups[dName] = [];
           }
@@ -1056,8 +1013,7 @@ export default function App() {
         const finalCollections = [
       ...curatedSagaCollections,
       ...dynamicFranchiseCollections,
-      ...dynamicDirectorCollections,
-      ...genreCollections
+      ...dynamicDirectorCollections
     ];
 
     // APPLY COLLECTION MODS
@@ -1820,6 +1776,33 @@ export default function App() {
     }
   }, [targetMovieId, activeMovie]);
 
+  // Fetch missing history movies on mount so Resume Watching is preserved
+  useEffect(() => {
+    if (history.length > 0 && allMovies.length > 0) {
+      const missingIds = history.filter(id => !allMovies.find(m => m.id === id || m.id === id + "-tv" || m.id === id.replace("-tv", "")));
+      if (missingIds.length > 0) {
+        missingIds.forEach(id => {
+          const tmdbId = id.replace("-tv", "");
+          fetch(`/api/movie/${id}`)
+            .then(res => res.json())
+            .then(data => {
+              if (data.success && data.movie) {
+                setTmdbCache(prev => {
+                  if (prev.find(m => m.id === id)) return prev;
+                  const map = new Map(prev.map(m => [m.id, m]));
+                  map.set(id, { ...data.movie, id });
+                  const newCache = Array.from(map.values());
+                  localStorage.setItem("classico_tmdb_cache", JSON.stringify(newCache));
+                  return newCache;
+                });
+              }
+            })
+            .catch(err => console.error("Failed to fetch missing history movie:", err));
+        });
+      }
+    }
+  }, [history, allMovies.length]); // allMovies.length is used so it runs initially when loaded
+
   // Intercept and return the standalone full-screen cinema view with zero overlay UI
   if (activeTab === "player") {
     const pId = routePath.startsWith("/player/") ? routePath.slice("/player/".length) : "";
@@ -1882,8 +1865,8 @@ export default function App() {
         </span>
         <div className="flex gap-2 mt-8 items-center justify-center">
           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#fcf6ba", boxShadow: "0 0 10px rgba(252, 246, 186, 0.8)", animation: "illuminate 1.5s infinite ease-in-out both", animationDelay: "0s" }}></div>
-          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#fcf6ba", boxShadow: "0 0 10px rgba(252, 246, 186, 0.8)", animation: "illuminate 1.5s infinite ease-in-out both", animationDelay: "0.2s" }}></div>
-          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#fcf6ba", boxShadow: "0 0 10px rgba(252, 246, 186, 0.8)", animation: "illuminate 1.5s infinite ease-in-out both", animationDelay: "0.4s" }}></div>
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#fcf6ba", boxShadow: "0 0 10px rgba(252, 246, 186, 0.8)", animation: "illuminate 1.5s infinite ease-in-out both", animationDelay: "-1.0s" }}></div>
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#fcf6ba", boxShadow: "0 0 10px rgba(252, 246, 186, 0.8)", animation: "illuminate 1.5s infinite ease-in-out both", animationDelay: "-0.5s" }}></div>
         </div>
         <style>
           {`
@@ -2458,7 +2441,7 @@ export default function App() {
 
                     <div className="text-left py-1 select-none">
                       <h2 className="font-cinzel font-bold text-[17px] sm:text-2xl tracking-[0.1em] sm:tracking-[0.22em] gold-metallic-text uppercase leading-none whitespace-nowrap">
-                        THEMATIC LIBRARY
+                        STRAIGHT BANGERS
                       </h2>
                       <span className="block font-signature text-[18px] sm:text-[23px] text-[#f4ecd8] leading-none mt-1 filter drop-shadow-[0_0_4px_rgba(244,236,216,0.2)]">
                         Cinematic Selections

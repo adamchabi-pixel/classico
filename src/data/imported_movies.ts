@@ -38,7 +38,7 @@ export const importedMoviesData = [
       "George Lucas"
     ],
     "isIframeEmbed": true,
-    "iframeSrc": "https://player.videasy.net/movie/tt32890033?color=FF9900&overlay=true"
+    "iframeSrc": "https://player.videasy.net/movie/tt32890033?color=FFD700&overlay=true"
   },
   {
     "hasLogo": true,
@@ -78,7 +78,7 @@ export const importedMoviesData = [
       "Sione Milford"
     ],
     "isIframeEmbed": true,
-    "iframeSrc": "https://player.videasy.net/movie/tt27419466?color=FF9900&overlay=true"
+    "iframeSrc": "https://player.videasy.net/movie/tt27419466?color=FFD700&overlay=true"
   },
   {
     "hasLogo": true,
@@ -118,7 +118,7 @@ export const importedMoviesData = [
       "Jay Hernandez"
     ],
     "isIframeEmbed": true,
-    "iframeSrc": "https://player.videasy.net/movie/tt29355505?color=FF9900&overlay=true"
+    "iframeSrc": "https://player.videasy.net/movie/tt29355505?color=FFD700&overlay=true"
   },
   {
     "hasLogo": true,
@@ -157,7 +157,7 @@ export const importedMoviesData = [
       "Jarreth J. Merz"
     ],
     "isIframeEmbed": true,
-    "iframeSrc": "https://player.videasy.net/movie/tt33764258?color=FF9900&overlay=true"
+    "iframeSrc": "https://player.videasy.net/movie/tt33764258?color=FFD700&overlay=true"
   },
   {
     "hasLogo": true,
@@ -196,7 +196,7 @@ export const importedMoviesData = [
       "Ferdinand Kingsley"
     ],
     "isIframeEmbed": true,
-    "iframeSrc": "https://player.videasy.net/movie/tt8814476?color=FF9900&overlay=true"
+    "iframeSrc": "https://player.videasy.net/movie/tt8814476?color=FFD700&overlay=true"
   },
   {
     "id": "1622-tv",
@@ -4232,5 +4232,1305 @@ export const importedMoviesData = [
     "isIframeEmbed": true,
     "seasons": [],
     "iframeSrc": "https://111movies.net/movie/1084244"
+  },
+  {
+    "id": "4604-tv",
+    "trailerUrl": "https://www.youtube.com/watch?v=70Y32si4yb8",
+    "tmdbId": "4604",
+    "imdbId": "4604",
+    "isTv": true,
+    "tagline": "Destiny is now.",
+    "title": "Smallville",
+    "originalTitle": "Smallville",
+    "originalLanguage": "en",
+    "description": "The origins of the world’s greatest hero–from Krypton refugee Kal-el’s arrival on Earth through his tumultuous teen years to Clark Kent’s final steps toward embracing his destiny as the Man of Steel.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/mHZSq8LA5Dt48JjaOZ5tcPXQRVN.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/original/4wVq9ICc4MI2XcssrumpCOhKLpI.jpg",
+    "year": 2001,
+    "duration": 43,
+    "director": "Alfred Gough",
+    "cast": [
+      "Tom Welling",
+      "Erica Durance",
+      "Cassidy Freeman",
+      "Justin Hartley"
+    ],
+    "logoUrl": "https://image.tmdb.org/t/p/w500/ePZAsSSkT2G0j1F1U13ZE675N6I.png",
+    "hasLogo": true,
+    "castDetails": [
+      {
+        "id": "11824",
+        "name": "Tom Welling",
+        "role": "Clark Kent",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/iLyXgCimAWNHSjkTXb7e5KgcMWh.jpg"
+      },
+      {
+        "id": "46897",
+        "name": "Erica Durance",
+        "role": "Lois Lane",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/kshDl70fwwTHOvog60VFqMjCFUL.jpg"
+      },
+      {
+        "id": "138770",
+        "name": "Cassidy Freeman",
+        "role": "Tess Mercer",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/6QooKF97oaUoIrW2lbx36aYYGZH.jpg"
+      },
+      {
+        "id": "1222596",
+        "name": "Justin Hartley",
+        "role": "Oliver Queen",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/oo7vqWz30pA1tY6quUOnS6O0AgB.jpg"
+      }
+    ],
+    "similar": [
+      {
+        "id": "155-tv",
+        "tmdbId": "155",
+        "isTv": true,
+        "title": "3rd Rock from the Sun",
+        "description": "The high commander of an alien expedition lands on Earth -- what he considers to be the least-important planet -- in human form as Dick Solomon. Along for the ride are his alien compatriots Harry, Sally and Tommy -- who is the eldest of the group but is now angrily trapped in a teen's body.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/sUB4lZghNnwQywKqgjIfJsyBqI2.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/adsc78pBssCRr3iTgzxgdCPI1v2.jpg",
+        "year": 1996
+      },
+      {
+        "id": "121-tv",
+        "tmdbId": "121",
+        "isTv": true,
+        "title": "Doctor Who",
+        "description": "The adventures of The Doctor, a time-traveling humanoid alien known as a Time Lord. He explores the universe in his TARDIS, a sentient time-traveling spaceship. Its exterior appears as a blue British police box, which was a common sight in Britain in 1963 when the series first aired. Along with a succession of companions, The Doctor faces a variety of foes while working to save civilizations, help ordinary people, and right many wrongs.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/xinqAmYrZ1TEwowcQhgTkZVtVE0.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/8VWgyQjExeMgeg6Qzv6agduMU1A.jpg",
+        "year": 1963
+      },
+      {
+        "id": "126-tv",
+        "tmdbId": "126",
+        "isTv": true,
+        "title": "Unsolved Mysteries",
+        "description": "Combines four to five segments of dramatic re-enactments, interviews and updates of real human and paranormal mysteries. An audience interactive call-to-action request allowed viewers to call in with tips to help solve the cases.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/1bOXbWqNsRU2ykPiE586I18coLf.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/jCXk0VvqiyulPBzHf1hDN1PK0mW.jpg",
+        "year": 1988
+      },
+      {
+        "id": "160-tv",
+        "tmdbId": "160",
+        "isTv": true,
+        "title": "Teenage Mutant Ninja Turtles",
+        "description": "Four turtles fall into the sewers and are befriended by Hamato Yoshi a Japanese man sent to New York who was forced to live in the sewers. One day he sees a strange green glow which transforms the four turtles into human-like creatures. Hamato (now Master Splinter) changes into a giant rat from the green glow and teaches the turtles the skills of the ninja as they team up with news reporter April O'Neil to battle against Yoshi's arch enemy Shredder and Krang, an alien warlord from Dimension X.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/AaihPizftZo5YCqzEgHMwkceaEo.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/s1Kr1RntP2b8MdUKTYJxNmcVEBP.jpg",
+        "year": 1987
+      },
+      {
+        "id": "131-tv",
+        "tmdbId": "131",
+        "isTv": true,
+        "title": "Space Sentinels",
+        "description": "Space Sentinels is a Saturday morning animated series produced by Filmation which debuted on the American NBC network on September 10, 1977 and ran for thirteen half-hour episodes. The series has been called \"ahead of its time\" due to its racially diverse cast of main characters.\n\nIn this series, the Roman mythological figures Hercules and Mercury are joined by Astrea, a character created specifically for the series, to form a superhero team to protect mankind.\n\nThe complete series was released on Region 1 DVD on August 22, 2006, along with the complete series of The Freedom Force.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/pc4W8UW3hCbvSHrrbBFuCaGXhRu.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/3AObnfSKY8IyZblXVrv9bIBn2pd.jpg",
+        "year": 1977
+      },
+      {
+        "id": "164-tv",
+        "tmdbId": "164",
+        "isTv": true,
+        "title": "Dark Skies",
+        "description": "Dark Skies is an American UFO conspiracy theory-based sci-fi television series that aired from the 1996 to 1997 season for 18 episodes, plus a two-hour pilot episode. The success of The X-Files on Fox proved there was an audience for science fiction shows, resulting in NBC commissioning this proposed competitor following a pitch from producers Bryce Zabel and Brent Friedman. The series debuted September 21, 1996 on NBC, and was later rerun by the Sci-Fi Channel. Its tagline was \"History as we know it is a lie.\"",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/dtWcxTw4VGRyR7qNDlYFCdl5Q9.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/qctEq0YR9onM1ZLBKSS1X73KoQ1.jpg",
+        "year": 1996
+      },
+      {
+        "id": "196-tv",
+        "tmdbId": "196",
+        "isTv": true,
+        "title": "Captain Star",
+        "description": "Captain Star was an animated television series starring Richard E. Grant as Captain Jim Star, based on a comic by Steven Appleby: Rockets Passing Overhead. Only thirteen episodes of thirty-minutes each were produced and aired. The series ran on the British ITV and Canadian TELETOON networks from 1997 to 1998. The show was also later repeated on Nickelodeon UK.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/w4Q0cfVPFHyvR5tEaoNwvppGGDK.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/ketBtREiwFTMUlV9HqRmPxf6gT2.jpg",
+        "year": 1997
+      },
+      {
+        "id": "203-tv",
+        "tmdbId": "203",
+        "isTv": true,
+        "title": "The Sarah Jane Adventures",
+        "description": "Sarah Jane Smith is a truly remarkable woman who inhabits a world of mystery, danger and wonder; a world where aliens are commonplace and the Earth is under constant threat. A world that Maria Jackson, a seemingly ordinary girl, can only dream of – until she moves in next door. Nothing will ever be ordinary again.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/hq0S1VtUabnORdp3l3m11OA67BP.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/cBJDOCMFAV4Ls8nZLRRj424RgID.jpg",
+        "year": 2007
+      }
+    ],
+    "genre": [
+      "Sci-Fi & Fantasy",
+      "Action & Adventure",
+      "Drama"
+    ],
+    "voteAverage": 8.194,
+    "isIframeEmbed": true,
+    "seasons": [
+      {
+        "season_number": 1,
+        "name": "Season 1",
+        "episode_count": 21,
+        "air_date": "2001-10-16",
+        "poster_path": "https://image.tmdb.org/t/p/w500/8dZVKFytdZAT0B5dMNrHxbZ9NrO.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 2,
+        "name": "Season 2",
+        "episode_count": 23,
+        "air_date": "2002-09-24",
+        "poster_path": "https://image.tmdb.org/t/p/w500/uSr3nf44jkWSswhNnToln9t1dLB.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 3,
+        "name": "Season 3",
+        "episode_count": 22,
+        "air_date": "2003-10-01",
+        "poster_path": "https://image.tmdb.org/t/p/w500/f60xCocHvSKZE3hNh7JrlqVKg9V.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 4,
+        "name": "Season 4",
+        "episode_count": 22,
+        "air_date": "2004-09-22",
+        "poster_path": "https://image.tmdb.org/t/p/w500/aVi3L1r9ZWOOSacAXvpIdoNCfWW.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 5,
+        "name": "Season 5",
+        "episode_count": 22,
+        "air_date": "2005-09-29",
+        "poster_path": "https://image.tmdb.org/t/p/w500/ssd1X4oehoyv7AU75hwoGGX75nS.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 6,
+        "name": "Season 6",
+        "episode_count": 22,
+        "air_date": "2006-09-28",
+        "poster_path": "https://image.tmdb.org/t/p/w500/r8xOSL0V4srx6KrWjgYY0ZqZfFS.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 7,
+        "name": "Season 7",
+        "episode_count": 20,
+        "air_date": "2007-09-27",
+        "poster_path": "https://image.tmdb.org/t/p/w500/6lGHd6lBbpEkoq5pgI8XDRy2WYB.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 8,
+        "name": "Season 8",
+        "episode_count": 22,
+        "air_date": "2008-09-18",
+        "poster_path": "https://image.tmdb.org/t/p/w500/jqEDADJiQbdtLMLSoXVulSiQkfh.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 9,
+        "name": "Season 9",
+        "episode_count": 21,
+        "air_date": "2009-09-25",
+        "poster_path": "https://image.tmdb.org/t/p/w500/sxfkMgX4aEqvMQhDicf8LcbBWs3.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 10,
+        "name": "Season 10",
+        "episode_count": 21,
+        "air_date": "2010-09-24",
+        "poster_path": "https://image.tmdb.org/t/p/w500/nUiw76eCg1uT8uz5Ibtu6FWYlgX.jpg",
+        "episodes": []
+      }
+    ],
+    "iframeSrc": ""
+  },
+  {
+    "id": "30984",
+    "tmdbId": "30984",
+    "imdbId": "30984",
+    "isTv": false,
+    "tagline": "Fear the return!",
+    "title": "Dissection - Rebirth Of Dissection",
+    "originalTitle": "Dissection - Rebirth Of Dissection",
+    "originalLanguage": "en",
+    "description": "Recorded live at Dissection's comeback show at Arenan, Stockholm, October 30th 2004",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/o53C097t6fpwuqSP4jgmsPHKyGY.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/original/eKQZzKnrIia6AjR4ooE6sE0yeAD.jpg",
+    "year": 2006,
+    "duration": 90,
+    "director": "Magnus Göthlund",
+    "cast": [
+      "Jon Nödtveidt",
+      "Davide \"Set Teitan\" Totaro",
+      "Brice Leclercq",
+      "Tomas Asklund"
+    ],
+    "logoUrl": "",
+    "hasLogo": false,
+    "castDetails": [
+      {
+        "id": "1295713",
+        "name": "Jon Nödtveidt",
+        "role": "Vocals, Lead Guitars",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/iWkRVOGjJvZb8SaVx98smpfUvtE.jpg"
+      }
+    ],
+    "similar": [
+      {
+        "id": "463747",
+        "tmdbId": "463747",
+        "isTv": false,
+        "title": "Radiohead | NorthSide 2017",
+        "description": "Radiohead performs at Denmark's NorthSide Festival on June 11, 2017.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/hWB5nlCuyk9POEzI34UeFFUlb1r.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/d4qvabUFnDQfLgHnb1s9DZByYEG.jpg",
+        "year": 2017
+      },
+      {
+        "id": "463750",
+        "tmdbId": "463750",
+        "isTv": false,
+        "title": "Radiohead | Live at I-Days 2017",
+        "description": "Radiohead perform at I-Days Festival in Milan on June 16, 2017",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/bOa75AI0xGkZYgkS340GSGBhc86.jpg",
+        "backdropUrl": "",
+        "year": 2017
+      },
+      {
+        "id": "29606",
+        "tmdbId": "29606",
+        "isTv": false,
+        "title": "Eric Clapton and Steve Winwood: Live from Madison Square Garden",
+        "description": "Winwood and Clapton crossed musical paths in 1969 with the formation of Blind Faith, a group that pioneered the fusion of rock and blues into tremendous studio and stage success. Despite critical and popular acclaim, the band was short-lived with only one album and a brief 1969 tour that debuted July 12 at Madison Square Garden and ended August 24 in Hawaii. Since then, Winwood and Clapton have remained friends but have only performed together a few times over the years for an occasional song at a charity event. The 2008 Madison Square Garden shows were the first full Winwood-Clapton concerts in almost 40 years.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/tC2UC2sfL31nX28Bktfx1rj8cHs.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/mkM9R3dKIu1IMZ3YRsJEoAFhOT7.jpg",
+        "year": 2009
+      },
+      {
+        "id": "643037",
+        "tmdbId": "643037",
+        "isTv": false,
+        "title": "Luciano Pavarotti - An Evening With Luciano Pavarotti",
+        "description": "",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/durSl11wgO0ZkzTtWB7ehYwg6tp.jpg",
+        "backdropUrl": "",
+        "year": 2005
+      },
+      {
+        "id": "1571467",
+        "tmdbId": "1571467",
+        "isTv": false,
+        "title": "1st LUVITA FAN-CONCERT 〈AWAKENING〉",
+        "description": "",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/nsQ6nVI41VpSnKQflcGxQ4PcH2k.jpg",
+        "backdropUrl": "",
+        "year": 2025
+      },
+      {
+        "id": "1571492",
+        "tmdbId": "1571492",
+        "isTv": false,
+        "title": "Testament  - The Bay Strikes Back Tour",
+        "description": "",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/pKX0ecPVAnCy6DLPahguhs36xK9.jpg",
+        "backdropUrl": "",
+        "year": 2023
+      },
+      {
+        "id": "831845",
+        "tmdbId": "831845",
+        "isTv": false,
+        "title": "Evil Angel: Live in Concert",
+        "description": "Zolita's debut album \"Evil Angel\" will be performed live for the first time as a theatrical performance piece directed, produced, and designed by Zolita and her cult of girls collaborative team.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/nXdwKeBWWLAfD136me9opCwvWgI.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/175688beSRVd02ec1IPjpsdRaIM.jpg",
+        "year": 2021
+      },
+      {
+        "id": "831860",
+        "tmdbId": "831860",
+        "isTv": false,
+        "title": "CASIOPEA with Synchronized DNA: 5 Stars Live",
+        "description": "In 2005, Akira Jimbo and Hiroyuki Noritake created a Drum Duo called Synchronized DNA, who played in a tour with Casiopea, released as \"Casiopea + Sync DNA: 5 Stars Live\".",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/ewwKPzFoGhJzwHsbMtbJSwop0iM.jpg",
+        "backdropUrl": "",
+        "year": 2005
+      }
+    ],
+    "genre": [
+      "Music",
+      "Documentary"
+    ],
+    "voteAverage": 9.333,
+    "isIframeEmbed": true,
+    "seasons": [],
+    "iframeSrc": "https://111movies.net/movie/30984"
+  },
+  {
+    "id": "278624",
+    "tmdbId": "278624",
+    "imdbId": "278624",
+    "isTv": false,
+    "tagline": "In The Heart Of Wild Nature",
+    "title": "AMAZON 3D",
+    "originalTitle": "AMAZON 3D",
+    "originalLanguage": "en",
+    "description": "",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/pf1ELTsZBoOdhcsI5CE1O6VaOtm.jpg",
+    "backdropUrl": "",
+    "year": 2013,
+    "duration": 60,
+    "director": "Unknown",
+    "cast": [],
+    "logoUrl": "",
+    "hasLogo": false,
+    "castDetails": [],
+    "similar": [
+      {
+        "id": "29440",
+        "tmdbId": "29440",
+        "isTv": false,
+        "title": "Africa Light / Gray Zone",
+        "description": "\"Africa Light\" - as white local citizens call Namibia. The name suggests romance, the beauty of nature and promises a life without any problems in a country where the difference between rich and poor could hardly be greater. Namibia does not give that impression of it. If you look at its surface it seems like Africa in its most innocent and civilized form. It is a country that is so inviting to dream by its spectacular landscape, stunning scenery and fascinating wildlife. It has a very strong tourism structure and the government gets a lot of money with its magical attraction. But despite its grandiose splendor it is an endless gray zone as well. It oscillates between tradition and modernity, between the cattle in the country and the slums in the city. It shuttles from colonial times, land property reform to minimum wage for everyone. It fluctuates between socialism and cold calculated market economy.",
+        "posterUrl": "",
+        "backdropUrl": "",
+        "year": 2010
+      },
+      {
+        "id": "1018898",
+        "tmdbId": "1018898",
+        "isTv": false,
+        "title": "Si las flores hablasen",
+        "description": "",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/c88PTvB536zk39rAf0PjfeKUHc6.jpg",
+        "backdropUrl": "",
+        "year": 2022
+      },
+      {
+        "id": "1571372",
+        "tmdbId": "1571372",
+        "isTv": false,
+        "title": "Sperm Whales: Dealing with the Unexpected",
+        "description": "Around the Crozet Islands, here is the incredible odyssey of a family of Sperm Whales facing rapid changes in their environment. From the stormy surface to the eternal darkness of the abyss, several generations of these deep-sea divers encounter men and their \"toys\": harpoons of yesterday, and fishing lines of today. Once victim of whale hunting, now accused of stealing fish, a sperm whale shares its private life with us.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/udWIEmme3EDtMHo8EGf5aVT1IlW.jpg",
+        "backdropUrl": "",
+        "year": 2005
+      },
+      {
+        "id": "1395565",
+        "tmdbId": "1395565",
+        "isTv": false,
+        "title": "Mouvements",
+        "description": "A visual experiment on the different types of movement in a city.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/xKKwEugpEl7fsdDFQBIqQKzQR1.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/aWa4drwKcRz3RlmmJu5De5rmrio.jpg",
+        "year": 2024
+      },
+      {
+        "id": "464593",
+        "tmdbId": "464593",
+        "isTv": false,
+        "title": "Earth: One Amazing Day",
+        "description": "An astonishing journey revealing the awesome power of the natural world. Over the course of one single day, we track the sun from the highest mountains to the remotest islands to exotic jungles.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/7uZdJrpFDrsUddy5mG17lDBNxGx.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/zAarcAlr0coEpea8d95KHfJYgDA.jpg",
+        "year": 2017
+      },
+      {
+        "id": "1395055",
+        "tmdbId": "1395055",
+        "isTv": false,
+        "title": "Fie",
+        "description": "An older woman cooks for a fisherman by the sea.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/lXJqtV24xjLckexC8oAjBnLKJIx.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/cGbr0Ks4M3dchByZ6SjtuC4N7bW.jpg",
+        "year": 2024
+      },
+      {
+        "id": "464207",
+        "tmdbId": "464207",
+        "isTv": false,
+        "title": "The Truth Is in the Stars",
+        "description": "William Shatner sits down with scientists, innovators and celebrities to discuss how the optimism of 'Star Trek' influenced multiple generations.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/7UfW2pnvACZzYoz6HUnuxtO9cJL.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/mTQIqIQd8puoDcn3RBYIARc7mmq.jpg",
+        "year": 2017
+      },
+      {
+        "id": "831042",
+        "tmdbId": "831042",
+        "isTv": false,
+        "title": "Meet the Hedgehogs",
+        "description": "Steve Backshall visits a hedgehog rescue centre in Surrey founded by Brian May. He meets the dedicated staff and discovering the stories behind some of the animals being treated, helps to release a successfully treated hedgehog back into the wild, and offers advice on how to make a garden into a welcoming environment for the creatures.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/6NmhTLUIW6HMdCDOuPiNZsCka8s.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/5q0XQ7bSwmOdN51e1YLWl6kE7c9.jpg",
+        "year": 2017
+      }
+    ],
+    "genre": [
+      "Documentary"
+    ],
+    "voteAverage": 0,
+    "isIframeEmbed": true,
+    "seasons": [],
+    "iframeSrc": "https://111movies.net/movie/278624"
+  },
+  {
+    "id": "949838",
+    "trailerUrl": "https://www.youtube.com/watch?v=N-J-HR3quc4",
+    "tmdbId": "949838",
+    "imdbId": "tt36304003",
+    "isTv": false,
+    "tagline": "The night is young. He isn't.",
+    "title": "72 HOURS",
+    "originalTitle": "72 HOURS",
+    "originalLanguage": "en",
+    "description": "To save his career, a 40-year-old ad exec joins a crew of twentysomethings for a wild Miami bachelor party after they mistakenly add him to a group chat.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/9Bu1PW2R1XayqRqnl0aDOgMcrdS.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/original/hL5EIk48251OXlbIbRJq3yaBHk8.jpg",
+    "year": 2026,
+    "duration": 102,
+    "director": "Tim Story",
+    "cast": [
+      "Kevin Hart",
+      "Marcello Hernández",
+      "Mason Gooding",
+      "Kam Patterson"
+    ],
+    "logoUrl": "https://image.tmdb.org/t/p/w500/6Xr5G59aK39tK39CEJrYcTu7a95.png",
+    "hasLogo": true,
+    "castDetails": [
+      {
+        "id": "55638",
+        "name": "Kevin Hart",
+        "role": "Joe",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/byiNydUlM6oP8diA7WMvYbNM7a1.jpg"
+      },
+      {
+        "id": "3725495",
+        "name": "Marcello Hernández",
+        "role": "Nick",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/1HwInMPGpJ9Ne2eHe1Zirk6IDSN.jpg"
+      },
+      {
+        "id": "2174509",
+        "name": "Mason Gooding",
+        "role": "Mason",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/bmlry1xqBzNgv8Chm783ss93Cvg.jpg"
+      },
+      {
+        "id": "5137486",
+        "name": "Kam Patterson",
+        "role": "Freshman",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/tosIntCEGwZNC3tvpUXJq39GY1q.jpg"
+      },
+      {
+        "id": "3631826",
+        "name": "Ben Marshall",
+        "role": "Hunter",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/kLUG2GlueUOoSrKHlqhuS3yUnDc.jpg"
+      },
+      {
+        "id": "1838225",
+        "name": "Zach Cherry",
+        "role": "Barry",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/fT3Wv8ef0Vn0daHWAObCp2Bd4Y.jpg"
+      },
+      {
+        "id": "829372",
+        "name": "Michael Mando",
+        "role": "Jaze",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/gvM2wG66bjEpiirdeQdyG9EzUfv.jpg"
+      },
+      {
+        "id": "964679",
+        "name": "Teyana Taylor",
+        "role": "Jennifer",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/5b2dAuTsBejBsdm9SkWX4F7jG9w.jpg"
+      }
+    ],
+    "similar": [
+      {
+        "id": "283350",
+        "tmdbId": "283350",
+        "isTv": false,
+        "title": "Before We Go",
+        "description": "A chance encounter between two strangers in Grand Central Terminal sparks a life-changing, nighttime sojourn through New York City. They grow into each other's most trusted confidants when an evening of unexpected adventure forces them to confront their fears and take control of their lives.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/qBnkNKjbJV0E8GvEPidBS1nIRWD.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/xlGQ44jpBneZu13VAnvU01dWA0y.jpg",
+        "year": 2014
+      },
+      {
+        "id": "30128",
+        "tmdbId": "30128",
+        "isTv": false,
+        "title": "I Hope They Serve Beer in Hell",
+        "description": "A tireless and charismatic novelty seeker, Tucker tricks his buddy Dan into lying to his fiancée Kristy, so they can go to an legendary strip club three and a half hours away to celebrate Dan’s last days of bachelorhood in proper style.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/oBBood3JcOu0LQstdL9FeqCxMwa.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/wZ7njCHjE4iplwFoR2mmdvpCd3h.jpg",
+        "year": 2009
+      },
+      {
+        "id": "260798",
+        "tmdbId": "260798",
+        "isTv": false,
+        "title": "Nobody Will Laugh",
+        "description": "A successful art historian who has trouble telling people difficult truths, finds himself in an inescapable situation when a small lie quickly gets out of hand.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/2y4pBAb6agtNQRhBwZU5fXx6aed.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/iEfXcFpTcFMqpNeB11UZfu9RXca.jpg",
+        "year": 1966
+      },
+      {
+        "id": "1547",
+        "tmdbId": "1547",
+        "isTv": false,
+        "title": "The Lost Boys",
+        "description": "When an unsuspecting town newcomer is drawn to local blood fiends, the Frog brothers and other unlikely heroes gear up to rescue him.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/nH1lvyQvfbL5GKScTtT6zkIvDEn.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/6zvbeKxgc80xQsZLJ4eQVZSKXO8.jpg",
+        "year": 1987
+      },
+      {
+        "id": "1548",
+        "tmdbId": "1548",
+        "isTv": false,
+        "title": "Ghost World",
+        "description": "Two quirky, cynical teenaged girls try to figure out what to do with their lives after high school graduation. After they play a prank on an eccentric, middle aged record collector, one of them befriends him, which causes a rift in the girls’ friendship.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/uwKqnUPE4dSM0kKuMW0vXpURh2T.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/6zIOO1NrTehQkDaNfvga4luSRQc.jpg",
+        "year": 2001
+      },
+      {
+        "id": "8273",
+        "tmdbId": "8273",
+        "isTv": false,
+        "title": "American Wedding",
+        "description": "With high school a distant memory, Jim and Michelle are getting married — and in a hurry, since Jim's grandmother is sick and wants to see him walk down the aisle — prompting Stifler to throw the ultimate bachelor party. And Jim's dad is reliable as ever, doling out advice no one wants to hear.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/pCO3lJv2PzPkJty29APxCVSjyoE.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/qW703anWHFXulRTKWOckAg9i70K.jpg",
+        "year": 2003
+      },
+      {
+        "id": "454640",
+        "tmdbId": "454640",
+        "isTv": false,
+        "title": "The Angry Birds Movie 2",
+        "description": "Red, Chuck, Bomb and the rest of their feathered friends are surprised when a green pig suggests that they put aside their differences and unite to fight a common threat. Aggressive birds from an island covered in ice are planning to use an elaborate weapon to destroy the fowl and swine.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/ebe8hJRCwdflNQbUjRrfmqtUiNi.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/5eLlUMbeIBWlDETYB6Lq8pIcyR1.jpg",
+        "year": 2019
+      },
+      {
+        "id": "979",
+        "tmdbId": "979",
+        "isTv": false,
+        "title": "Irreversible",
+        "description": "A woman’s lover and her ex-boyfriend take justice into their own hands after she becomes the victim of a rapist. Because some acts can’t be undone. Because man is an animal. Because the desire for vengeance is a natural impulse. Because most crimes remain unpunished.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/rxeDxo8FvZpLu6iplNpxdtAVnfu.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/xV1EfNSEg6id6juJPr1vM6p9x5X.jpg",
+        "year": 2002
+      }
+    ],
+    "genre": [
+      "Comedy",
+      "Crime"
+    ],
+    "voteAverage": 6.6,
+    "isIframeEmbed": true,
+    "seasons": [],
+    "iframeSrc": "https://111movies.net/movie/949838"
+  },
+  {
+    "id": "296206",
+    "trailerUrl": "https://www.youtube.com/watch?v=p6bSf5JEkrU",
+    "tmdbId": "296206",
+    "imdbId": "tt0474603",
+    "isTv": false,
+    "tagline": "",
+    "title": "Comedy Central Roast of Pamela Anderson",
+    "originalTitle": "Comedy Central Roast of Pamela Anderson",
+    "originalLanguage": "en",
+    "description": "Comedy Central's best roasters and stand up comedians take a whack at actor/model Pamela Anderson.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/cZP1Oj9KuKjZLTUFaMxVtSzY0NC.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/original/tukNhCDyKs4C01RZoCZfy7UZnzx.jpg",
+    "year": 2005,
+    "duration": 63,
+    "director": "Joel Gallen",
+    "cast": [
+      "Pamela Anderson",
+      "Jimmy Kimmel",
+      "Andy Dick",
+      "Sarah Silverman"
+    ],
+    "logoUrl": "",
+    "hasLogo": false,
+    "castDetails": [
+      {
+        "id": "6736",
+        "name": "Pamela Anderson",
+        "role": "Self",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/hVi9TMfNx43oyWnjEsO1nhDTf2e.jpg"
+      },
+      {
+        "id": "78303",
+        "name": "Jimmy Kimmel",
+        "role": "Self",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/nBe0ByVL5hpPUby6rlU6DELgJ8Z.jpg"
+      },
+      {
+        "id": "43120",
+        "name": "Andy Dick",
+        "role": "Self",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/n4WT4oYoYrzSGAanlWPsneCzBPk.jpg"
+      },
+      {
+        "id": "7404",
+        "name": "Sarah Silverman",
+        "role": "Self",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/g5G711XyVokJm2RoItpkaHa8mkQ.jpg"
+      },
+      {
+        "id": "76245",
+        "name": "Adam Carolla",
+        "role": "Self",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/47k9w6HRLnGeU0gVtMeTPJs3ief.jpg"
+      },
+      {
+        "id": "62842",
+        "name": "Eddie Griffin",
+        "role": "Self",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/xPiiT0BnxpG04Xqmj6PciBC0o7I.jpg"
+      },
+      {
+        "id": "79473",
+        "name": "Bea Arthur",
+        "role": "Self",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/l9ELbYtl5acOfvgiqYuKY9R2upM.jpg"
+      },
+      {
+        "id": "144226",
+        "name": "Nick Di Paolo",
+        "role": "Self",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/kuzs8bGNCZeQxNMwgTAof542aoX.jpg"
+      }
+    ],
+    "similar": [
+      {
+        "id": "275771",
+        "tmdbId": "275771",
+        "isTv": false,
+        "title": "Comedy Central Roast of Denis Leary",
+        "description": "Caustic comic Denis Leary gets a taste of his own medicine when Comedy Central hosts a celebrity roast in his honor, emceed by Jeff Garlin. Dishing out the insults are Christopher Walken, Conan O'Brien, Jon Stewart, Michael J. Fox and more.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/vxyIFDNdB1xEmmkbNyA0CVPXTtu.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/5pGSPh2ysRUEEuoXKyTU6X8KAg3.jpg",
+        "year": 2003
+      },
+      {
+        "id": "445879",
+        "tmdbId": "445879",
+        "isTv": false,
+        "title": "Bianca Del Rio Birthday Roast",
+        "description": "The tables got turned on insult comedian Bianca del Rio as a panel of legendary New York nightlife roasters grilled the Queen of Mean in honor of her 40th birthday! All proceeds go to benefit the post-production of the feature film HURRICANE BIANCA!  Drag Race favorites Courtney Act, Darienne Lake, Shangela, Jinkx Monsoon, with Bob the Drag Queen, Logan Hardcore, the hilarious Michael Musto, and Mimi Imfurst . Hosted by Roastmaster Lady Bunny. (And you know Bianca won't be able to resist roasting them back!)  The night was a fundraiser for our independent film \"Hurricane Bianca,\" which we just got back from an 18-day shoot down in Dallas! We were joined by SNL favorite Rachel Dratch, and Drag Race Superstars Willam, Shangela, Alyssa Edwards and Joslyn Fox! Sales from the video downloads of the roast will go towards post-production of the film: editing, music, special effects, digital beard removal, etc.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/2A51JmWfuGsXuzCov7Mx0x2MoPx.jpg",
+        "backdropUrl": "",
+        "year": 2016
+      },
+      {
+        "id": "844761",
+        "tmdbId": "844761",
+        "isTv": false,
+        "title": "El pueblo contra Enrique San Francisco",
+        "description": "The brilliant actor and comedian Enrique San Francisco undergoes a very particular trial during which he will have to account for his turbulent past and respond to the accusations and reproaches of friends and colleagues.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/gjTm1XpkbWyhS9aHWqggp4T9ak1.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/kXqM0Sf8cdkTSefHy0wHizgl51I.jpg",
+        "year": 2016
+      },
+      {
+        "id": "35272",
+        "tmdbId": "35272",
+        "isTv": false,
+        "title": "Cheech & Chong Roasted",
+        "description": "Cheech and Chong, the stoner pair who dominated the comedy scene in the 1970s and ’80s and recently reunited for their Light Up America tour, take their place in the hot seat to be roasted by close friends and fellow comedians. The duo made a name for themselves with their drug-laced humor, which kept audiences rolling in the aisles with such comedy routines as “Earache My Eye,” “Basketball Jones,",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/d1Cn8axoS1flSSK9NnIE9ELcN9J.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/hppB6KAdAwlLtDg8OuTAMJDyNRT.jpg",
+        "year": 2008
+      },
+      {
+        "id": "630068",
+        "tmdbId": "630068",
+        "isTv": false,
+        "title": "Comedy Central Roast of Alec Baldwin",
+        "description": "Sean Hayes serves as roast master as it is Alec Baldwin's turn in the hot seat. Robert De Niro, Jeff Ross, and Caitlyn Jenner among others take jabs at the actor/comedian.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/vbasQnawBPneKDRneBvmfIe9phf.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/plFF4G7BStCFlDRqsVBhbnYYB04.jpg",
+        "year": 2019
+      },
+      {
+        "id": "473806",
+        "tmdbId": "473806",
+        "isTv": false,
+        "title": "Roast – Égjen Ganxsta!",
+        "description": "Another star has signed up to burn on the market-leading commercial channel RTL Klub on the hugely popular Roast show in the US, following the success of Nagy Feró. In the crosshairs again this time will be a cool rocker-rapper: Ganxsta Zolee. The Roast returns to RTL Klub with a brand new programme, and for the first time in a long time, the leading commercial channel will be showing 18 hoops of prime-time content on its market-leading channel.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/ws10dk2V2QIZKDmABayKezk1xQy.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/xe3UurXO1l9m0JMSeHiAG7k7bQ2.jpg",
+        "year": 2017
+      },
+      {
+        "id": "73428",
+        "tmdbId": "73428",
+        "isTv": false,
+        "title": "The Tommy Chong Roast",
+        "description": "A \"tribute\" to comedian Tommy Chong, given to him by many of his fellow comedians.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/2qz8fPM1M97Z4UTA4IiWLAKDF1e.jpg",
+        "backdropUrl": "",
+        "year": 1986
+      },
+      {
+        "id": "1054702",
+        "tmdbId": "1054702",
+        "isTv": false,
+        "title": "The Roast of Paul Hogan",
+        "description": "Aussie comedy legends roast an Aussie comedy Icon in this hilarious, no holds barred special.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/5jzBYOqi82u4tHItwymokWJLyZ7.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/qygF3AK01NjRykFbZUJhMnIfYjm.jpg",
+        "year": 2022
+      }
+    ],
+    "genre": [
+      "Comedy",
+      "Documentary",
+      "TV Movie"
+    ],
+    "voteAverage": 6.577,
+    "isIframeEmbed": true,
+    "seasons": [],
+    "iframeSrc": "https://111movies.net/movie/296206"
+  },
+  {
+    "id": "94997-tv",
+    "trailerUrl": "https://www.youtube.com/watch?v=DotnJ7tTA34",
+    "tmdbId": "94997",
+    "imdbId": "94997",
+    "isTv": true,
+    "tagline": "Win or die.",
+    "title": "House of the Dragon",
+    "originalTitle": "House of the Dragon",
+    "originalLanguage": "en",
+    "description": "The Targaryen dynasty is at the absolute apex of its power, with more than 15 dragons under their yoke. Most empires crumble from such heights. In the case of the Targaryens, their slow fall begins when King Viserys breaks with a century of tradition by naming his daughter Rhaenyra heir to the Iron Throne. But when Viserys later fathers a son, the court is shocked when Rhaenyra retains her status as his heir, and seeds of division sow friction across the realm.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/7V0Ebks0GgpKvQ7QbLAIdX5dos4.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/original/577eXC8wFQT0eUrJcgznSiFPRmk.jpg",
+    "year": 2022,
+    "duration": 45,
+    "director": "George R.R. Martin",
+    "cast": [
+      "Matt Smith",
+      "Emma D'Arcy",
+      "Olivia Cooke",
+      "James Norton"
+    ],
+    "logoUrl": "https://image.tmdb.org/t/p/w500/sWW8VURTOT0yVLS6Jlxw6BQQUSZ.png",
+    "hasLogo": true,
+    "castDetails": [
+      {
+        "id": "136532",
+        "name": "Matt Smith",
+        "role": "Prince Daemon Targaryen",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/wxMdHj4UA6LgIU5MiA7CKySZeVU.jpg"
+      },
+      {
+        "id": "2121005",
+        "name": "Emma D'Arcy",
+        "role": "Princess Rhaenyra Targaryen",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/9Zlmb7VmtVCxkLq5yqFFRRxCaED.jpg"
+      },
+      {
+        "id": "1173984",
+        "name": "Olivia Cooke",
+        "role": "Queen Alicent Hightower",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/wf71ctooNlVmiT8dxx0QmRAzyiX.jpg"
+      },
+      {
+        "id": "1205278",
+        "name": "James Norton",
+        "role": "Lord Ormund Hightower",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/3i9z9MkUCrlOGdMRw00j2vScxGC.jpg"
+      },
+      {
+        "id": "55412",
+        "name": "Steve Toussaint",
+        "role": "Lord Corlys 'The Sea Snake' Velaryon",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/9rJafPDkQP8YuLy9iY5v19ZfMIW.jpg"
+      },
+      {
+        "id": "2583704",
+        "name": "Fabien Frankel",
+        "role": "Ser Criston Cole",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/nXh1h7KbdeZc41ucwGhzp1cOMnd.jpg"
+      },
+      {
+        "id": "1584566",
+        "name": "Matthew Needham",
+        "role": "Lord Larys 'Clubfoot' Strong",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/sZHT2xFtnBawU3DoaWZACSv15gX.jpg"
+      },
+      {
+        "id": "1457238",
+        "name": "Sonoya Mizuno",
+        "role": "Mysaria 'The White Worm'",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/WVROOHuk6G6QgVe0pU8R2i1fsE.jpg"
+      }
+    ],
+    "similar": [
+      {
+        "id": "40-tv",
+        "tmdbId": "40",
+        "isTv": true,
+        "title": "Dallas",
+        "description": "The world's first mega-soap, and one of the most popular ever produced, Dallas had it all. Beautiful women, expensive cars, and men playing Monopoly with real buildings. Famous for one of the best cliffhangers in TV history, as the world asked \"Who shot J.R.?\" A slow-burner to begin with, Dallas hit its stride in the 2nd season, with long storylines and expert character development. Dallas ruled the airwaves in the 1980's.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/A1dupjBm7rXqBw2Dbz9WUsHoyxo.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/5Z40OJgNeedcAgqPRTGQzlk17Mv.jpg",
+        "year": 1978
+      },
+      {
+        "id": "44-tv",
+        "tmdbId": "44",
+        "isTv": true,
+        "title": "Adventures of Sonic the Hedgehog",
+        "description": "A comical, light-hearted and gag-driven adventure series based on the titular character, an arrogant and mischievous yet kind-hearted teenage hedgehog with the power to move at supersonic speeds. Sonic, with his idolizing young friend Tails, regularly oppose the wicked Dr. Ivo Robotnik, his robot henchmen Scratch, Grounder and Coconuts, and thwart their plans to conquer their home planet of Mobius.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/z24YFviGeEGUgOw4TytKuC4izVM.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/q8QhJVgoCt99gKkigvkrSXAB76Y.jpg",
+        "year": 1993
+      },
+      {
+        "id": "89-tv",
+        "tmdbId": "89",
+        "isTv": true,
+        "title": "Titus",
+        "description": "Titus is an American dark comedy sitcom that debuted on Fox in 2000. The series was created by its star, Christopher Titus, Jack Kenny, and Brian Hargrove. This sitcom was based on Christopher's stand-up comedy act, more specifically his one-man show Norman Rockwell is Bleeding, which was based loosely upon his real-life family; lines from Norman Rockwell is Bleeding were spoken by Titus as commentary. Titus plays an outwardly childish adult, who owns a custom car shop. The show follows him and his dimwitted halfbrother Dave, his girlfriend Erin with the \"heart of gold\", his goody-goody friend Tommy, and his arrogantly lewd, bigoted and multiple-divorced father Ken \"Papa\" Titus.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/Ab7WWSBFSYbZVXORydeEaPltG9K.jpg",
+        "backdropUrl": "",
+        "year": 2000
+      },
+      {
+        "id": "47-tv",
+        "tmdbId": "47",
+        "isTv": true,
+        "title": "El Chavo del Ocho",
+        "description": "The mishaps of Chavo, an 8-year-old Mestizo-Latino American orphan boy who lives in a village. Together with Quico, Chilindrina, Ñoño and La Popis, Chavo experiences a series of humorous entanglements.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/1TdBpVOASafzfWlnecwW17UL6a5.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/6zzyWTu3p2Diztotbnb0kf128uo.jpg",
+        "year": 1973
+      },
+      {
+        "id": "121-tv",
+        "tmdbId": "121",
+        "isTv": true,
+        "title": "Doctor Who",
+        "description": "The adventures of The Doctor, a time-traveling humanoid alien known as a Time Lord. He explores the universe in his TARDIS, a sentient time-traveling spaceship. Its exterior appears as a blue British police box, which was a common sight in Britain in 1963 when the series first aired. Along with a succession of companions, The Doctor faces a variety of foes while working to save civilizations, help ordinary people, and right many wrongs.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/xinqAmYrZ1TEwowcQhgTkZVtVE0.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/8VWgyQjExeMgeg6Qzv6agduMU1A.jpg",
+        "year": 1963
+      },
+      {
+        "id": "185-tv",
+        "tmdbId": "185",
+        "isTv": true,
+        "title": "Carnivàle",
+        "description": "Carnivàle is an American television series set in the United States during the Great Depression and Dust Bowl. In tracing the lives of two disparate groups of people, its overarching story depicts the battle between good and evil and the struggle between free will and destiny; the storyline mixes Christian theology with gnosticism and Masonic lore, particularly that of the Knights Templar.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/5pKvfZ3qLuKJd8PQfKcPxN9jTO9.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/gPXlZQr7PR3Ay2pP6XBdvVKmM25.jpg",
+        "year": 2003
+      },
+      {
+        "id": "186-tv",
+        "tmdbId": "186",
+        "isTv": true,
+        "title": "Weeds",
+        "description": "After the unexpected death of her husband, a suburban mom resorts to selling weed to support her family.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/gKUsBTa5b0GY7U4iWBseeBalfjO.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/6k6vAUa0Fm73HB0QBOJbFGTgPq5.jpg",
+        "year": 2005
+      },
+      {
+        "id": "246-tv",
+        "tmdbId": "246",
+        "isTv": true,
+        "title": "Avatar: The Last Airbender",
+        "description": "In a war-torn world of elemental magic, a young boy reawakens to undertake a dangerous mystic quest to fulfill his destiny as the Avatar, and bring peace to the world.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/yaGt4GIutpbXHsv48tWceWg6s56.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/kU98MbVVgi72wzceyrEbClZmMFe.jpg",
+        "year": 2005
+      }
+    ],
+    "genre": [
+      "Sci-Fi & Fantasy",
+      "Drama",
+      "Action & Adventure"
+    ],
+    "voteAverage": 8.377,
+    "isIframeEmbed": true,
+    "seasons": [
+      {
+        "season_number": 1,
+        "name": "Season 1",
+        "episode_count": 10,
+        "air_date": "2022-08-21",
+        "poster_path": "https://image.tmdb.org/t/p/w500/lx6hsqWXq4aVrXPjCqnMHFrGL5u.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 2,
+        "name": "Season 2",
+        "episode_count": 8,
+        "air_date": "2024-06-16",
+        "poster_path": "https://image.tmdb.org/t/p/w500/lZwxqNWnT1dRl76ry6BM0FPqCUg.jpg",
+        "episodes": []
+      },
+      {
+        "season_number": 3,
+        "name": "Season 3",
+        "episode_count": 8,
+        "air_date": "2026-06-21",
+        "poster_path": "https://image.tmdb.org/t/p/w500/wSvDQN6tZR4VzDDZD3MUPIghVjC.jpg",
+        "episodes": []
+      }
+    ],
+    "iframeSrc": ""
+  },
+  {
+    "id": "278624-tv",
+    "trailerUrl": "https://www.youtube.com/watch?v=GAbT5qCTXR8",
+    "tmdbId": "278624",
+    "imdbId": "278624",
+    "isTv": true,
+    "tagline": "Wish her luck.",
+    "title": "Lucky",
+    "originalTitle": "Lucky",
+    "originalLanguage": "en",
+    "description": "When a multi-million-dollar heist goes sideways, con artist Lucky is forced to go on the run. Pursued by both the FBI and a ruthless crime boss, Lucky must fight for her life—and a way out.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/xsrkiXg8EuNNtbPtbmvCxg95gK7.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/original/hKXMOOvQwXiL01hfYG5nrkH0tEP.jpg",
+    "year": 2026,
+    "duration": 45,
+    "director": "Jonathan Tropper",
+    "cast": [
+      "Anya Taylor-Joy",
+      "Annette Bening",
+      "Clifton Collins Jr.",
+      "Aunjanue Ellis-Taylor"
+    ],
+    "logoUrl": "https://image.tmdb.org/t/p/w500/ofBcrmZTjCSh2bL9Cpy6AgJQX2J.png",
+    "hasLogo": true,
+    "castDetails": [
+      {
+        "id": "1397778",
+        "name": "Anya Taylor-Joy",
+        "role": "Luciana 'Lucky' Armstrong",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/qYNofOjlRke2MlJVihmJmEdQI4v.jpg"
+      },
+      {
+        "id": "516",
+        "name": "Annette Bening",
+        "role": "Priscilla Masterson",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/kGslMAWcpv8MKzODhDRDkFE0uX7.jpg"
+      },
+      {
+        "id": "5365",
+        "name": "Clifton Collins Jr.",
+        "role": "Harris Dutch",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/xfD0scqaPvAxKCPHYLo8553Le5g.jpg"
+      },
+      {
+        "id": "53923",
+        "name": "Aunjanue Ellis-Taylor",
+        "role": "Agent Billie Rand",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/e54DfgDyS67xdtomYODFule6Ofa.jpg"
+      },
+      {
+        "id": "18082",
+        "name": "Timothy Olyphant",
+        "role": "John Armstrong",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/7pHmRHE2wBNC9cBgNIRCBqFLoyZ.jpg"
+      }
+    ],
+    "similar": [
+      {
+        "id": "19-tv",
+        "tmdbId": "19",
+        "isTv": true,
+        "title": "Planet of the Apes",
+        "description": "Two astronauts and a sympathetic chimp friend are fugitives in a future Earth dominated by a civilization of humanoid apes. \n\nBased on the 1968 Planet of the Apes film and its sequels, which were inspired by the novel of the same name by Pierre Boulle.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/zxo5Vrd0oXgm9ZCz4r7Q3L8veWg.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/JrBiUtR2CwxZR5GMK5Z9dU7Wr4.jpg",
+        "year": 1974
+      },
+      {
+        "id": "260-tv",
+        "tmdbId": "260",
+        "isTv": true,
+        "title": "Sinchronicity",
+        "description": "In Manchester, Nathan is in a love triangle with Fi and Jase, and the trio explore how chance and coincidence shape their lives.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/pV4ZG6lVjtx73y7dTLNiN5lT0Xi.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/82qnmC4e4WQQeDo7mHRpwiU1gPd.jpg",
+        "year": 2006
+      },
+      {
+        "id": "232-tv",
+        "tmdbId": "232",
+        "isTv": true,
+        "title": "Ultraviolet",
+        "description": "With the growing threat of viral epidemic and the possibility of worldwide environmental catastrophe, humanity has an unprecedented ability to destroy itself, and vampires need to take control of their threatened food source. CIB is a clandestine, elite government unit that hunts vampires, referred to as 'Code Fives' or 'leeches'. DS Michael Colefield joins the team after his partner is turned, blending a realistic, scientific approach with modern vampire mythology, including their inability to appear on video or audio recordings.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/oE6YG0gBvJ7AuFauq6MK7LgCOzB.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/w1UkJ6rLCfD3OKtvZ0jK77TvhZA.jpg",
+        "year": 1998
+      },
+      {
+        "id": "235-tv",
+        "tmdbId": "235",
+        "isTv": true,
+        "title": "G.B.H.",
+        "description": "GBH was a seven-part British television drama written by Alan Bleasdale shown in the summer of 1991 on Channel 4. The protagonists were Michael Murray, the Militant tendency-supporting Labour leader of a city council in the North of England and Jim Nelson, the headmaster of a school for disturbed children.\n\nThe series was controversial partly because Murray appeared to be based on Derek Hatton, former Deputy Leader of Liverpool City Council — in an interview in the G.B.H. DVD Bleasdale recounts an accidental meeting with Hatton before the series, who indicates that he has caught wind of Bleasdale's intentions but does not mind as long as the actor playing him is \"handsome\".\n\nIn normal parlance, the initials \"GBH\" refer to the criminal charge of grievous bodily harm - however, the actual intent of the letters is that it is supposed to stand for Great British Holiday.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/fBlFKneBgEGAH1yeV0x3Nxll1AZ.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/sboXpnIKuvhzFPjKKAYuFXANKzI.jpg",
+        "year": 1991
+      },
+      {
+        "id": "57-tv",
+        "tmdbId": "57",
+        "isTv": true,
+        "title": "Angela's Eyes",
+        "description": "FBI agent Angela Clinton has the exceptional gift of knowing when someone is lying. She discovered this skill at age 14, when she learned her \"average\" American parents were actually spies. Attempting to right her parents' wrong, Angela is now working with the same agency that brought her parents down.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/o5jgPizvKMRYKUB2oOGE0Hglows.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/5h7NKTKhp46uRQh2udyeYy1jWFn.jpg",
+        "year": 2006
+      },
+      {
+        "id": "122226-tv",
+        "tmdbId": "122226",
+        "isTv": true,
+        "title": "Echo",
+        "description": "Pursued by Wilson Fisk's criminal empire, Maya's journey brings her home and she must confront her own family and legacy.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/vFyJH630cF68LohVYjQW49074Sy.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/u3ySnWqSjM3jedYgJZTR7RWRDDm.jpg",
+        "year": 2024
+      },
+      {
+        "id": "122235-tv",
+        "tmdbId": "122235",
+        "isTv": true,
+        "title": "Joe Pickett",
+        "description": "A game warden and his family navigate the changing political and socio-economic climate in a small rural town in Wyoming on the verge of economic collapse. Surrounded by rich history and vast wildlife, the township hides decades of schemes and secrets that are yet to be uncovered.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/pWBCwK0lp5RLCyG89JzrhEVny47.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/gazijGFhqouUBvrTiFE9f0ZqF07.jpg",
+        "year": 2021
+      },
+      {
+        "id": "122293-tv",
+        "tmdbId": "122293",
+        "isTv": true,
+        "title": "Две судьбы",
+        "description": "",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/dZSKllpTJmIY09sTTf7OaVruqs5.jpg",
+        "backdropUrl": "",
+        "year": 2002
+      }
+    ],
+    "genre": [
+      "Drama",
+      "Crime"
+    ],
+    "voteAverage": 7.193,
+    "isIframeEmbed": true,
+    "seasons": [
+      {
+        "season_number": 1,
+        "name": "Miniseries",
+        "episode_count": 7,
+        "air_date": "2026-07-14",
+        "poster_path": "https://image.tmdb.org/t/p/w500/xsrkiXg8EuNNtbPtbmvCxg95gK7.jpg",
+        "episodes": []
+      }
+    ],
+    "iframeSrc": ""
+  },
+  {
+    "id": "502356",
+    "trailerUrl": "https://www.youtube.com/watch?v=RjNcTBXTk4I",
+    "tmdbId": "502356",
+    "imdbId": "tt6718170",
+    "isTv": false,
+    "tagline": "Not all heroes wear capes. Some wear overalls.",
+    "title": "The Super Mario Bros. Movie",
+    "originalTitle": "The Super Mario Bros. Movie",
+    "originalLanguage": "en",
+    "description": "While working underground to fix a water main, Brooklyn plumbers—and brothers—Mario and Luigi are transported down a mysterious pipe and wander into a magical new world. But when the brothers are separated, Mario embarks on an epic quest to find Luigi.",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/qNBAXBIQlnOThrVvA6mA2B5ggV6.jpg",
+    "backdropUrl": "https://image.tmdb.org/t/p/original/9n2tJBplPbgR2ca05hS5CKXwP2c.jpg",
+    "year": 2023,
+    "duration": 93,
+    "director": "Aaron Horvath",
+    "cast": [
+      "Chris Pratt",
+      "Anya Taylor-Joy",
+      "Charlie Day",
+      "Jack Black"
+    ],
+    "logoUrl": "https://image.tmdb.org/t/p/w500/sst2kO7ySyAm3z5haWXUszOVWi2.png",
+    "hasLogo": true,
+    "castDetails": [
+      {
+        "id": "73457",
+        "name": "Chris Pratt",
+        "role": "Mario (voice)",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/cRH6HPAQ98PlOwwEvhYO4CM9lwu.jpg"
+      },
+      {
+        "id": "1397778",
+        "name": "Anya Taylor-Joy",
+        "role": "Princess Peach (voice)",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/qYNofOjlRke2MlJVihmJmEdQI4v.jpg"
+      },
+      {
+        "id": "95101",
+        "name": "Charlie Day",
+        "role": "Luigi (voice)",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/c0HNhjChGybnHa4eoLyqO4dDu1j.jpg"
+      },
+      {
+        "id": "70851",
+        "name": "Jack Black",
+        "role": "Bowser (voice)",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/59IhgCtiWI5yTfzPhsjzg7GjCjm.jpg"
+      },
+      {
+        "id": "298410",
+        "name": "Keegan-Michael Key",
+        "role": "Toad (voice)",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/xmdzYXP9j87a43FSiL138nLesuS.jpg"
+      },
+      {
+        "id": "19274",
+        "name": "Seth Rogen",
+        "role": "Donkey Kong (voice)",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/nYl9bvQzaPQLzlf0wf75clLN6Hi.jpg"
+      },
+      {
+        "id": "61110",
+        "name": "Fred Armisen",
+        "role": "Cranky Kong (voice)",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/rhPN8Zx6nrtNiQN2JwPkJ3ZFJ9z.jpg"
+      },
+      {
+        "id": "299743",
+        "name": "Sebastian Maniscalco",
+        "role": "Spike (voice)",
+        "imageUrl": "https://image.tmdb.org/t/p/w200/bvJQGVOI8fJ9Y4eAvYqoQcOAbHZ.jpg"
+      }
+    ],
+    "similar": [
+      {
+        "id": "10074",
+        "tmdbId": "10074",
+        "isTv": false,
+        "title": "Hot Rod",
+        "description": "For Rod Kimble, performing stunts is a way of life, even though he is rather accident-prone. Poor Rod cannot even get any respect from his stepfather, Frank, who beats him up in weekly sparring matches. When Frank falls ill, Rod devises his most outrageous stunt yet to raise money for Frank's operation -- and then Rod will kick Frank's butt.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/jRkt03dXCVKnbvcQm3ygU1cjg9Y.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/R0p2aJVD7NTrCJFbDlTPKoVCCz.jpg",
+        "year": 2007
+      },
+      {
+        "id": "10096",
+        "tmdbId": "10096",
+        "isTv": false,
+        "title": "13 Going on 30",
+        "description": "After total humiliation at her thirteenth birthday party, Jenna Rink wants to just hide until she's thirty. Thanks to some magic wishing dust, Jenna's prayer has been answered. With a knockout body, a fabulous wardrobe, an athlete boyfriend, a dream job, and superstar friends, this can't be a better life. But soon Jenna realizes that adult life isn’t as easy as she hoped for.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/iNZdSIfhSCMtRILDNyhLn8UKeSG.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/ld7UTOGzZSxIMbuYsb6eQ6QdN4h.jpg",
+        "year": 2004
+      },
+      {
+        "id": "10112",
+        "tmdbId": "10112",
+        "isTv": false,
+        "title": "The Aristocats",
+        "description": "When Madame Adelaide Bonfamille leaves her fortune to Duchess and her children—Bonfamille’s beloved family of cats—the butler plots to steal the money and kidnaps the legatees, leaving them out on a country road. All seems lost until the wily Thomas O’Malley Cat and his jazz-playing alley cats come to the aristocats’ rescue.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/aOWs5XMJEABN6SKCTJBCoeD1kCA.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/rnMwOM8gMqo6Gf6XXMpaJEayUwk.jpg",
+        "year": 1970
+      },
+      {
+        "id": "10184",
+        "tmdbId": "10184",
+        "isTv": false,
+        "title": "He's Just Not That Into You",
+        "description": "Have you ever wondered why they said they would call but didn't, or why they don't want to sleep with you anymore, or why your relationship isn't going to the next level? Maybe they're just not that into you. Gigi wants a man who says he'll call her - and actually does - while Alex advises her to stop waiting by the phone. Beth wants a proposal after years of a committed relationship with her boyfriend, Neil, who is just fine with the way things are. Janine's not sure if she can trust her husband, Ben, who can't quite trust himself around Anna. Anna can't decide between the sexy married guy or her straightforward, no-sparks standby, Conor, who can't get over the fact that he can't have her. And Mary, who's found an entire network of loving, supportive men, just needs to find one who's straight.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/jip2ap24Y6JxEgzVRyNqyYssnyR.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/jZkkch6yrP1tVVfEU2uqwej9rBM.jpg",
+        "year": 2009
+      },
+      {
+        "id": "10191",
+        "tmdbId": "10191",
+        "isTv": false,
+        "title": "How to Train Your Dragon",
+        "description": "As the son of a Viking leader on the cusp of manhood, shy Hiccup Horrendous Haddock III faces a rite of passage: he must kill a dragon to prove his warrior mettle. But after downing a feared dragon, he realizes that he no longer wants to destroy it, and instead befriends the beast – which he names Toothless – much to the chagrin of his warrior father.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/ygGmAO60t8GyqUo9xYeYxSZAR3b.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/59vDC1BuEQvti24OMr0ZvtAK6R1.jpg",
+        "year": 2010
+      },
+      {
+        "id": "10193",
+        "tmdbId": "10193",
+        "isTv": false,
+        "title": "Toy Story 3",
+        "description": "Woody, Buzz, and the rest of Andy's toys haven't been played with in years. With Andy about to go to college, the gang find themselves accidentally left at a nefarious day care center. The toys must band together to escape and return home to Andy.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/AbbXspMOwdvwWZgVN0nabZq03Ec.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/uAfhsySkr1UzQg1zdg3dZQRz9Fd.jpg",
+        "year": 2010
+      },
+      {
+        "id": "9053",
+        "tmdbId": "9053",
+        "isTv": false,
+        "title": "DOA: Dead or Alive",
+        "description": "Four beautiful rivals at an invitation-only martial-arts tournament join forces against a sinister threat. Princess Kasumi is an aristocratic warrior trained by martial-arts masters. Tina Armstrong is a wrestling superstar. Helena Douglas is an athlete with a tragic past. Christie Allen earns her keep as a thief and an assassin-for-hire.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/hRcYqTWgbPF3TtpSDfwqRDAJjlv.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/wa5eEBwjI01yhNMKPwIaqeBiw2d.jpg",
+        "year": 2006
+      },
+      {
+        "id": "9275",
+        "tmdbId": "9275",
+        "isTv": false,
+        "title": "Death to Smoochy",
+        "description": "Tells the story of Rainbow Randolph, the corrupt, costumed star of a popular children's TV show, who is fired over a bribery scandal and replaced by squeaky-clean Smoochy, a puffy fuchsia rhinoceros. As Smoochy catapults to fame - scoring hit ratings and the affections of a network executive - Randolph makes the unsuspecting rhino the target of his numerous outrageous attempts to exact revenge and reclaim his status as America's sweetheart.",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/wrwwuNLITsA5N5cVnA3ftvHFqHj.jpg",
+        "backdropUrl": "https://image.tmdb.org/t/p/w780/xse1f9OR0PVByGnTChplzUgYz7t.jpg",
+        "year": 2002
+      }
+    ],
+    "genre": [
+      "Family",
+      "Comedy",
+      "Adventure",
+      "Fantasy",
+      "Animation"
+    ],
+    "voteAverage": 7.602,
+    "isIframeEmbed": true,
+    "seasons": [],
+    "iframeSrc": "https://111movies.net/movie/502356"
   }
 ];

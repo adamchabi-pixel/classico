@@ -108,7 +108,12 @@ export default function LibraryView({ onSelect, onPlay, getProgress, type = 'mov
         
         const res = await fetch(`/api/discover?${params.toString()}`);
         if (res.ok) {
-           const json = await res.json();
+           let json;
+           try {
+               json = await res.json();
+           } catch (parseError) {
+               throw new Error("Le serveur a retourné une réponse invalide (peut-être en cours de redémarrage). Veuillez rafraîchir la page.");
+           }
            const data = json.data;
            if (data && data.results) {
                const mapped = data.results.filter((r: any) => !r.adult).map((r: any) => {

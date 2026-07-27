@@ -107,6 +107,12 @@ export default function LibraryView({ onSelect, onPlay, getProgress, type = 'mov
         if (activeYear !== null) params.append('activeYear', String(activeYear));
         
         const res = await fetch(`/api/discover?${params.toString()}`);
+        
+        const contentType = res.headers.get("content-type");
+        if (res.ok && contentType && !contentType.includes("application/json")) {
+            throw new Error("L'API backend n'est pas disponible. Si vous êtes en production, assurez-vous que l'application est déployée avec le serveur Node.js (Full-stack) et non comme un simple site statique. Le serveur a retourné du HTML au lieu de JSON.");
+        }
+
         if (res.ok) {
            let json;
            try {

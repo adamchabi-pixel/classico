@@ -1490,12 +1490,46 @@ export default function App() {
   useEffect(() => {
     const fetchTrending = async () => {
       try {
-        const res = await fetch("/api/trending");
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const text = await res.text();
-        const data = JSON.parse(text);
-        if (data.success && data.results) {
+        const TMDB_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs";
+        const pages = [1, 2, 3];
+        const fetchPage = async (page: number) => {
+          const url = `https://api.themoviedb.org/3/trending/all/day?language=en-US&page=${page}`;
+          const response = await fetch(url, {
+            headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
+          });
+          if (!response.ok) return [];
+          const data = await response.json();
+          return data.results || [];
+        };
+        const resultsByPage = await Promise.all(pages.map(fetchPage));
+        const combinedResults = resultsByPage.flat();
+        const validResults = combinedResults.filter((m: any) => (m.media_type === "movie" || m.media_type === "tv") && !isAnimeOrAdult(m));
+        
+        const results = validResults.slice(0, 60).map((m: any) => {
+          const title = m.title || m.name || m.original_title || m.original_name;
+          const isTv = m.media_type === "tv";
+          return {
+            id: isTv ? `${m.id}-tv` : String(m.id),
+            tmdbId: String(m.id),
+            isTv,
+            title,
+            originalTitle: m.original_title || m.original_name,
+            description: m.overview || "",
+            posterUrl: m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : null,
+            backdropUrl: m.backdrop_path ? `https://image.tmdb.org/t/p/w780${m.backdrop_path}` : null,
+            year: parseInt((m.release_date || m.first_air_date || "0").split("-")[0]) || 0,
+            voteAverage: m.vote_average,
+            director: "Unknown",
+            cast: [],
+            genre: [],
+            isIframeEmbed: true,
+            iframeSrc: ""
+          };
+        });
+
+        if (results.length > 0) {
           setTmdbCache(prev => {
+            const data = { results };
             const map = new Map(prev.map(m => [m.id, m]));
             data.results.forEach((m: any) => map.set(m.id, m));
             const newCache = Array.from(map.values());
@@ -1575,14 +1609,30 @@ export default function App() {
     
     setIsSearchingTmdb(true);
     const delayDebounceFn = setTimeout(() => {
-      fetch(`/api/search?query=${encodeURIComponent(searchQuery)}`)
+      const url = `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(searchQuery)}&language=en-US&page=1&include_adult=false`;
+      const TMDB_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs";
+      fetch(url, { headers: { Authorization: `Bearer ${TMDB_ACCESS_TOKEN}`, Accept: "application/json" } })
         .then(res => res.json())
         .then(data => {
-          if (data.success) {
-            setTmdbSearchResults(data.results);
+          if (data && data.results) {
+            // Re-format TMDB results to Movie type
+            const results = data.results
+                .filter((r: any) => (r.media_type === 'movie' || r.media_type === 'tv') && !r.adult && !isAnimeOrAdult(r))
+                .map((r: any) => ({
+                  id: r.media_type === 'tv' ? `${r.id}-tv` : r.id,
+                  title: r.title || r.name,
+                  posterUrl: r.poster_path ? `https://image.tmdb.org/t/p/w500${r.poster_path}` : "",
+                  year: parseInt((r.release_date || r.first_air_date || "0").substring(0, 4)) || 0,
+                  genre: [],
+                  type: r.media_type === 'tv' ? "serie" : "movie",
+                  overview: r.overview,
+                  rating: r.vote_average,
+                  isTmdb: true
+                }));
+            setTmdbSearchResults(results);
             setTmdbCache(prev => {
               const map = new Map(prev.map(m => [m.id, m]));
-              data.results.forEach((m: Movie) => map.set(m.id, m));
+              results.forEach((m: Movie) => map.set(m.id, m));
               const newCache = Array.from(map.values());
               localStorage.setItem("classico_tmdb_cache", JSON.stringify(newCache));
               return newCache;

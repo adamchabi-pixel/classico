@@ -38,7 +38,7 @@ export const importedMoviesData = [
       "George Lucas"
     ],
     "isIframeEmbed": true,
-    "iframeSrc": "https://player.videasy.net/movie/tt32890033?color=FFD700&overlay=true"
+    "iframeSrc": "https://player.videasy.net/movie/tt32890033?color=FF9900&overlay=true"
   },
   {
     "hasLogo": true,
@@ -78,7 +78,7 @@ export const importedMoviesData = [
       "Sione Milford"
     ],
     "isIframeEmbed": true,
-    "iframeSrc": "https://player.videasy.net/movie/tt27419466?color=FFD700&overlay=true"
+    "iframeSrc": "https://player.videasy.net/movie/tt27419466?color=FF9900&overlay=true"
   },
   {
     "hasLogo": true,
@@ -118,7 +118,7 @@ export const importedMoviesData = [
       "Jay Hernandez"
     ],
     "isIframeEmbed": true,
-    "iframeSrc": "https://player.videasy.net/movie/tt29355505?color=FFD700&overlay=true"
+    "iframeSrc": "https://player.videasy.net/movie/tt29355505?color=FF9900&overlay=true"
   },
   {
     "hasLogo": true,
@@ -157,7 +157,7 @@ export const importedMoviesData = [
       "Jarreth J. Merz"
     ],
     "isIframeEmbed": true,
-    "iframeSrc": "https://player.videasy.net/movie/tt33764258?color=FFD700&overlay=true"
+    "iframeSrc": "https://player.videasy.net/movie/tt33764258?color=FF9900&overlay=true"
   },
   {
     "hasLogo": true,
@@ -196,7 +196,7 @@ export const importedMoviesData = [
       "Ferdinand Kingsley"
     ],
     "isIframeEmbed": true,
-    "iframeSrc": "https://player.videasy.net/movie/tt8814476?color=FFD700&overlay=true"
+    "iframeSrc": "https://player.videasy.net/movie/tt8814476?color=FF9900&overlay=true"
   },
   {
     "id": "1622-tv",

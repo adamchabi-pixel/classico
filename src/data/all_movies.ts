@@ -5739,6 +5739,6 @@ export const allMoviesData = [
     "John Bradley"
   ],
   "isIframeEmbed": true,
-  "iframeSrc": "https://player.videasy.net/tv/tt0944947?color=FFD700&overlay=true"
+  "iframeSrc": "https://player.videasy.net/tv/tt0944947?color=FF9900&nextEpisode=true&autoplayNextEpisode=true&episodeSelector=true&overlay=true"
 }
 ];

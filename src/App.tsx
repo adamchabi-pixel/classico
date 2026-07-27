@@ -1826,16 +1826,13 @@ export default function App() {
           The Best
         </span>
         <div className="flex gap-2 mt-8 items-center justify-center">
-          <div className="w-2 h-2 rounded-full bg-[#bf953f]" style={{ animation: "illuminate 1.5s infinite", animationDelay: "0s" }}></div>
-          <div className="w-2 h-2 rounded-full bg-[#bf953f]" style={{ animation: "illuminate 1.5s infinite", animationDelay: "0.2s" }}></div>
-          <div className="w-2 h-2 rounded-full bg-[#bf953f]" style={{ animation: "illuminate 1.5s infinite", animationDelay: "0.4s" }}></div>
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#fcf6ba", boxShadow: "0 0 10px rgba(252, 246, 186, 0.8)", animation: "illuminate 1.5s infinite ease-in-out", animationDelay: "0s" }}></div>
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#fcf6ba", boxShadow: "0 0 10px rgba(252, 246, 186, 0.8)", animation: "illuminate 1.5s infinite ease-in-out", animationDelay: "0.2s" }}></div>
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#fcf6ba", boxShadow: "0 0 10px rgba(252, 246, 186, 0.8)", animation: "illuminate 1.5s infinite ease-in-out", animationDelay: "0.4s" }}></div>
         </div>
         <style>
           {`
-            @keyframes illuminate {
-              0%, 60%, 100% { opacity: 0.2; box-shadow: none; background-color: #bf953f; }
-              30% { opacity: 1; box-shadow: 0 0 10px rgba(252, 246, 186, 0.8); background-color: #fcf6ba; }
-            }
+            @keyframes illuminate { 0%, 100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
           `}
         </style>
       </div>
@@ -1883,7 +1880,10 @@ export default function App() {
                 type="text"
                 placeholder="Search for a movie, director..."
                 value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
+                onChange={(e) => {
+                  setSearchInput(e.target.value);
+                  setSearchQuery(e.target.value);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     setSearchQuery(searchInput);

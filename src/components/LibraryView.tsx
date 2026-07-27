@@ -96,34 +96,19 @@ export default function LibraryView({ onSelect, onPlay, getProgress, type = 'mov
     const fetchMovies = async () => {
       setLoading(true);
       try {
-        let url = `https://api.themoviedb.org/3/trending/${type}/day?language=en-US&page=${page}`;
-        if (activePlatform !== null || activeGenre !== null || activeLanguage !== null || activeYear !== null) {
-           url = `https://api.themoviedb.org/3/discover/${type}?language=en-US&page=${page}&watch_region=US`;
-           
-           if (activeGenre === 'top_rated') {
-               url += `&sort_by=vote_average.desc&vote_count.gte=300`;
-           } else {
-               url += `&sort_by=popularity.desc`;
-           }
-           
-           if (activePlatform) url += `&with_watch_providers=${activePlatform}`;
-           if (activeGenre && activeGenre !== 'top_rated') url += `&with_genres=${activeGenre}`;
-           if (activeLanguage) url += `&with_original_language=${activeLanguage}`;
-           if (activeYear) {
-               if (activeYear === 2010) {
-                   url += `&primary_release_date.gte=2010-01-01&primary_release_date.lte=2019-12-31`;
-               } else if (activeYear === 2000) {
-                   url += `&primary_release_date.gte=2000-01-01&primary_release_date.lte=2009-12-31`;
-               } else {
-                   url += `&primary_release_year=${activeYear}`;
-               }
-           }
-        }
+        let params = new URLSearchParams();
+        if (type) params.append('type', type);
+        if (page) params.append('page', String(page));
+        if (activePlatform !== null) params.append('activePlatform', String(activePlatform));
+        if (activeGenre !== null) params.append('activeGenre', String(activeGenre));
+        if (activeLanguage !== null) params.append('activeLanguage', String(activeLanguage));
+        if (activeYear !== null) params.append('activeYear', String(activeYear));
         
-        const res = await fetch(url, { headers: { Authorization: `Bearer ${TMDB_TOKEN}`, Accept: "application/json" } });
+        const res = await fetch(`/api/discover?${params.toString()}`);
         if (res.ok) {
-           const data = await res.json();
-           if (data.results) {
+           const json = await res.json();
+           const data = json.data;
+           if (data && data.results) {
                const mapped = data.results.filter((r: any) => !r.adult).map((r: any) => {
                    return {
                        id: String(r.id),

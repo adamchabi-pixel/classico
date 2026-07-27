@@ -852,16 +852,16 @@ export default function CinemaPlayerView({
             let iframeUrlVideasy = "";
             let cleanId = finalTmdbId;
             if (cleanId.endsWith('-tv')) cleanId = cleanId.replace('-tv', '');
-            const timeParam = savedRestoreTimeRef.current > 0 ? `?t=${Math.floor(savedRestoreTimeRef.current)}` : "";
+            const timeParam = savedRestoreTimeRef.current > 0 ? `&t=${Math.floor(savedRestoreTimeRef.current)}` : "";
             
             if (isTv && season && episode) {
-              iframeUrl111 = `https://111movies.net/tv/${cleanId}/${season}/${episode}${timeParam}`;
-              iframeUrlPeach = `https://peachify.pro/embed/tv/${cleanId}/${season}/${episode}${timeParam}`;
-              iframeUrlVideasy = `https://player.videasy.net/tv/${cleanId}/${season}/${episode}${timeParam}`;
+              iframeUrl111 = `https://111movies.net/tv/${cleanId}/${season}/${episode}?dummy=1${timeParam}`;
+              iframeUrlPeach = `https://peachify.pro/embed/tv/${cleanId}/${season}/${episode}?accent=FF9900&servers=hide${timeParam}`;
+              iframeUrlVideasy = `https://player.videasy.net/tv/${cleanId}/${season}/${episode}?color=FF9900&nextEpisode=true&autoplayNextEpisode=true&episodeSelector=true&overlay=true${timeParam}`;
             } else {
-              iframeUrl111 = `https://111movies.net/movie/${cleanId}${timeParam}`;
-              iframeUrlPeach = `https://peachify.pro/embed/movie/${cleanId}${timeParam}`;
-              iframeUrlVideasy = `https://player.videasy.net/movie/${cleanId}${timeParam}`;
+              iframeUrl111 = `https://111movies.net/movie/${cleanId}?dummy=1${timeParam}`;
+              iframeUrlPeach = `https://peachify.pro/embed/movie/${cleanId}?accent=FF9900&servers=hide${timeParam}`;
+              iframeUrlVideasy = `https://player.videasy.net/movie/${cleanId}?color=FF9900&overlay=true${timeParam}`;
             }
             const newServers = [
               { name: "Server 1 ⭐", url: iframeUrlVideasy },
@@ -949,15 +949,15 @@ export default function CinemaPlayerView({
                   if (itemData.ProviderIds.Tmdb) {
                     data.isIframeEmbed = true;
                     let u1 = "", u2 = "", u3 = "";
-                    const timeParam = savedRestoreTimeRef.current > 0 ? `?t=${Math.floor(savedRestoreTimeRef.current)}` : "";
+                    const timeParam = savedRestoreTimeRef.current > 0 ? `&t=${Math.floor(savedRestoreTimeRef.current)}` : "";
                     if (itemData.Type === "Episode" && itemData.ParentIndexNumber && itemData.IndexNumber) {
-                        u1 = `https://peachify.pro/embed/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}${timeParam}`;
-                        u2 = `https://111movies.net/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}${timeParam}`;
-                        u3 = `https://player.videasy.net/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}${timeParam}`;
+                        u1 = `https://peachify.pro/embed/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}?accent=FF9900&servers=hide${timeParam}`;
+                        u2 = `https://111movies.net/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}?dummy=1${timeParam}`; // Just in case, add ?dummy=1 for timeParam &t=
+                        u3 = `https://player.videasy.net/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}?color=FF9900&nextEpisode=true&autoplayNextEpisode=true&episodeSelector=true&overlay=true${timeParam}`;
                     } else {
-                        u1 = `https://peachify.pro/embed/movie/${itemData.ProviderIds.Tmdb}${timeParam}`;
-                        u2 = `https://111movies.net/movie/${itemData.ProviderIds.Tmdb}${timeParam}`;
-                        u3 = `https://player.videasy.net/movie/${itemData.ProviderIds.Tmdb}${timeParam}`;
+                        u1 = `https://peachify.pro/embed/movie/${itemData.ProviderIds.Tmdb}?accent=FF9900&servers=hide${timeParam}`;
+                        u2 = `https://111movies.net/movie/${itemData.ProviderIds.Tmdb}?dummy=1${timeParam}`;
+                        u3 = `https://player.videasy.net/movie/${itemData.ProviderIds.Tmdb}?color=FF9900&overlay=true${timeParam}`;
                     }
                     const srvs = [
                       { name: "Server 1 ⭐", url: u3 },

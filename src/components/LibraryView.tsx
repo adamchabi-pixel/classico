@@ -85,6 +85,7 @@ interface LibraryViewProps {
 export default function LibraryView({ onSelect, onPlay, getProgress, type = 'movie' }: LibraryViewProps) {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [activePlatform, setActivePlatform] = useState<number | null>(null);
   const [activeGenre, setActiveGenre] = useState<number | string | null>(null);
   const [activeLanguage, setActiveLanguage] = useState<string | null>(null);
@@ -95,6 +96,7 @@ export default function LibraryView({ onSelect, onPlay, getProgress, type = 'mov
   useEffect(() => {
     const fetchMovies = async () => {
       setLoading(true);
+      setErrorMsg(null);
       try {
         let params = new URLSearchParams();
         if (type) params.append('type', type);
@@ -131,11 +133,20 @@ export default function LibraryView({ onSelect, onPlay, getProgress, type = 'mov
                    } as unknown as Movie;
                });
                setMovies(mapped);
+               if (mapped.length === 0 && data.results.length > 0) {
+                   setErrorMsg("All results were filtered out.");
+               }
                setTotalPages(Math.min(data.total_pages || 1, 500));
+           } else {
+               setErrorMsg("API returned ok, but no data.results.");
            }
+        } else {
+           const errText = await res.text();
+           setErrorMsg(`API Error ${res.status}: ${errText}`);
         }
-      } catch (err) {
+      } catch (err: any) {
          console.error(err);
+         setErrorMsg(`Fetch failed: ${err.message}`);
       } finally {
          setLoading(false);
       }
@@ -254,6 +265,12 @@ export default function LibraryView({ onSelect, onPlay, getProgress, type = 'mov
              {loading ? (
                  <div className="flex items-center justify-center py-32">
                      <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+                 </div>
+             ) : errorMsg ? (
+                 <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 opacity-80">
+                    <FilmIcon className="w-16 h-16 text-red-500" />
+                    <h3 className="text-xl font-bold text-red-400">Error Loading Movies</h3>
+                    <p className="text-zinc-400 max-w-md">{errorMsg}</p>
                  </div>
              ) : movies.length === 0 ? (
                  <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 opacity-50">

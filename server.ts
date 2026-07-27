@@ -35,7 +35,7 @@ const TMDB_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2Fk
 
 app.get("/api/discover", async (req, res) => {
   try {
-    const { type, page, activePlatform, activeGenre, activeLanguage, activeYear } = req.query;
+    const { type, page, activePlatform, activeGenre, activeLanguage, activeYear } = req.query; console.log("DISCOVER:", req.query);
     let url = `https://api.themoviedb.org/3/trending/${type || 'movie'}/day?language=en-US&page=${page || 1}`;
     if (type === "tv") url += "&without_genres=16";
     

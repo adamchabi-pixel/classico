@@ -116,9 +116,9 @@ export default function LibraryView({ onSelect, onPlay, getProgress, type = 'mov
            if (type === "tv") url += `&without_genres=16`;
            if (activeYear) {
                const dateField = type === "tv" ? "first_air_date" : "primary_release_date";
-               if (activeYear === '2010') {
+               if (activeYear === 2010) {
                    url += `&${dateField}.gte=2010-01-01&${dateField}.lte=2019-12-31`;
-               } else if (activeYear === '2000') {
+               } else if (activeYear === 2000) {
                    url += `&${dateField}.gte=2000-01-01&${dateField}.lte=2009-12-31`;
                } else {
                    url += `&${dateField}.gte=${activeYear}-01-01&${dateField}.lte=${activeYear}-12-31`;

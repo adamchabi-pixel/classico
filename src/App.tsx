@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
+import { allMoviesData } from "./data/all_movies";
+import { importedMoviesData } from "./data/imported_movies";
+import { heroMoviesData } from "./data/hero_movies";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Search, Play, Film, Info, Heart, Award, 
@@ -8,9 +11,6 @@ import {
   Star, CheckCircle, AlertCircle, RefreshCw, X, Shield, Menu, Settings, Loader2
 } from "lucide-react";
 import { COLLECTIONS as RAW_COLLECTIONS, Movie, Collection } from "./data";
-import { allMoviesData } from "./data/all_movies";
-import { importedMoviesData } from "./data/imported_movies";
-import { heroMoviesData } from "./data/hero_movies";
 
 const COLLECTIONS: Collection[] = [...RAW_COLLECTIONS].sort((a, b) => { if (a.id === "trending-now") return -1; if (b.id === "trending-now") return 1; return a.title.localeCompare(b.title); });
 
@@ -644,6 +644,7 @@ const isAnimeOrAdultKeyword = (q: string) => {
 };
 
 export default function App() {
+
 
   const [isAppReady, setIsAppReady] = useState(true);
   const [tmdbCache, setTmdbCache] = useState<Movie[]>(() => {
@@ -2378,10 +2379,10 @@ export default function App() {
                         }}
                         className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar pt-4 px-1 pb-6 sm:pb-10"
                       >
-                        {history
+                        {Array.from(new Set([...history, ...Object.keys(progressData).map(k => k.replace("-tv", ""))]))
                           .filter(id => getProgress(id) > 0 && getProgress(id) < 0.95)
                           .map(id => allMovies.find(m => m.id === id || m.id === id + "-tv" || m.id === id.replace("-tv", "")))
-                          .filter((m): m is Movie => !!m)
+                          .filter((m, idx, self) => !!m && self.findIndex(t => t?.id === m?.id) === idx)
                           .map((movie, idx) => (
                             <LazyVirtualCard key={`resume-${movie.id}-${idx}`} priority={idx < 6}>
                               <MovieCard

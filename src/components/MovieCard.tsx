@@ -24,7 +24,7 @@ export default function MovieCard({ movie, onSelect, onPlay, progressPercent, tr
             return !!saved[baseId].last_season_watched;
          } else {
             // For movies
-            return saved[baseId].progress > 300 || saved[baseId].progress > 0; // If they started it, consider it 'vu' as requested.
+            return (saved[baseId].currentTime && saved[baseId].currentTime > 0) || (saved[baseId].progress && saved[baseId].progress > 0); // If they started it, consider it 'vu' as requested.
          }
       }
     } catch(e) {}

@@ -4,7 +4,9 @@ let file = fs.readFileSync('src/App.tsx', 'utf8');
 const target = `  // Dynamically map movies into collections & genres by checking server presence
   const mappedCollections = React.useMemo(() => {
     if (!allMoviesBase || allMoviesBase.length === 0) return [];
-    const matchedServersMovieIds = new Set<string>();`;
+    const matchedServersMovieIds = new Set<string>();
+
+    // 1. Process standard Saga Collections (Christopher Nolan, John Wick, etc.)`;
 
 const replacement = `  // Dynamically map movies into collections & genres by checking server presence
   const mappedCollections = React.useMemo(() => {
@@ -21,8 +23,11 @@ const replacement = `  // Dynamically map movies into collections & genres by ch
        const ct = cleanTitle(movie.title);
        if (ct && titleToMovieMap.has(ct)) return titleToMovieMap.get(ct);
        return allMoviesBase.find((jf) => isMovieMatch(movie.title, jf.title));
-    };`;
+    };
+
+    // 1. Process standard Saga Collections (Christopher Nolan, John Wick, etc.)`;
 
 file = file.replace(target, replacement);
+
 fs.writeFileSync('src/App.tsx', file);
-console.log("Success app");
+console.log("Success mapped");

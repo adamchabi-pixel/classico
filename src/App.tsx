@@ -646,7 +646,22 @@ const isAnimeOrAdultKeyword = (q: string) => {
 export default function App() {
 
 
-  const [isAppReady, setIsAppReady] = useState(true);
+  const [asyncData, setAsyncData] = useState<{all: any[], imported: any[], hero: any} | null>(null);
+
+  useEffect(() => {
+    Promise.all([
+      import('./data/all_movies'),
+      import('./data/imported_movies'),
+      import('./data/hero_movies')
+    ]).then(([all, imported, hero]) => {
+      setAsyncData({
+        all: all.allMoviesData,
+        imported: imported.importedMoviesData,
+        hero: hero.heroMoviesData
+      });
+    });
+  }, []);
+
   const [tmdbCache, setTmdbCache] = useState<Movie[]>(() => {
     try {
       const saved = localStorage.getItem("classico_tmdb_cache");
@@ -660,7 +675,7 @@ export default function App() {
     }
   });
   const allMoviesBase = React.useMemo(() => {
-    const combined = [...importedMoviesData, ...allMoviesData].filter(m => m && !isAnimeOrAdult(m as unknown as Movie));
+    const combined = (asyncData ? [...asyncData.imported, ...asyncData.all] : []).filter(m => m && !isAnimeOrAdult(m as unknown as Movie));
     const groups = new Map();
     
     const cleanTitle = (t: string) => t ? t.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
@@ -707,7 +722,7 @@ export default function App() {
     });
     
     return finalMovies;
-  }, []);
+  }, [asyncData]);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   useEffect(() => {
     if (!localStorage.getItem("classico_welcome_shown")) {
@@ -740,13 +755,13 @@ export default function App() {
   const [history, setHistory] = useState<string[]>([]);
   
   const [expandedCollections, setExpandedCollections] = useState<Record<string, boolean>>({});
-  const isHeroLoading = false;
+  const isHeroLoading = !asyncData;
 
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const [routeScrollPositions, setRouteScrollPositions] = useState<Record<string, number>>({});
     
-    const heroMovies = heroMoviesData.heroes;
+    const heroMovies = asyncData ? asyncData.hero.heroes : [];
   const heroMovie = heroMovies[currentHeroIndex] || null;
   const useTextTitleForHero = false;
   const setUseTextTitleForHero = (val: boolean) => {};
@@ -834,12 +849,24 @@ export default function App() {
 
     const matchedServersMovieIds = new Set<string>();
 
+    const titleToMovieMap = new Map<string, Movie>();
+    allMoviesBase.forEach(jf => {
+      const ct = cleanTitle(jf.title);
+      if (ct) titleToMovieMap.set(ct, jf);
+    });
+
+    const fastFindMatch = (movie: Movie) => {
+       const ct = cleanTitle(movie.title);
+       if (ct && titleToMovieMap.has(ct)) return titleToMovieMap.get(ct);
+       return allMoviesBase.find((jf) => isMovieMatch(movie.title, jf.title));
+    };
+
     // 1. Process standard Saga Collections (Christopher Nolan, John Wick, etc.)
     // Keep ONLY movies actually found on the server, and drop empty collections
     const curatedSagaCollections = COLLECTIONS.map((collection) => {
       const enrichedMovies = collection.movies
         .map((movie) => {
-          const match = allMoviesBase.find((jf) => isMovieMatch(movie.title, jf.title));
+          const match = fastFindMatch(movie);
           if (match) {
             matchedServersMovieIds.add(match.id);
             return {
@@ -1087,12 +1114,24 @@ export default function App() {
   const sagaCompletenessList = React.useMemo(() => {
     if (!allMoviesBase || allMoviesBase.length === 0) return [];
 
+    const titleToMovieMap = new Map<string, Movie>();
+    allMoviesBase.forEach(jf => {
+      const ct = cleanTitle(jf.title);
+      if (ct) titleToMovieMap.set(ct, jf);
+    });
+
+    const fastCheckOwned = (expectedMovie: Movie) => {
+       const ct = cleanTitle(expectedMovie.title);
+       if (ct && titleToMovieMap.has(ct)) return true;
+       return allMoviesBase.some(jf => isMovieMatch(expectedMovie.title, jf.title));
+    };
+
     return COLLECTIONS.map(collection => {
       const ownedTitles: string[] = [];
       const missingMovies: Array<{ title: string; year: number }> = [];
 
       collection.movies.forEach(expectedMovie => {
-        const isOwned = allMoviesBase.some(jf => isMovieMatch(expectedMovie.title, jf.title));
+        const isOwned = fastCheckOwned(expectedMovie);
         if (isOwned) {
           ownedTitles.push(expectedMovie.title);
         } else {
@@ -1853,27 +1892,22 @@ export default function App() {
     return pct;
   };
 
-  if (!isAppReady) {
+  if (!asyncData) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-black select-none pointer-events-none">
-        <div className="relative overflow-hidden flex items-center">
-          <span className="font-cinzel font-bold text-3xl sm:text-4xl md:text-5xl tracking-[0.22em] gold-metallic-text uppercase leading-none">
+      <div id="startup-screen" style={{display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',height:'100vh',backgroundColor:'#000',pointerEvents:'none',userSelect:'none'}}>
+        <div style={{position:'relative',overflow:'hidden',display:'flex',alignItems:'center'}}>
+          <span style={{fontFamily:"'Cinzel',serif",fontWeight:700,fontSize:'1.875rem',letterSpacing:'0.22em',textTransform:'uppercase',lineHeight:1,background:'linear-gradient(135deg, #bf953f 0%, #fcf6ba 15%, #b38728 35%, #fbf5b7 55%, #aa771c 75%, #fcf6ba 90%, #bf953f 100%)',backgroundSize:'200% auto',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>
             CLASSICO
           </span>
         </div>
-        <span className="block font-signature text-xl sm:text-2xl md:text-3xl text-[#f4ecd8] leading-none mt-[-2px] sm:mt-[-4px] select-none text-center translate-x-[-3px] filter drop-shadow-[0_0_4px_rgba(244,236,216,0.2)]">
+        <span style={{fontFamily:"'Pinyon Script',cursive",display:'block',fontSize:'1.25rem',color:'#f4ecd8',lineHeight:1,marginTop:'-2px',userSelect:'none',textAlign:'center',transform:'translateX(-3px)',filter:'drop-shadow(0 0 4px rgba(244,236,216,0.2))'}}>
           The Best
         </span>
-        <div className="flex gap-2 mt-8 items-center justify-center">
-          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#fcf6ba", boxShadow: "0 0 10px rgba(252, 246, 186, 0.8)", animation: "illuminate 1.5s infinite ease-in-out both", animationDelay: "0s" }}></div>
-          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#fcf6ba", boxShadow: "0 0 10px rgba(252, 246, 186, 0.8)", animation: "illuminate 1.5s infinite ease-in-out both", animationDelay: "-1.0s" }}></div>
-          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#fcf6ba", boxShadow: "0 0 10px rgba(252, 246, 186, 0.8)", animation: "illuminate 1.5s infinite ease-in-out both", animationDelay: "-0.5s" }}></div>
+        <div id="startup-screen" style={{display:'flex',gap:'8px',marginTop:'32px'}}>
+          <div style={{width:'8px',height:'8px',borderRadius:'50%',backgroundColor:'#fcf6ba',boxShadow:'0 0 10px rgba(252,246,186,0.8)',animation:'illuminate 1.5s infinite ease-in-out both',animationDelay:'0s'}}></div>
+          <div style={{width:'8px',height:'8px',borderRadius:'50%',backgroundColor:'#fcf6ba',boxShadow:'0 0 10px rgba(252,246,186,0.8)',animation:'illuminate 1.5s infinite ease-in-out both',animationDelay:'-1.0s'}}></div>
+          <div style={{width:'8px',height:'8px',borderRadius:'50%',backgroundColor:'#fcf6ba',boxShadow:'0 0 10px rgba(252,246,186,0.8)',animation:'illuminate 1.5s infinite ease-in-out both',animationDelay:'-0.5s'}}></div>
         </div>
-        <style>
-          {`
-            @keyframes illuminate { 0%, 100% { opacity: 0.2; transform: scale3d(0.8, 0.8, 1); } 50% { opacity: 1; transform: scale3d(1.2, 1.2, 1); } }
-          `}
-        </style>
       </div>
     );
   }

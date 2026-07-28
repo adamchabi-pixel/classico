@@ -14,25 +14,30 @@ interface MovieCardProps {
 
 export default function MovieCard({ movie, onSelect, onPlay, progressPercent, trendingIndex }: MovieCardProps) {
   
-  const isWatched = React.useMemo(() => {
+  const progressState = React.useMemo(() => {
     if (typeof progressPercent === "number") {
-      return progressPercent >= 0.95;
+      if (progressPercent >= 0.95) return 'watched';
+      if (progressPercent > 0) return 'ongoing';
+      return 'none';
     }
     try {
       const saved = JSON.parse(localStorage.getItem("classico_progress") || "{}");
       const baseId = movie.id ? movie.id.replace(/-tv$/, "").replace(/-S\d+E\d+$/, "") : null;
       if (baseId && saved[baseId]) {
          if (movie.isTv) {
-            return false; // Hard to determine if entire TV show is watched, default to false
+            return 'none';
          } else {
             const duration = saved[baseId].duration || 0;
             const current = saved[baseId].currentTime || 0;
-            if (duration > 0 && current / duration >= 0.95) return true;
+            if (duration > 0) {
+               if (current / duration >= 0.95) return 'watched';
+               if (current / duration > 0) return 'ongoing';
+            }
          }
       }
     } catch(e) {}
-    return false;
-  }, [movie.id, movie.isTv]);
+    return 'none';
+  }, [movie.id, movie.isTv, progressPercent]);
 
   const getSubtitle = () => {
     if (movie.director && movie.director.trim() !== "" && movie.director !== "Unknown") {
@@ -56,9 +61,14 @@ export default function MovieCard({ movie, onSelect, onPlay, progressPercent, tr
         {/* Cinematic Poster Image or Gradient Placeholder */}
         <div className="absolute inset-0 select-none">
           
-          {isWatched && (
-             <div className="absolute top-2 right-2 z-30 bg-black/60 rounded-full p-1 backdrop-blur-sm border border-green-500/30">
+          {progressState === 'watched' && (
+             <div className="absolute top-2 right-2 z-30 bg-black/60 rounded-full p-1 backdrop-blur-sm border border-green-500/30" title="Watched">
                <CheckCircle className="w-4 h-4 text-green-500" />
+             </div>
+          )}
+          {progressState === 'ongoing' && (
+             <div className="absolute top-2 right-2 z-30 bg-black/60 rounded-full p-1 backdrop-blur-sm border border-amber-500/30" title="In progress">
+               <Clock className="w-4 h-4 text-amber-500" />
              </div>
           )}
 

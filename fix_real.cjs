@@ -1,15 +1,9 @@
 const fs = require('fs');
 let file = fs.readFileSync('src/App.tsx', 'utf8');
 
-const target = `  // Dynamically map movies into collections & genres by checking server presence
-  const mappedCollections = React.useMemo(() => {
-    if (!allMoviesBase || allMoviesBase.length === 0) return [];
-    const matchedServersMovieIds = new Set<string>();`;
+const target = /const matchedServersMovieIds = new Set<string>\(\);/;
 
-const replacement = `  // Dynamically map movies into collections & genres by checking server presence
-  const mappedCollections = React.useMemo(() => {
-    if (!allMoviesBase || allMoviesBase.length === 0) return [];
-    const matchedServersMovieIds = new Set<string>();
+const replacement = `const matchedServersMovieIds = new Set<string>();
 
     const titleToMovieMap = new Map<string, Movie>();
     allMoviesBase.forEach(jf => {
@@ -25,4 +19,4 @@ const replacement = `  // Dynamically map movies into collections & genres by ch
 
 file = file.replace(target, replacement);
 fs.writeFileSync('src/App.tsx', file);
-console.log("Success app");
+console.log("Replaced!");

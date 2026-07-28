@@ -52,11 +52,11 @@ export default function MovieCard({ movie, onSelect, onPlay, progressPercent, tr
       style={{
         "--hover-glow": `${movie.accentHex || "#fbbf24"}40`
       } as React.CSSProperties}
-      className="relative w-full h-full cursor-pointer group transition-all duration-300 ease-out will-change-transform hover:scale-[1.05]"
+      className="relative w-full h-full cursor-pointer group/card transition-all duration-300 ease-out will-change-transform hover:scale-[1.05]"
       onClick={() => onSelect(movie)}
     >
       {/* Poster Container */}
-      <div className="absolute inset-0 z-10 bg-neutral-900 border border-neutral-800/80 rounded-xl overflow-hidden shadow-lg group-hover:shadow-[0_0_25px_5px_var(--hover-glow)] group-hover:border-white/20 transition-all duration-300">
+      <div className="absolute inset-0 z-10 bg-neutral-900 border border-neutral-800/80 rounded-xl overflow-hidden shadow-lg transition-all duration-300">
         
         {/* Cinematic Poster Image or Gradient Placeholder */}
         <div className="absolute inset-0 select-none">
@@ -76,7 +76,7 @@ export default function MovieCard({ movie, onSelect, onPlay, progressPercent, tr
             <img
               src={movie.posterUrl}
               alt={movie.title}
-              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.10]"
+              className="w-full h-full object-cover transition-transform duration-700 ease-out "
               loading="lazy"
               decoding="async" referrerPolicy="no-referrer"
               onError={(e) => {
@@ -97,10 +97,10 @@ export default function MovieCard({ movie, onSelect, onPlay, progressPercent, tr
           </div>
 
           {/* Shine effect */}
-          <div className="absolute inset-0 z-20 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-700 bg-gradient-to-tr from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+          <div className="absolute inset-0 z-20 pointer-events-none opacity-0 group-hover/card:opacity-100 transition-all duration-700 bg-gradient-to-tr from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover/card:translate-x-[100%] transition-transform duration-1000" />
           
           {/* Persistent Gradient overlay for text legibility */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80 group-hover/card:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
           {/* Info Layer */}
           <div className="absolute inset-0 flex flex-col justify-end p-3 sm:p-4 z-20">

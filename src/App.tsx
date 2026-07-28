@@ -2429,7 +2429,7 @@ export default function App() {
                         {/* CTA Button */}
                         <div className="flex-shrink-0 w-full md:w-auto mt-2 md:mt-0">
                           <a
-                            href="https://discord.gg/DZwkAVbqf"
+                            href="https://discord.gg/bGmAvKdWA"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center justify-center w-full md:w-auto gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white font-sans font-bold px-4 py-2.5 sm:px-8 sm:py-4 rounded-lg sm:rounded-xl text-[13px] sm:text-[14px] tracking-wide transition-all duration-300 shadow-[0_0_15px_rgba(88,101,242,0.3)] hover:shadow-[0_0_25px_rgba(88,101,242,0.5)] hover:-translate-y-0.5 active:translate-y-0 active:scale-95"

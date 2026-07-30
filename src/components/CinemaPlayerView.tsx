@@ -1596,7 +1596,7 @@ export default function CinemaPlayerView({
     const handleTimeUpdate = () => {
       setProgress(video.currentTime);
       const now = Date.now();
-      if (now - lastSaveTime > 5000) {
+      if (now - lastSaveTime > 1000) {
         lastSaveTime = now;
         try {
           const saved = (JSON.parse(localStorage.getItem("classico_progress") || "{}") || {});

@@ -1,16 +1,7 @@
 const fs = require('fs');
-let content = fs.readFileSync('src/App.tsx', 'utf8');
+let file = fs.readFileSync('src/App.tsx', 'utf8');
 
-const target = `    const delayDebounceFn = setTimeout(() => {
-      fetch(\`/api/search?query=\${encodeURIComponent(searchQuery)}\`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            setTmdbSearchResults(data.results);
-            setTmdbCache(prev => {`;
-
-const replacement = `    const delayDebounceFn = setTimeout(() => {
-      const url = \`https://api.themoviedb.org/3/search/multi?query=\${encodeURIComponent(searchQuery)}&language=en-US&page=1&include_adult=false\`;
+const target = `      const url = \`https://api.themoviedb.org/3/search/multi?query=\${encodeURIComponent(searchQuery)}&language=en-US&page=1&include_adult=false\`;
       const TMDB_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs";
       fetch(url, { headers: { Authorization: \`Bearer \${TMDB_ACCESS_TOKEN}\`, Accept: "application/json" } })
         .then(res => res.json())
@@ -31,12 +22,19 @@ const replacement = `    const delayDebounceFn = setTimeout(() => {
                   isTmdb: true
                 }));
             setTmdbSearchResults(results);
-            setTmdbCache(prev => {`;
+          }
+        })
+        .finally(() => setIsSearchingTmdb(false));`;
 
-if (content.includes(target)) {
-    content = content.replace(target, replacement);
-    fs.writeFileSync('src/App.tsx', content);
-    console.log("Success");
-} else {
-    console.log("Target not found");
-}
+const replace = `      const url = \`/api/search?query=\${encodeURIComponent(searchQuery)}\`;
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.results) {
+            setTmdbSearchResults(data.results.map((r: any) => ({ ...r, isTmdb: true, rating: r.voteAverage, type: r.isTv ? "serie" : "movie" })));
+          }
+        })
+        .finally(() => setIsSearchingTmdb(false));`;
+        
+file = file.replace(target, replace);
+fs.writeFileSync('src/App.tsx', file);

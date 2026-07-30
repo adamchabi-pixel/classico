@@ -36,11 +36,11 @@ const TMDB_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2Fk
 app.get("/api/discover", async (req, res) => {
   try {
     const { type, page, activePlatform, activeGenre, activeLanguage, activeYear } = req.query; console.log("DISCOVER:", req.query);
-    let url = `https://api.themoviedb.org/3/trending/${type || 'movie'}/day?language=en-US&page=${page || 1}`;
+    let url = `https://api.tmdb.org/3/trending/${type || 'movie'}/day?language=en-US&page=${page || 1}`;
     if (type === "tv") url += "&without_genres=16";
     
     if (activePlatform || activeGenre || activeLanguage || activeYear) {
-       url = `https://api.themoviedb.org/3/discover/${type || 'movie'}?language=en-US&page=${page || 1}&watch_region=US`;
+       url = `https://api.tmdb.org/3/discover/${type || 'movie'}?language=en-US&page=${page || 1}&watch_region=US`;
        
        if (activeGenre === 'top_rated') {
            url += `&sort_by=vote_average.desc&vote_count.gte=300`;
@@ -84,7 +84,7 @@ app.get("/api/trending", async (req, res) => {
   try {
     const pages = [1, 2, 3];
     const fetchPage = async (page) => {
-      const url = `https://api.themoviedb.org/3/trending/all/day?language=en-US&page=${page}`;
+      const url = `https://api.tmdb.org/3/trending/all/day?language=en-US&page=${page}`;
       const response = await fetch(url, {
         headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
       });
@@ -133,7 +133,7 @@ app.get("/api/search", async (req, res) => {
     if (!query) return res.json({ success: true, results: [] });
     
     
-    const searchUrl1 = `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(query)}&language=en-US&page=1`;
+    const searchUrl1 = `https://api.tmdb.org/3/search/multi?query=${encodeURIComponent(query)}&language=en-US&page=1`;
     const searchRes1 = await fetch(searchUrl1, { headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" } });
     if (!searchRes1.ok) throw new Error("TMDB search failed");
     const searchData1 = await searchRes1.json();
@@ -204,8 +204,8 @@ app.get("/api/movie/:id", async (req, res) => {
 
     
     const url = isTv 
-      ? `https://api.themoviedb.org/3/tv/${actualId}?append_to_response=credits,videos,similar,images&include_image_language=en,null&language=en-US`
-      : `https://api.themoviedb.org/3/movie/${actualId}?append_to_response=credits,videos,similar,images&include_image_language=en,null&language=en-US`;
+      ? `https://api.tmdb.org/3/tv/${actualId}?append_to_response=credits,videos,similar,images&include_image_language=en,null&language=en-US`
+      : `https://api.tmdb.org/3/movie/${actualId}?append_to_response=credits,videos,similar,images&include_image_language=en,null&language=en-US`;
       
     const response = await fetch(url, {
       headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
@@ -313,7 +313,7 @@ app.get("/api/tv/:id/season/:season_number", async (req, res) => {
   try {
     const { id, season_number } = req.params;
     const cleanId = id.replace("-tv", "");
-    const url = `https://api.themoviedb.org/3/tv/${cleanId}/season/${season_number}?language=en-US`;
+    const url = `https://api.tmdb.org/3/tv/${cleanId}/season/${season_number}?language=en-US`;
     const response = await fetch(url, {
       headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
     });

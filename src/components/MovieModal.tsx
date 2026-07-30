@@ -56,8 +56,8 @@ export default function MovieModal({
         const actualId = tmdbIdCandidate.toString();
         const tmdbToken = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs";
         const url = isTvCandidate 
-          ? `https://api.themoviedb.org/3/tv/${actualId}?append_to_response=credits,similar,images&include_image_language=en,null&language=en-US` 
-          : `https://api.themoviedb.org/3/movie/${actualId}?append_to_response=credits,similar,images&include_image_language=en,null&language=en-US`;
+          ? `https://api.tmdb.org/3/tv/${actualId}?append_to_response=credits,similar,images&include_image_language=en,null&language=en-US` 
+          : `https://api.tmdb.org/3/movie/${actualId}?append_to_response=credits,similar,images&include_image_language=en,null&language=en-US`;
         try {
           const tmdbRes = await fetch(url, { headers: { Authorization: `Bearer ${tmdbToken}`, Accept: "application/json" } });
           if (!tmdbRes.ok) return;

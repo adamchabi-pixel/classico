@@ -255,7 +255,7 @@ if (typeof window !== "undefined") {
         try {
           const u = new URL(url, window.location.origin);
           const page = u.searchParams.get("page") || "1";
-          const res = await fetch(`https://api.themoviedb.org/3/trending/all/day?language=en-US&page=${page}`, {
+          const res = await fetch(`https://api.tmdb.org/3/trending/all/day?language=en-US&page=${page}`, {
             headers: { "Authorization": `Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs`, "Accept": "application/json" }
           });
           if (!res.ok) throw new Error("TMDB failed");
@@ -289,7 +289,7 @@ if (typeof window !== "undefined") {
           const u = new URL(url, window.location.origin);
           const query = u.searchParams.get("query");
           if (!query) return new Response(JSON.stringify({ success: true, results: [] }), { status: 200 });
-          const r1 = await fetch(`https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(query)}&language=en-US&page=1`, { headers: { "Authorization": `Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs`, "Accept": "application/json" } });
+          const r1 = await fetch(`https://api.tmdb.org/3/search/multi?query=${encodeURIComponent(query)}&language=en-US&page=1`, { headers: { "Authorization": `Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs`, "Accept": "application/json" } });
           const d1 = await r1.json();
           const combined = [...(d1.results || [])];
           const validRaw = combined.filter((m: any) => m.media_type === "movie" || m.media_type === "tv");
@@ -344,8 +344,8 @@ if (typeof window !== "undefined") {
           const isTv = id.endsWith('-tv');
           const actualId = isTv ? id.replace('-tv', '') : id;
           const u = isTv 
-             ? `https://api.themoviedb.org/3/tv/${actualId}?append_to_response=credits,videos,similar&language=en-US`
-            : `https://api.themoviedb.org/3/movie/${actualId}?append_to_response=credits,videos,similar&language=en-US`;
+             ? `https://api.tmdb.org/3/tv/${actualId}?append_to_response=credits,videos,similar&language=en-US`
+            : `https://api.tmdb.org/3/movie/${actualId}?append_to_response=credits,videos,similar&language=en-US`;
           const res = await fetch(u, { headers: { "Authorization": `Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs`, "Accept": "application/json" } });
           if (!res.ok) throw new Error("TMDB failed");
           const m = await res.json();
@@ -418,7 +418,7 @@ if (typeof window !== "undefined") {
           const rest = parts[1]?.split("?")[0];
           const [id, seasonPart, seasonNumber] = rest.split("/");
           const cleanId = id.replace("-tv", "");
-          const u = `https://api.themoviedb.org/3/tv/${cleanId}/season/${seasonNumber}?language=en-US`;
+          const u = `https://api.tmdb.org/3/tv/${cleanId}/season/${seasonNumber}?language=en-US`;
           const res = await fetch(u, { headers: { "Authorization": `Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs`, "Accept": "application/json" } });
           if (!res.ok) throw new Error("TMDB failed");
           const seasonData = await res.json();

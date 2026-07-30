@@ -802,8 +802,17 @@ export default function App() {
   };
 
   const navigateTo = (path: string) => {
-    if (path === "/" || path.startsWith("/movie/")) {
+    if (!path.startsWith("/player/")) {
       loadProgress();
+      
+      // Also reload history/watchlist just in case
+      const savedHistory = localStorage.getItem("classico_history");
+      if (savedHistory) {
+        try {
+          const h = JSON.parse(savedHistory);
+          if (Array.isArray(h)) setHistory(h);
+        } catch (e) {}
+      }
     }
     setRouteScrollPositions(prev => ({ ...prev, [activeTab]: window.scrollY }));
     window.history.pushState({}, "", path);
@@ -1193,6 +1202,17 @@ export default function App() {
     const handlePopState = () => {
       const path = window.location.pathname;
       setRoutePath(path);
+      
+      if (!path.startsWith("/player/")) {
+        loadProgress();
+        const savedHistory = localStorage.getItem("classico_history");
+        if (savedHistory) {
+          try {
+            const h = JSON.parse(savedHistory);
+            if (Array.isArray(h)) setHistory(h);
+          } catch (e) {}
+        }
+      }
       if (path === "/") setActiveTab("accueil");
       else if (path === "/collections") setActiveTab("collections");
       else if (path === "/series") setActiveTab("series");
@@ -1480,21 +1500,10 @@ export default function App() {
     const fetchTrending = async () => {
       try {
         const TMDB_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs";
-        const pages = [1, 2, 3];
-        const fetchPage = async (page: number) => {
-          const url = `https://api.themoviedb.org/3/trending/all/day?language=en-US&page=${page}`;
-          const response = await fetch(url, {
-            headers: { "Authorization": `Bearer ${TMDB_ACCESS_TOKEN}`, "Accept": "application/json" }
-          });
-          if (!response.ok) return [];
-          const data = await response.json();
-          return data.results || [];
-        };
-        const resultsByPage = await Promise.all(pages.map(fetchPage));
-        const combinedResults = resultsByPage.flat();
-        const validResults = combinedResults.filter((m: any) => (m.media_type === "movie" || m.media_type === "tv") && !isAnimeOrAdult(m));
-        
-        const results = validResults.slice(0, 60).map((m: any) => {
+        const response = await fetch('/api/trending');
+        if (!response.ok) return;
+        const data = await response.json();
+        const results = (data.results || []).map((m: any) => {
           const title = m.title || m.name || m.original_title || m.original_name;
           const isTv = m.media_type === "tv";
           return {
@@ -1534,8 +1543,7 @@ export default function App() {
       // Fallback for static deployments
       const tmdbToken = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs";
       try {
-        const url = `https://api.themoviedb.org/3/trending/all/day?language=en-US&page=1`;
-        const res = await fetch(url, { headers: { Authorization: `Bearer ${tmdbToken}`, Accept: "application/json" } });
+        const res = await fetch('/api/trending');
         if (res.ok) {
           const m = await res.json();
           if (m.results) {
@@ -1598,7 +1606,7 @@ export default function App() {
     
     setIsSearchingTmdb(true);
     const delayDebounceFn = setTimeout(() => {
-      const url = `https://api.themoviedb.org/3/search/multi?query=${encodeURIComponent(searchQuery)}&language=en-US&page=1&include_adult=false`;
+      const url = `https://api.tmdb.org/3/search/multi?query=${encodeURIComponent(searchQuery)}&language=en-US&page=1&include_adult=false`;
       const TMDB_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs";
       fetch(url, { headers: { Authorization: `Bearer ${TMDB_ACCESS_TOKEN}`, Accept: "application/json" } })
         .then(res => res.json())
@@ -2407,9 +2415,14 @@ export default function App() {
                         className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar pt-4 px-1 pb-6 sm:pb-10"
                       >
                         {Array.from(new Set([...history, ...Object.keys(progressData).map(k => k.replace("-tv", ""))]))
-                          .filter(id => getProgress(id) > 0 && getProgress(id) < 0.95)
                           .map(id => allMovies.find(m => m.id === id || m.id === id + "-tv" || m.id === id.replace("-tv", "")))
                           .filter((m, idx, self) => !!m && self.findIndex(t => t?.id === m?.id) === idx)
+                          .filter(m => {
+                              const p = getProgress(m.id);
+                              if (p <= 0) return false;
+                              if (m.isTv) return true;
+                              return p < 0.95;
+                          })
                           .map((movie, idx) => (
                             <LazyVirtualCard key={`resume-${movie.id}-${idx}`} priority={idx < 6}>
                               <MovieCard

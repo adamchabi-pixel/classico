@@ -859,7 +859,7 @@ export default function CinemaPlayerView({
               iframeUrl111 = `https://111movies.net/tv/${cleanId}/${season}/${episode}?dummy=1${timeParam}`;
               iframeUrlPeach = `https://peachify.pro/embed/tv/${cleanId}/${season}/${episode}?accent=FF9900&servers=hide${timeParam}`;
               iframeUrlVideasy = `https://player.videasy.net/tv/${cleanId}/${season}/${episode}?color=FF9900&nextEpisode=true&autoplayNextEpisode=true&episodeSelector=true&overlay=true${timeParam}`;
-              iframeUrlCinemaos = `https://cinemaos.live/watch/tv/${cleanId}?s=${season}&e=${episode}${timeParam}`;
+              iframeUrlCinemaos = `https://cinemaos.live/watch/tv/${cleanId}?season=${season}&episode=${episode}${timeParam}`;
             } else {
               iframeUrl111 = `https://111movies.net/movie/${cleanId}?dummy=1${timeParam}`;
               iframeUrlPeach = `https://peachify.pro/embed/movie/${cleanId}?accent=FF9900&servers=hide${timeParam}`;
@@ -958,7 +958,7 @@ export default function CinemaPlayerView({
                         u1 = `https://peachify.pro/embed/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}?accent=FF9900&servers=hide${timeParam}`;
                         u2 = `https://111movies.net/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}?dummy=1${timeParam}`; // Just in case, add ?dummy=1 for timeParam &t=
                         u3 = `https://player.videasy.net/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}?color=FF9900&nextEpisode=true&autoplayNextEpisode=true&episodeSelector=true&overlay=true${timeParam}`;
-                        u4 = `https://cinemaos.live/watch/tv/${itemData.ProviderIds.Tmdb}?s=${itemData.ParentIndexNumber}&e=${itemData.IndexNumber}${timeParam}`;
+                        u4 = `https://cinemaos.live/watch/tv/${itemData.ProviderIds.Tmdb}?season=${itemData.ParentIndexNumber}&episode=${itemData.IndexNumber}${timeParam}`;
                     } else {
                         u1 = `https://peachify.pro/embed/movie/${itemData.ProviderIds.Tmdb}?accent=FF9900&servers=hide${timeParam}`;
                         u2 = `https://111movies.net/movie/${itemData.ProviderIds.Tmdb}?dummy=1${timeParam}`;

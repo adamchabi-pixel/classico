@@ -230,7 +230,7 @@ export default function CinemaPlayerView({
   const [isActuallyPlaying, setIsActuallyPlaying] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
-  const [showAdblockBanner, setShowAdblockBanner] = useState(true);
+  
   
   const [isCurtainOpen, setIsCurtainOpen] = useState(false);
   const [forceJellyfin, setForceJellyfin] = useState(false);
@@ -257,7 +257,7 @@ export default function CinemaPlayerView({
     } catch(e) {}
     return 0;
   });
-    const [serverSelected, setServerSelected] = useState(() => {
+    const [serverSelected, setServerSelected] = useState(() => { return false;
     try {
       if (localStorage.getItem("classico_global_server_index") !== null) {
           return true;
@@ -279,7 +279,7 @@ export default function CinemaPlayerView({
     } catch(e) {}
     return false;
   });
-  const [availableServers, setAvailableServers] = useState<{name: string, url: string}[]>([]);
+  const [availableServers, setAvailableServers] = useState<{name: string, url: string, stars?: number}[]>([]);
   const [playing, setPlaying] = useState(true);
   const [isMetadataLoaded, setIsMetadataLoaded] = useState(false);
   const [isAutoplayBlocked, setIsAutoplayBlocked] = useState(false);
@@ -850,6 +850,7 @@ export default function CinemaPlayerView({
             let iframeUrl111 = "";
             let iframeUrlPeach = "";
             let iframeUrlVideasy = "";
+            let iframeUrlCinemaos = "";
             let cleanId = finalTmdbId;
             if (cleanId.endsWith('-tv')) cleanId = cleanId.replace('-tv', '');
             const timeParam = savedRestoreTimeRef.current > 0 ? `&t=${Math.floor(savedRestoreTimeRef.current)}` : "";
@@ -858,15 +859,18 @@ export default function CinemaPlayerView({
               iframeUrl111 = `https://111movies.net/tv/${cleanId}/${season}/${episode}?dummy=1${timeParam}`;
               iframeUrlPeach = `https://peachify.pro/embed/tv/${cleanId}/${season}/${episode}?accent=FF9900&servers=hide${timeParam}`;
               iframeUrlVideasy = `https://player.videasy.net/tv/${cleanId}/${season}/${episode}?color=FF9900&nextEpisode=true&autoplayNextEpisode=true&episodeSelector=true&overlay=true${timeParam}`;
+              iframeUrlCinemaos = `https://cinemaos.live/watch/tv/${cleanId}?s=${season}&e=${episode}${timeParam}`;
             } else {
               iframeUrl111 = `https://111movies.net/movie/${cleanId}?dummy=1${timeParam}`;
               iframeUrlPeach = `https://peachify.pro/embed/movie/${cleanId}?accent=FF9900&servers=hide${timeParam}`;
               iframeUrlVideasy = `https://player.videasy.net/movie/${cleanId}?color=FF9900&overlay=true${timeParam}`;
+              iframeUrlCinemaos = `https://cinemaos.live/watch/movie/${cleanId}?dummy=1${timeParam}`;
             }
             const newServers = [
-              { name: "Server 1 ⭐", url: iframeUrlVideasy },
-              { name: "Server 2", url: iframeUrl111 },
-              { name: "Server 3", url: iframeUrlPeach }
+              { name: "Server 1", url: iframeUrlCinemaos, stars: 3 },
+              { name: "Server 2", url: iframeUrlVideasy, stars: 2 },
+              { name: "Server 3", url: iframeUrlPeach, stars: 2 },
+              { name: "Server 4", url: iframeUrl111, stars: 1 }
             ];
             setAvailableServers(newServers);
             
@@ -948,21 +952,24 @@ export default function CinemaPlayerView({
                 if (!forceJellyfin && itemData.ProviderIds) {
                   if (itemData.ProviderIds.Tmdb) {
                     data.isIframeEmbed = true;
-                    let u1 = "", u2 = "", u3 = "";
+                    let u1 = "", u2 = "", u3 = "", u4 = "";
                     const timeParam = savedRestoreTimeRef.current > 0 ? `&t=${Math.floor(savedRestoreTimeRef.current)}` : "";
                     if (itemData.Type === "Episode" && itemData.ParentIndexNumber && itemData.IndexNumber) {
                         u1 = `https://peachify.pro/embed/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}?accent=FF9900&servers=hide${timeParam}`;
                         u2 = `https://111movies.net/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}?dummy=1${timeParam}`; // Just in case, add ?dummy=1 for timeParam &t=
                         u3 = `https://player.videasy.net/tv/${itemData.ProviderIds.Tmdb}/${itemData.ParentIndexNumber}/${itemData.IndexNumber}?color=FF9900&nextEpisode=true&autoplayNextEpisode=true&episodeSelector=true&overlay=true${timeParam}`;
+                        u4 = `https://cinemaos.live/watch/tv/${itemData.ProviderIds.Tmdb}?s=${itemData.ParentIndexNumber}&e=${itemData.IndexNumber}${timeParam}`;
                     } else {
                         u1 = `https://peachify.pro/embed/movie/${itemData.ProviderIds.Tmdb}?accent=FF9900&servers=hide${timeParam}`;
                         u2 = `https://111movies.net/movie/${itemData.ProviderIds.Tmdb}?dummy=1${timeParam}`;
                         u3 = `https://player.videasy.net/movie/${itemData.ProviderIds.Tmdb}?color=FF9900&overlay=true${timeParam}`;
+                        u4 = `https://cinemaos.live/watch/movie/${itemData.ProviderIds.Tmdb}?dummy=1${timeParam}`;
                     }
                     const srvs = [
-                      { name: "Server 1 ⭐", url: u3 },
-                      { name: "Server 2", url: u2 },
-                      { name: "Server 3", url: u1 }
+                      { name: "Server 1", url: u4, stars: 3 },
+                      { name: "Server 2", url: u3, stars: 2 },
+                      { name: "Server 3", url: u1, stars: 2 },
+                      { name: "Server 4", url: u2, stars: 1 }
                     ];
                     setAvailableServers(srvs);
                     const safeIndex = activeServerIndex >= srvs.length ? 0 : activeServerIndex;
@@ -1983,6 +1990,12 @@ export default function CinemaPlayerView({
           <div className="flex flex-col gap-2 text-center">
             <h2 className="text-2xl font-bold text-white tracking-tight">Server Selection</h2>
             <p className="text-sm text-neutral-400">Choose a streaming server to launch the video.</p>
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mt-2 flex items-start gap-3">
+              <div className="text-amber-500 mt-0.5">⚠️</div>
+              <p className="text-xs text-amber-500/90 text-left leading-relaxed">
+                For the best experience, we strongly recommend using an <strong>adblocker</strong> (like uBlock Origin or Brave Browser) to avoid unwanted popups.
+              </p>
+            </div>
           </div>
 
           <div className="flex flex-col gap-3">
@@ -2008,7 +2021,10 @@ export default function CinemaPlayerView({
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${idx === 0 ? 'bg-amber-500/20 text-amber-500' : 'bg-white/10 text-white'}`}>
                     <Play className="w-4 h-4 ml-0.5" fill="currentColor" />
                   </div>
-                  <span className={`font-medium ${idx === 0 ? 'text-amber-500' : 'text-white group-hover:text-amber-500'}`}>{server.name}</span>
+                  <span className={`font-medium ${idx === 0 ? 'text-amber-500' : 'text-white group-hover:text-amber-500'}`}>
+                    {server.name}
+                    {server.stars && <span className="ml-2 text-amber-500">{'★'.repeat(server.stars)}</span>}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full ${idx === 0 ? 'bg-green-500' : 'bg-neutral-500'}`}></div>
@@ -2017,21 +2033,7 @@ export default function CinemaPlayerView({
             ))}
           </div>
 
-          {showAdblockBanner && (
-            <div className="mt-2 bg-black/50 border border-yellow-500/30 rounded-xl p-4 flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-yellow-500 shrink-0" />
-              <span className="text-sm font-medium text-yellow-500 flex-1 text-left">We recommend using AdBlock for a better experience</span>
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowAdblockBanner(false);
-                }}
-                className="text-neutral-500 hover:text-white transition-colors ml-auto -mr-2 -mt-2 p-2"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+
         </div>
       </div>
     );
@@ -2077,7 +2079,10 @@ export default function CinemaPlayerView({
                 title="Change Server"
               >
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="text-[10px] sm:text-xs font-medium whitespace-nowrap">{availableServers[activeServerIndex]?.name || 'Server'}</span>
+                <span className="text-[10px] sm:text-xs font-medium whitespace-nowrap flex items-center gap-1">
+                  {availableServers[activeServerIndex]?.name || 'Server'}
+                  {availableServers[activeServerIndex]?.stars && <span className="text-amber-500">{'★'.repeat(availableServers[activeServerIndex]?.stars || 0)}</span>}
+                </span>
                 <ChevronDown className="w-3 h-3 opacity-70" />
               </button>
               
@@ -2108,6 +2113,7 @@ export default function CinemaPlayerView({
                       >
                         <div className={`w-1.5 h-1.5 rounded-full ${activeServerIndex === idx ? 'bg-amber-500' : 'bg-transparent'}`}></div>
                         {server.name}
+                        {server.stars && <span className="ml-auto text-amber-500 tracking-widest text-[10px]">{'★'.repeat(server.stars)}</span>}
                       </button>
                     ))}
                   </div>
@@ -2145,6 +2151,7 @@ export default function CinemaPlayerView({
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             onLoad={() => {
               const isPeach = playbackInfo.iframeSrc?.includes('peachify.pro');
+              const isCinemaos = playbackInfo.iframeSrc?.includes('cinemaos.live');
               if (!isPeach) {
                 setIsIframeLoading(false);
               } else {

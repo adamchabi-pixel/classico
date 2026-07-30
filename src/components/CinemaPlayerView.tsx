@@ -1881,6 +1881,7 @@ export default function CinemaPlayerView({
         
         if (currentTime !== undefined) {
           try {
+            savedRestoreTimeRef.current = currentTime;
             const saved = (JSON.parse(localStorage.getItem("classico_progress") || "{}") || {});
             if (pIsTv && pSeason && pEpisode && pTmdbId) {
                 if (!saved[pTmdbId] || saved[pTmdbId].type !== "tv") {
@@ -2007,11 +2008,17 @@ export default function CinemaPlayerView({
                 key={idx}
                 onClick={() => {
                   setActiveServerIndex(idx);
+                  
+                  let targetUrl = server.url.replace(/&t=\d+/, "");
+                  if (savedRestoreTimeRef.current > 0) {
+                      targetUrl += `&t=${Math.floor(savedRestoreTimeRef.current)}`;
+                  }
+                  
                   if (playbackInfo) {
                     setPlaybackInfo({
                       ...playbackInfo,
-                      iframeSrc: server.url,
-                      streamUrl: server.url
+                      iframeSrc: targetUrl,
+                      streamUrl: targetUrl
                     });
                   }
                   setServerSelected(true);
@@ -2101,11 +2108,17 @@ export default function CinemaPlayerView({
                                                 onClick={(e) => {
                           e.stopPropagation();
                           setActiveServerIndex(idx);
+                          
+                          let targetUrl = server.url.replace(/&t=\d+/, "");
+                          if (savedRestoreTimeRef.current > 0) {
+                              targetUrl += `&t=${Math.floor(savedRestoreTimeRef.current)}`;
+                          }
+                          
                           if (playbackInfo) {
                             setPlaybackInfo({
                               ...playbackInfo,
-                              iframeSrc: server.url,
-                              streamUrl: server.url
+                              iframeSrc: targetUrl,
+                              streamUrl: targetUrl
                             });
                           }
                           localStorage.setItem("classico_global_server_index", String(idx));

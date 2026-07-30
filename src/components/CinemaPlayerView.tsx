@@ -239,7 +239,7 @@ export default function CinemaPlayerView({
       // Check for per-movie/show server preference
       const savedStr = localStorage.getItem("classico_progress");
       if (savedStr) {
-        const saved = JSON.parse(savedStr);
+        const saved = JSON.parse(savedStr) || {};
         let baseId = movieId;
         if (movieId && movieId.endsWith('-tv')) {
             baseId = movieId.replace(/-tv$/, "").replace(/-S\d+E\d+$/, "");
@@ -253,7 +253,10 @@ export default function CinemaPlayerView({
       }
       
       const globalServer = localStorage.getItem("classico_global_server_index");
-      if (globalServer !== null) return parseInt(globalServer, 10);
+      if (globalServer !== null) {
+          const parsed = parseInt(globalServer, 10);
+          return isNaN(parsed) ? 0 : parsed;
+      }
     } catch(e) {}
     return 0;
   });
@@ -264,7 +267,7 @@ export default function CinemaPlayerView({
       }
       const savedStr = localStorage.getItem("classico_progress");
       if (savedStr) {
-        const saved = JSON.parse(savedStr);
+        const saved = JSON.parse(savedStr) || {};
         let baseId = movieId;
         if (movieId && movieId.endsWith('-tv')) {
             baseId = movieId.replace(/-tv$/, "").replace(/-S\d+E\d+$/, "");
@@ -465,7 +468,7 @@ export default function CinemaPlayerView({
   useEffect(() => {
     if (movieId) {
       try {
-        const saved = JSON.parse(localStorage.getItem("classico_progress") || "{}");
+        const saved = (JSON.parse(localStorage.getItem("classico_progress") || "{}") || {});
         let restoredTime = 0;
         if (isTv && season && episode) {
           const baseId = movieId.replace(/-tv$/, "").replace(/-S\d+E\d+$/, "");
@@ -1596,7 +1599,7 @@ export default function CinemaPlayerView({
       if (now - lastSaveTime > 5000) {
         lastSaveTime = now;
         try {
-          const saved = JSON.parse(localStorage.getItem("classico_progress") || "{}");
+          const saved = (JSON.parse(localStorage.getItem("classico_progress") || "{}") || {});
           if (isTv && season && episode) {
               const baseId = movieId ? movieId.replace(/-tv$/, "").replace(/-S\d+E\d+$/, "") : null;
               if (baseId) {
@@ -1633,7 +1636,7 @@ export default function CinemaPlayerView({
              const baseId = movieId ? movieId.replace(/-tv$/, "").replace(/-S\d+E\d+$/, "") : null;
              if (baseId) {
                  try {
-                     const tvState = JSON.parse(localStorage.getItem("classico_tv_state") || "{}");
+                     const tvState = (JSON.parse(localStorage.getItem("classico_tv_state") || "{}") || {});
                      tvState[baseId] = { season: season, episode: episode };
                      localStorage.setItem("classico_tv_state", JSON.stringify(tvState));
                  } catch(e) {}
@@ -1878,7 +1881,7 @@ export default function CinemaPlayerView({
         
         if (currentTime !== undefined) {
           try {
-            const saved = JSON.parse(localStorage.getItem("classico_progress") || "{}");
+            const saved = (JSON.parse(localStorage.getItem("classico_progress") || "{}") || {});
             if (pIsTv && pSeason && pEpisode && pTmdbId) {
                 if (!saved[pTmdbId] || saved[pTmdbId].type !== "tv") {
                    saved[pTmdbId] = {
@@ -1911,7 +1914,7 @@ export default function CinemaPlayerView({
             // Also maintain legacy classico_tv_state for App.tsx and MovieDetailView.tsx compatibility
             if (pIsTv && pSeason && pEpisode && pTmdbId) {
                 try {
-                    const tvState = JSON.parse(localStorage.getItem("classico_tv_state") || "{}");
+                    const tvState = (JSON.parse(localStorage.getItem("classico_tv_state") || "{}") || {});
                     tvState[pTmdbId] = { season: pSeason, episode: pEpisode };
                     localStorage.setItem("classico_tv_state", JSON.stringify(tvState));
                 } catch(e) {}

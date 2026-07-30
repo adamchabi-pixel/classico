@@ -1,22 +1,12 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-
-
 import Hls from "hls.js";
-
-
 import { motion, AnimatePresence } from "motion/react";
-
-
 import { 
   Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Languages, 
   Maximize2, ArrowLeft, Loader2, Sparkles, AlertCircle, Captions, Lock, Menu, Cast, Settings, ChevronRight, ChevronLeft, X, ChevronDown
 } from "lucide-react";
 import EmbedPlayer from "./EmbedPlayer";
-
-
 import { allMoviesData } from "../data/all_movies";
-
-
 
 interface JfSubtitleCue {
   start: number;
@@ -2174,7 +2164,6 @@ export default function CinemaPlayerView({
             key={playbackInfo.iframeSrc}
             src={playbackInfo.iframeSrc}
             allowFullScreen={true}
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             onLoad={() => {
               const isPeach = playbackInfo.iframeSrc?.includes('peachify.pro');

@@ -1,18 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-
-
 import { allMoviesData } from "./data/all_movies";
-
-
 import { importedMoviesData } from "./data/imported_movies";
-
-
 import { heroMoviesData } from "./data/hero_movies";
-
-
 import { motion, AnimatePresence } from "motion/react";
-
-
 import { 
   Search, Play, Film, Info, Heart, Award, 
   ChevronLeft, ChevronRight, ChevronDown, User,
@@ -22,30 +12,16 @@ import {
 } from "lucide-react";
 import { COLLECTIONS as RAW_COLLECTIONS, Movie, Collection } from "./data";
 
-
-
 const COLLECTIONS: Collection[] = [...RAW_COLLECTIONS].sort((a, b) => { if (a.id === "trending-now") return -1; if (b.id === "trending-now") return 1; return a.title.localeCompare(b.title); });
 
 import MovieCard from "./components/MovieCard";
-
-
 import LibraryView from "./components/LibraryView";
-
-
 const MovieModal = React.lazy(() => import("./components/MovieModal"));
 import MovieDetailView from "./components/MovieDetailView";
-
-
 const CinemaPlayerView = React.lazy(() => import("./components/CinemaPlayerView"));
 import ErrorBoundary from "./components/ErrorBoundary";
-
-
 import LazyVirtualCard from "./components/LazyVirtualCard";
-
-
 import HeroSkeleton from "./components/HeroSkeleton";
-
-
 
 if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual';
@@ -688,7 +664,7 @@ export default function App() {
 
   const [tmdbCache, setTmdbCache] = useState<Movie[]>(() => {
     try {
-      let saved = null; try { saved = localStorage.getItem("classico_tmdb_cache"); } catch(e) {}
+      const saved = localStorage.getItem("classico_tmdb_cache");
       if (saved) {
          const parsed = JSON.parse(saved);
          if (Array.isArray(parsed)) return parsed.filter(Boolean);
@@ -786,8 +762,7 @@ export default function App() {
   const jellyfinConfig = null;
 
   const loadProgress = () => {
-    let savedProgress = null;
-    try { savedProgress = localStorage.getItem("classico_progress"); } catch(e) {}
+    const savedProgress = localStorage.getItem("classico_progress");
     if (savedProgress) {
       try {
         const parsed = JSON.parse(savedProgress) || {};
@@ -831,8 +806,7 @@ export default function App() {
       loadProgress();
       
       // Also reload history/watchlist just in case
-      let savedHistory = null;
-      try { savedHistory = localStorage.getItem("classico_history"); } catch(e) {}
+      const savedHistory = localStorage.getItem("classico_history");
       if (savedHistory) {
         try {
           const h = JSON.parse(savedHistory);
@@ -1231,8 +1205,7 @@ export default function App() {
       
       if (!path.startsWith("/player/")) {
         loadProgress();
-        let savedHistory = null;
-      try { savedHistory = localStorage.getItem("classico_history"); } catch(e) {}
+        const savedHistory = localStorage.getItem("classico_history");
         if (savedHistory) {
           try {
             const h = JSON.parse(savedHistory);
@@ -1306,7 +1279,7 @@ export default function App() {
   // Load watchlist and search default spotlight film
   useEffect(() => {
     // Watchlist persistence
-    let savedWatchlist = null; try { savedWatchlist = localStorage.getItem("classico_watchlist"); } catch(e) {}
+    const savedWatchlist = localStorage.getItem("classico_watchlist");
     if (savedWatchlist) {
       try {
         const w = JSON.parse(savedWatchlist); if (Array.isArray(w)) setWatchlist(w);
@@ -1316,8 +1289,7 @@ export default function App() {
     }
 
     // History persistence
-    let savedHistory = null;
-      try { savedHistory = localStorage.getItem("classico_history"); } catch(e) {}
+    const savedHistory = localStorage.getItem("classico_history");
     if (savedHistory) {
       try {
         const h = JSON.parse(savedHistory); if (Array.isArray(h)) setHistory(h);
@@ -1327,8 +1299,7 @@ export default function App() {
     }
     
     // Progress persistence
-    let savedProgress = null;
-    try { savedProgress = localStorage.getItem("classico_progress"); } catch(e) {}
+    const savedProgress = localStorage.getItem("classico_progress");
     if (savedProgress) {
       try {
         const parsed = JSON.parse(savedProgress) || {};
@@ -1376,13 +1347,13 @@ export default function App() {
       ? watchlist.filter(id => id !== movieID)
       : [...watchlist, movieID];
     setWatchlist(updated);
-    try { try { localStorage.setItem("classico_watchlist", JSON.stringify(updated)); } catch(e) {} } catch(e) {}
+    localStorage.setItem("classico_watchlist", JSON.stringify(updated));
   };
 
   const handleAddToHistory = (movieID: string) => {
     const updated = [movieID, ...history.filter(id => id !== movieID)].slice(0, 15);
     setHistory(updated);
-    try { try { localStorage.setItem("classico_history", JSON.stringify(updated)); } catch(e) {} } catch(e) {}
+    localStorage.setItem("classico_history", JSON.stringify(updated));
   };
 
     const goBackOrHome = () => {
@@ -1498,16 +1469,9 @@ export default function App() {
         }
       }
     });
-    
-    // Add TMDB search results so they can be clicked immediately
-    tmdbSearchResults.forEach(m => {
-       if (!map.has(m.id)) {
-          map.set(m.id, m);
-       }
-    });
 
     return Array.from(map.values()).filter(m => !isAnimeOrAdult(m));
-  }, [mappedCollections, allMoviesBase, tmdbCache, tmdbSearchResults]);
+  }, [mappedCollections, allMoviesBase, tmdbCache]);
 
     const unmatchedMovies = React.useMemo(() => {
     if (!allMovies || allMovies.length === 0) return [];
@@ -1843,12 +1807,12 @@ export default function App() {
               return newCache;
             });
           } else {
-            if (!activeMovie) setMovieLoadError(data.error || "Failed to load movie data.");
+            setMovieLoadError(data.error || "Failed to load movie data.");
           }
         })
         .catch(err => {
           console.error("Error fetching missing movie data:", err);
-          if (!activeMovie) setMovieLoadError(err.message);
+          setMovieLoadError(err.message);
         });
     }
   }, [targetMovieId, activeMovie]);
@@ -2855,8 +2819,7 @@ export default function App() {
         onSimilarClick={(id) => { setSelectedMovie(null); navigateTo("/movie/" + id); }}
         onClose={() => {
           setSelectedMovie(null);
-          let savedProgress = null;
-    try { savedProgress = localStorage.getItem("classico_progress"); } catch(e) {}
+          const savedProgress = localStorage.getItem("classico_progress");
           if (savedProgress) {
             try {
               const parsed = JSON.parse(savedProgress) || {};

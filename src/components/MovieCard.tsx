@@ -1,12 +1,6 @@
 import React from "react";
-
-
 import { Star, Play, Clock, CheckCircle } from "lucide-react";
-
-
 import { Movie } from "../data";
-
-
 
 interface MovieCardProps {
   key?: string;

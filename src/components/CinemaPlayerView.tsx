@@ -867,8 +867,8 @@ export default function CinemaPlayerView({
               iframeUrlCinemaos = `https://cinemaos.live/watch/movie/${cleanId}?dummy=1${timeParam}`;
             }
             const newServers = [
-              { name: "Server 1", url: iframeUrlCinemaos, stars: 3 },
-              { name: "Server 2", url: iframeUrlVideasy, stars: 2 },
+              { name: "Server 1", url: iframeUrlVideasy, stars: 3 },
+              { name: "Server 2", url: iframeUrlCinemaos, stars: 2 },
               { name: "Server 3", url: iframeUrlPeach, stars: 2 },
               { name: "Server 4", url: iframeUrl111, stars: 1 }
             ];
@@ -966,8 +966,8 @@ export default function CinemaPlayerView({
                         u4 = `https://cinemaos.live/watch/movie/${itemData.ProviderIds.Tmdb}?dummy=1${timeParam}`;
                     }
                     const srvs = [
-                      { name: "Server 1", url: u4, stars: 3 },
-                      { name: "Server 2", url: u3, stars: 2 },
+                      { name: "Server 1", url: u3, stars: 3 },
+                      { name: "Server 2", url: u4, stars: 2 },
                       { name: "Server 3", url: u1, stars: 2 },
                       { name: "Server 4", url: u2, stars: 1 }
                     ];

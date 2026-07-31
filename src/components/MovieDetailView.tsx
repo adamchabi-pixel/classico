@@ -124,6 +124,7 @@ export default function MovieDetailView({
   };
   const [expandedSection, setExpandedSection] = useState<"casting" | null>(null);
   const [showTrailerModal, setShowTrailerModal] = useState(false);
+  const [downloadUrlToConfirm, setDownloadUrlToConfirm] = useState<string | null>(null);
 
 
   // Safe backdrop selection
@@ -235,9 +236,9 @@ export default function MovieDetailView({
                   TRAILER
                 </button>
                 
-                <a href={getDownloadUrl()} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-zinc-800/80 hover:bg-zinc-700/80 text-white rounded-full transition-all active:scale-95 cursor-pointer border border-zinc-700/50 hover:border-zinc-500/50 shrink-0" title="Télécharger">
+                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDownloadUrlToConfirm(getDownloadUrl()); }} className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-zinc-800/80 hover:bg-zinc-700/80 text-white rounded-full transition-all active:scale-95 cursor-pointer border border-zinc-700/50 hover:border-zinc-500/50 shrink-0" title="Télécharger">
                   <Download className="w-5 h-5 sm:w-6 sm:h-6" />
-                </a>
+                </button>
 
                 <button onClick={() => console.log('Added to list')} className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-neutral-800/80 hover:bg-neutral-700/80 text-white rounded-full transition-all active:scale-95 cursor-pointer border border-neutral-700/50 hover:border-neutral-500/50 shrink-0">
                   <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -343,16 +344,13 @@ export default function MovieDetailView({
                     </p>
                   </div>
                     <div className="shrink-0 pl-2">
-                      <a 
-                        href={getEpisodeDownloadUrl(selectedSeason, ep.episode_number)} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
+                      <button 
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDownloadUrlToConfirm(getEpisodeDownloadUrl(selectedSeason, ep.episode_number)); }}
                         className="p-2 rounded-full bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white transition-all flex items-center justify-center border border-amber-500/20 hover:scale-110"
                         title="Télécharger"
                       >
                         <Download className="w-4 h-4" />
-                      </a>
+                      </button>
                     </div>
 
                 </button>
@@ -466,6 +464,38 @@ export default function MovieDetailView({
                 <p className="font-mono text-sm">Trailer not available for this title</p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {downloadUrlToConfirm && (
+        <div className="fixed inset-0 z-[10000] bg-black/50 backdrop-blur-md flex flex-col items-center justify-center p-4">
+          <div className="max-w-sm w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-2xl flex flex-col items-center text-center relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-amber-500"></div>
+            <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center mb-4">
+              <Download className="w-6 h-6 text-amber-500" />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2 font-forum tracking-wide">External Link</h3>
+            <p className="text-zinc-400 text-sm mb-6">
+              These links are provided by external services. Use at your own discretion.
+            </p>
+            <div className="flex w-full gap-3">
+              <button 
+                onClick={() => setDownloadUrlToConfirm(null)}
+                className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <a 
+                href={downloadUrlToConfirm} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                onClick={() => setDownloadUrlToConfirm(null)}
+                className="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl transition-colors"
+              >
+                Proceed
+              </a>
+            </div>
           </div>
         </div>
       )}

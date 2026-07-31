@@ -260,27 +260,8 @@ export default function CinemaPlayerView({
     } catch(e) {}
     return 0;
   });
-    const [serverSelected, setServerSelected] = useState(() => { return false;
-    try {
-      if (localStorage.getItem("classico_global_server_index") !== null) {
-          return true;
-      }
-      const savedStr = localStorage.getItem("classico_progress");
-      if (savedStr) {
-        const saved = JSON.parse(savedStr) || {};
-        let baseId = movieId;
-        if (movieId && movieId.endsWith('-tv')) {
-            baseId = movieId.replace(/-tv$/, "").replace(/-S\d+E\d+$/, "");
-        }
-        if (saved[baseId] && typeof saved[baseId].server_index === 'number') {
-            return true;
-        }
-        if (movieId && saved[movieId] && typeof saved[movieId].server_index === 'number') {
-            return true;
-        }
-      }
-    } catch(e) {}
-    return false;
+  const [serverSelected, setServerSelected] = useState(() => {
+    return sessionStorage.getItem('server_selected_' + movieId) === 'true';
   });
   const [availableServers, setAvailableServers] = useState<{name: string, url: string, stars?: number}[]>([]);
   const [playing, setPlaying] = useState(true);
@@ -323,7 +304,10 @@ export default function CinemaPlayerView({
   // Mobile player initialization && on-screen logs states
   const [isInitialized, setIsInitialized] = useState(true);
   const [playerLogs, setPlayerLogs] = useState<string[]>([]);
-  const [adClicks, setAdClicks] = useState(0);
+  const [adClicks, setAdClicks] = useState(() => {
+    const saved = localStorage.getItem('classico_ad_clicks_' + movieId);
+    return saved ? parseInt(saved, 10) : 0;
+  });
 
   const addLog = (msg: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -1111,7 +1095,7 @@ export default function CinemaPlayerView({
               }
             }, 1500 * nextAttempt);
           } else {
-            const isTv = movie?.isTv || movieId.includes("-tv");
+            const isTv = movieId.includes("-tv");
             const cleanId = movieId.replace("-tv", "");
             const timeParam = savedRestoreTimeRef.current > 0 ? `&t=${Math.floor(savedRestoreTimeRef.current)}` : "";
             
@@ -1121,7 +1105,7 @@ export default function CinemaPlayerView({
             let iframeUrlCinemaos = "";
             
             if (isTv) {
-              const tvState = JSON.parse(localStorage.getItem("classico_tv_state") || "{}")[movie?.id || ""] || {};
+              const tvState = JSON.parse(localStorage.getItem("classico_tv_state") || "{}")[movieId] || {};
               const season = tvState.season || 1;
               const episode = tvState.episode || 1;
               iframeUrlVidrock = `https://vidlink.pro/tv/${cleanId}/${season}/${episode}?dummy=1${timeParam}`;
@@ -1996,7 +1980,18 @@ export default function CinemaPlayerView({
     }
   };
 
-  if (!serverSelected && availableServers.length > 0) {
+  if (!serverSelected && playbackInfo?.isIframeEmbed !== false) {
+    if (availableServers.length === 0) {
+      if (!isLoading && isMetadataLoaded) {
+          // If we finished loading and still have no servers, just bypass to avoid hanging
+          return null;
+      }
+      return (
+        <div className="fixed inset-0 z-50 bg-black flex flex-col justify-center items-center">
+          <Loader2 className="w-10 h-10 animate-spin text-amber-500" />
+        </div>
+      );
+    }
     return (
       <div className="fixed inset-0 z-50 bg-neutral-900 flex flex-col justify-center items-center select-none cursor-default bg-cover bg-center" style={{ backgroundImage: `url(${movieBackdrop || ''})`}}>
         <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-0" />
@@ -2046,8 +2041,9 @@ export default function CinemaPlayerView({
                       streamUrl: targetUrl
                     });
                   }
+                  sessionStorage.setItem('server_selected_' + movieId, 'true');
                   setServerSelected(true);
-                    localStorage.setItem("classico_global_server_index", String(idx));
+                  localStorage.setItem("classico_global_server_index", String(idx));
                   setIsIframeLoading(true);
                 }}
                 className={`w-full p-4 rounded-xl flex items-center justify-between transition-all group border ${idx === 0 ? 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30' : 'bg-white/5 hover:bg-white/10 border-white/5'}`}
@@ -2078,7 +2074,7 @@ export default function CinemaPlayerView({
     <div className="fixed inset-0 z-50 bg-black flex flex-col justify-center items-center select-none overflow-hidden cursor-default">
       {/* AdGate Overlay */}
       {adClicks < 3 && (
-        <div className="absolute inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center pointer-events-auto overflow-y-auto">
+        <div className="absolute inset-0 z-[100] bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center pointer-events-auto overflow-y-auto">
           <div className="max-w-md w-full bg-zinc-900/90 border border-zinc-700/50 rounded-2xl p-8 shadow-2xl flex flex-col items-center">
             <h2 className="text-2xl font-bold text-amber-500 mb-4 font-forum tracking-wide">Support Classico</h2>
             <p className="text-zinc-300 text-sm mb-6 leading-relaxed">
@@ -2092,15 +2088,18 @@ export default function CinemaPlayerView({
               </p>
             </div>
             
-            <button
-              onClick={() => {
-                setAdClicks(prev => prev + 1);
-                window.open('https://omg10.com/4/11192957', '_blank');
+            <a
+              href="https://omg10.com/4/11192957"
+              onClick={(e) => {
+                const newVal = adClicks + 1;
+                setAdClicks(newVal);
+                localStorage.setItem('classico_ad_clicks_' + movieId, String(newVal));
+                sessionStorage.setItem('returning_from_ad', 'true');
               }}
               className="w-full py-4 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(245,158,11,0.3)] mb-4 cursor-pointer"
             >
-              <span>Watch Ad to Continue</span>
-            </button>
+              <span>Click Ad</span>
+            </a>
 
             <div className="flex items-center gap-2">
               <span className="text-zinc-500 text-xs font-mono uppercase tracking-widest">Progress</span>
@@ -2190,6 +2189,7 @@ export default function CinemaPlayerView({
                               streamUrl: targetUrl
                             });
                           }
+                          sessionStorage.setItem('server_selected_' + movieId, 'true');
                           localStorage.setItem("classico_global_server_index", String(idx));
                           setServerSelected(true);
                           setShowServerMenu(false);
@@ -2218,7 +2218,7 @@ export default function CinemaPlayerView({
 
       {/* Loader overlay */}
       <div 
-        className={`absolute inset-0 z-[60] bg-black flex flex-col items-center justify-center gap-4 text-amber-500 transition-opacity duration-1000 ease-in-out ${(isLoading || isStreamLoading || (playbackInfo?.isIframeEmbed && isIframeLoading)) ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        className={`absolute inset-0 z-[60] bg-black flex flex-col items-center justify-center gap-4 text-amber-500 transition-opacity duration-1000 ease-in-out ${(adClicks >= 3 && (isLoading || isStreamLoading || (playbackInfo?.isIframeEmbed && isIframeLoading))) ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
       >
         <Loader2 className={`w-10 h-10 ${(isLoading || isStreamLoading || (playbackInfo?.isIframeEmbed && isIframeLoading)) ? 'animate-spin' : ''}`} />
         <div className="text-sm font-mono tracking-widest text-amber-500/80 uppercase">
@@ -2228,10 +2228,11 @@ export default function CinemaPlayerView({
       
       {/* Actual player/iframe */}
       {playbackInfo?.iframeSrc ? (
-        <div className="absolute inset-0 w-full h-full bg-black z-40 pointer-events-auto flex items-center justify-center pt-[max(env(safe-area-inset-top),44px)] md:pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
+        <div className={`absolute inset-0 w-full h-full bg-black z-40 flex items-center justify-center pt-[max(env(safe-area-inset-top),44px)] md:pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] ${adClicks >= 3 ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}>
           <iframe
             key={playbackInfo.iframeSrc}
             src={playbackInfo.iframeSrc}
+            sandbox={playbackInfo.iframeSrc?.includes('cinemaos.live') ? "allow-scripts allow-same-origin allow-forms" : undefined}
             referrerPolicy="no-referrer"
             allowFullScreen={true}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
@@ -2254,8 +2255,15 @@ export default function CinemaPlayerView({
           ></iframe>
         </div>
       ) : !isLoading && !isStreamLoading ? (
-        <div className="absolute inset-0 flex items-center justify-center text-rose-500 font-mono text-xs p-4 bg-black/80 z-30">
-          Source not found.
+        <div className={`absolute inset-0 w-full h-full bg-black z-40 flex items-center justify-center ${adClicks >= 3 ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`} ref={viewportRef}>
+          <video
+            ref={videoRef}
+            className="w-full h-full object-contain"
+            playsInline
+            controls
+            autoPlay
+            crossOrigin="anonymous"
+          />
         </div>
       ) : null}
     </div>

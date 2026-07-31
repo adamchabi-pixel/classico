@@ -659,6 +659,9 @@ export default function App() {
         imported: imported.importedMoviesData,
         hero: hero.heroMoviesData
       });
+      if (typeof window !== 'undefined') {
+        setTimeout(() => sessionStorage.removeItem('returning_from_ad'), 100);
+      }
     });
   }, []);
 
@@ -725,8 +728,17 @@ export default function App() {
   }, [asyncData]);
   
   
-  const [activeTab, setActiveTab ] = useState<"accueil" | "collections" | "series" | "profil" | "collection-detail" | "movie" | "player">("accueil");
-  const [routePath, setRoutePath] = useState(window.location.pathname);
+  const initialPath = window.location.pathname;
+  let initialTab: "accueil" | "collections" | "series" | "profil" | "collection-detail" | "movie" | "player" = "accueil";
+  if (initialPath === "/collections") initialTab = "collections";
+  else if (initialPath === "/series") initialTab = "series";
+  else if (initialPath === "/profil") initialTab = "profil";
+  else if (initialPath.startsWith("/collection/")) initialTab = "collection-detail";
+  else if (initialPath.startsWith("/player/")) initialTab = "player";
+  else if (initialPath.startsWith("/movie/")) initialTab = "movie";
+
+  const [activeTab, setActiveTab ] = useState<"accueil" | "collections" | "series" | "profil" | "collection-detail" | "movie" | "player">(initialTab);
+  const [routePath, setRoutePath] = useState(initialPath);
   const [isScrolled, setIsScrolled] = useState(false);
 
   const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
@@ -1898,6 +1910,13 @@ export default function App() {
   };
 
   if (!asyncData) {
+    if (typeof window !== 'undefined' && sessionStorage.getItem('returning_from_ad') === 'true') {
+      return (
+        <div className="fixed inset-0 z-50 bg-black flex flex-col justify-center items-center">
+          <div className="w-16 h-16 rounded-full border-4 border-[#FFD700] border-t-transparent animate-spin drop-shadow-[0_0_10px_rgba(255,215,0,0.8)]"></div>
+        </div>
+      );
+    }
     return (
       <div id="startup-screen" style={{display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',height:'100vh',backgroundColor:'#000',pointerEvents:'none',userSelect:'none'}}>
         <div style={{position:'relative',overflow:'hidden',display:'flex',alignItems:'center'}}>

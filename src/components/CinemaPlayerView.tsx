@@ -2188,6 +2188,7 @@ export default function CinemaPlayerView({
           <iframe
             key={playbackInfo.iframeSrc}
             src={playbackInfo.iframeSrc}
+            referrerPolicy="no-referrer"
             allowFullScreen={true}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             onLoad={() => {

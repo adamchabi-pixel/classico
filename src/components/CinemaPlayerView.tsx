@@ -305,7 +305,7 @@ export default function CinemaPlayerView({
   const [isInitialized, setIsInitialized] = useState(true);
   const [playerLogs, setPlayerLogs] = useState<string[]>([]);
   const [adClicks, setAdClicks] = useState(() => {
-    const saved = localStorage.getItem('classico_ad_clicks_' + movieId);
+    const saved = sessionStorage.getItem('classico_ad_clicks_' + movieId);
     return saved ? parseInt(saved, 10) : 0;
   });
 
@@ -535,6 +535,12 @@ export default function CinemaPlayerView({
     }
 
     return "chargement...";
+  };
+
+  const handleClosePlayer = () => {
+    sessionStorage.removeItem('classico_ad_clicks_' + movieId);
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    onClose();
   };
 
   // LOGIQUE DE VALIDATION ET SYNC DE LA DURÉE AUDIOVISUELLE (NAVIGATEUR && JELLYFIN METADATA)
@@ -2001,7 +2007,7 @@ export default function CinemaPlayerView({
           <div className="flex items-center gap-2"></div>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => onClose()}
+              onClick={handleClosePlayer}
               className="pointer-events-auto p-2 rounded-full bg-black/50 hover:bg-black/80 text-white transition-all cursor-pointer backdrop-blur-md"
               title="Close"
             >
@@ -2093,7 +2099,7 @@ export default function CinemaPlayerView({
               onClick={(e) => {
                 const newVal = adClicks + 1;
                 setAdClicks(newVal);
-                localStorage.setItem('classico_ad_clicks_' + movieId, String(newVal));
+                sessionStorage.setItem('classico_ad_clicks_' + movieId, String(newVal));
                 sessionStorage.setItem('returning_from_ad', 'true');
               }}
               className="w-full py-4 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(245,158,11,0.3)] mb-4 cursor-pointer"
@@ -2108,10 +2114,7 @@ export default function CinemaPlayerView({
           </div>
           
           <button
-            onClick={() => {
-              if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-              onClose();
-            }}
+            onClick={handleClosePlayer}
             className="absolute top-6 left-6 p-3 rounded-full bg-black/50 hover:bg-black/80 text-white/90 hover:text-white transition-all backdrop-blur-md cursor-pointer"
           >
             <ArrowLeft className="w-6 h-6" />
@@ -2135,10 +2138,7 @@ export default function CinemaPlayerView({
         {/* LEFT: BACK + SERVER */}
         <div className="flex items-center gap-2 relative z-10 w-1/3">
           <button
-            onClick={() => {
-              if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-              onClose();
-            }}
+            onClick={handleClosePlayer}
             className="pointer-events-auto p-2 sm:p-2 rounded-full bg-black/50 hover:bg-black/80 text-white/90 hover:text-white transition-all cursor-pointer flex items-center justify-center backdrop-blur-md"
             title="Back"
           >
@@ -2192,6 +2192,7 @@ export default function CinemaPlayerView({
                           sessionStorage.setItem('server_selected_' + movieId, 'true');
                           localStorage.setItem("classico_global_server_index", String(idx));
                           setServerSelected(true);
+                          setIsIframeLoading(true);
                           setShowServerMenu(false);
                         }}
                         className={`px-4 py-3 text-sm flex items-center gap-3 transition-colors ${activeServerIndex === idx ? 'bg-amber-500/10 text-amber-500' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}
@@ -2220,6 +2221,19 @@ export default function CinemaPlayerView({
       <div 
         className={`absolute inset-0 z-[60] bg-black flex flex-col items-center justify-center gap-4 text-amber-500 transition-opacity duration-1000 ease-in-out ${(adClicks >= 3 && (isLoading || isStreamLoading || (playbackInfo?.isIframeEmbed && isIframeLoading))) ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
       >
+        <button
+          onClick={() => {
+            setIsLoading(false);
+            setIsStreamLoading(false);
+            setIsIframeLoading(false);
+            setServerSelected(false);
+            setShowServerMenu(true);
+            setPlaybackInfo(null as any);
+          }}
+          className="absolute top-6 left-6 p-3 rounded-full bg-neutral-900/80 hover:bg-neutral-800 text-white transition-all cursor-pointer z-[70] border border-white/10"
+        >
+          <ArrowLeft className="w-6 h-6" />
+        </button>
         <Loader2 className={`w-10 h-10 ${(isLoading || isStreamLoading || (playbackInfo?.isIframeEmbed && isIframeLoading)) ? 'animate-spin' : ''}`} />
         <div className="text-sm font-mono tracking-widest text-amber-500/80 uppercase">
           Connecting to server...

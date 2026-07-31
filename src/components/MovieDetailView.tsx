@@ -1,15 +1,7 @@
 import React, { useState } from "react";
-
-
 import { motion, AnimatePresence } from "motion/react";
-
-
 import { Plus, Play, ChevronDown, Award, Users, Film, ArrowLeft, Star, Clock, Heart, X, User, ChevronLeft, ChevronRight, Download, CheckCircle } from "lucide-react";
-
-
 import { Movie } from "../data";
-
-
 
 interface MovieDetailViewProps {
   movie: Movie;
@@ -106,8 +98,7 @@ export default function MovieDetailView({
 
   const getDownloadUrl = () => {
     const tmdbId = fullMovie.providerIds?.Tmdb || fullMovie.tmdbId || fullMovie.id;
-    if (!tmdbId || tmdbId === "undefined") return "";
-    const cleanId = String(tmdbId).trim().replace('-tv', '');
+    const cleanId = tmdbId.replace('-tv', '');
     if (fullMovie.isTv) {
        const s = lastWatched ? lastWatched.season : (selectedSeason || 1);
        const e = lastWatched ? lastWatched.episode : 1;
@@ -118,8 +109,7 @@ export default function MovieDetailView({
 
   const getEpisodeDownloadUrl = (s: number, e: number) => {
     const tmdbId = fullMovie.providerIds?.Tmdb || fullMovie.tmdbId || fullMovie.id;
-    if (!tmdbId || tmdbId === "undefined") return "";
-    const cleanId = String(tmdbId).trim().replace('-tv', '');
+    const cleanId = tmdbId.replace('-tv', '');
     return `https://mediatv.trendingpie.com/?id=${cleanId}&s=${s}&e=${e}`;
   };
 
@@ -245,7 +235,7 @@ export default function MovieDetailView({
                   TRAILER
                 </button>
                 
-                <a href={getDownloadUrl() || undefined} target={!getDownloadUrl() ? "_self" : "_blank"} rel="noopener noreferrer" onClick={(e) => { if (!getDownloadUrl()) { e.preventDefault(); alert("Lien de téléchargement non disponible pour ce titre."); } }} className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-zinc-800/80 hover:bg-zinc-700/80 text-white rounded-full transition-all active:scale-95 cursor-pointer border border-zinc-700/50 hover:border-zinc-500/50 shrink-0" title="Télécharger">
+                <a href={getDownloadUrl()} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 bg-zinc-800/80 hover:bg-zinc-700/80 text-white rounded-full transition-all active:scale-95 cursor-pointer border border-zinc-700/50 hover:border-zinc-500/50 shrink-0" title="Télécharger">
                   <Download className="w-5 h-5 sm:w-6 sm:h-6" />
                 </a>
 

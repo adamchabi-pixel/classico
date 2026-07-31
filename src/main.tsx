@@ -391,12 +391,16 @@ if (typeof window !== "undefined") {
           const isTv = id.endsWith('-tv');
           const actualId = isTv ? id.replace('-tv', '') : id;
           const u = isTv 
-             ? `https://api.tmdb.org/3/tv/${actualId}?append_to_response=credits,videos,similar&language=en-US`
-            : `https://api.tmdb.org/3/movie/${actualId}?append_to_response=credits,videos,similar&language=en-US`;
+             ? `https://api.tmdb.org/3/tv/${actualId}?append_to_response=credits,videos,similar,images&include_image_language=en,null&language=en-US`
+            : `https://api.tmdb.org/3/movie/${actualId}?append_to_response=credits,videos,similar,images&include_image_language=en,null&language=en-US`;
           const res = await fetch(u, { headers: { "Authorization": `Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs`, "Accept": "application/json" } });
           if (!res.ok) throw new Error("TMDB failed");
           const m = await res.json();
           const releaseDate = isTv ? m.first_air_date : m.release_date;
+
+          const logos = (m.images?.logos || []).filter((l: any) => l.file_path && l.file_path.endsWith('.png'));
+          const bestLogo = logos.find((l: any) => l.iso_639_1 === 'en') || logos[0];
+          const logoUrl = bestLogo ? `https://image.tmdb.org/t/p/w500${bestLogo.file_path}` : "";
           
           let seasons = [];
           if (isTv && m.seasons) {
@@ -429,6 +433,8 @@ if (typeof window !== "undefined") {
             backdropUrl: m.backdrop_path ? `https://image.tmdb.org/t/p/original${m.backdrop_path}` : "",
             year: releaseDate ? parseInt(releaseDate.substring(0, 4)) : new Date().getFullYear(),
             duration: isTv ? (m.episode_run_time?.[0] || 45) : (m.runtime || 120),
+            logoUrl: logoUrl,
+            hasLogo: !!logoUrl,
             director: "Unknown",
             cast: m.credits?.cast?.slice(0, 4).map((c: any) => c.name) || [],
             castDetails: m.credits?.cast?.slice(0, 8).map((c: any) => ({

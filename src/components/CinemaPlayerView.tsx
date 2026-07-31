@@ -323,7 +323,7 @@ export default function CinemaPlayerView({
   // Mobile player initialization && on-screen logs states
   const [isInitialized, setIsInitialized] = useState(true);
   const [playerLogs, setPlayerLogs] = useState<string[]>([]);
-  const [adClicks, setAdClicks] = useState(2);
+  const [adClicks, setAdClicks] = useState(0);
 
   const addLog = (msg: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -850,7 +850,7 @@ export default function CinemaPlayerView({
                 finalTmdbId = String(matchedMovie.tmdbId);
             }
             
-            let iframeUrl111 = "";
+            let iframeUrlVidrock = "";
             let iframeUrlPeach = "";
             let iframeUrlVideasy = "";
             let iframeUrlCinemaos = "";
@@ -859,21 +859,21 @@ export default function CinemaPlayerView({
             const timeParam = savedRestoreTimeRef.current > 0 ? `&t=${Math.floor(savedRestoreTimeRef.current)}` : "";
             
             if (isTv && season && episode) {
-              iframeUrl111 = `https://111movies.net/tv/${cleanId}/${season}/${episode}?dummy=1${timeParam}`;
+              iframeUrlVidrock = `https://vidlink.pro/tv/${cleanId}/${season}/${episode}?dummy=1${timeParam}`;
               iframeUrlPeach = `https://peachify.pro/embed/tv/${cleanId}/${season}/${episode}?accent=FF9900&servers=hide${timeParam}`;
               iframeUrlVideasy = `https://player.videasy.net/tv/${cleanId}/${season}/${episode}?color=FF9900&nextEpisode=true&autoplayNextEpisode=true&episodeSelector=true&overlay=true${timeParam}`;
               iframeUrlCinemaos = `https://cinemaos.live/watch/tv/${cleanId}?season=${season}&episode=${episode}${timeParam}`;
             } else {
-              iframeUrl111 = `https://111movies.net/movie/${cleanId}?dummy=1${timeParam}`;
+              iframeUrlVidrock = `https://vidlink.pro/movie/${cleanId}?dummy=1${timeParam}`;
               iframeUrlPeach = `https://peachify.pro/embed/movie/${cleanId}?accent=FF9900&servers=hide${timeParam}`;
               iframeUrlVideasy = `https://player.videasy.net/movie/${cleanId}?color=FF9900&overlay=true${timeParam}`;
               iframeUrlCinemaos = `https://cinemaos.live/watch/movie/${cleanId}?dummy=1${timeParam}`;
             }
             const newServers = [
-              { name: "Server 1", url: iframeUrlVideasy, stars: 3 },
-              { name: "Server 2", url: iframeUrlCinemaos, stars: 2 },
-              { name: "Server 3", url: iframeUrlPeach, stars: 2 },
-              { name: "Server 4", url: iframeUrl111, stars: 1 }
+              { name: "Server 1", url: iframeUrlCinemaos, stars: 3 },
+              { name: "Server 2", url: iframeUrlPeach, stars: 2 },
+              { name: "Server 3", url: iframeUrlVideasy, stars: 2 },
+              { name: "Server 4", url: iframeUrlVidrock, stars: 1 }
             ];
             setAvailableServers(newServers);
             
@@ -1115,7 +1115,7 @@ export default function CinemaPlayerView({
             const cleanId = movieId.replace("-tv", "");
             const timeParam = savedRestoreTimeRef.current > 0 ? `&t=${Math.floor(savedRestoreTimeRef.current)}` : "";
             
-            let iframeUrl111 = "";
+            let iframeUrlVidrock = "";
             let iframeUrlPeach = "";
             let iframeUrlVideasy = "";
             let iframeUrlCinemaos = "";
@@ -1124,22 +1124,22 @@ export default function CinemaPlayerView({
               const tvState = JSON.parse(localStorage.getItem("classico_tv_state") || "{}")[movie?.id || ""] || {};
               const season = tvState.season || 1;
               const episode = tvState.episode || 1;
-              iframeUrl111 = `https://111movies.net/tv/${cleanId}/${season}/${episode}?dummy=1${timeParam}`;
+              iframeUrlVidrock = `https://vidlink.pro/tv/${cleanId}/${season}/${episode}?dummy=1${timeParam}`;
               iframeUrlPeach = `https://peachify.pro/embed/tv/${cleanId}/${season}/${episode}?accent=FF9900&servers=hide${timeParam}`;
               iframeUrlVideasy = `https://player.videasy.net/tv/${cleanId}/${season}/${episode}?color=FF9900&nextEpisode=true&autoplayNextEpisode=true&episodeSelector=true&overlay=true${timeParam}`;
               iframeUrlCinemaos = `https://cinemaos.live/watch/tv/${cleanId}?season=${season}&episode=${episode}${timeParam}`;
             } else {
-              iframeUrl111 = `https://111movies.net/movie/${cleanId}?dummy=1${timeParam}`;
+              iframeUrlVidrock = `https://vidlink.pro/movie/${cleanId}?dummy=1${timeParam}`;
               iframeUrlPeach = `https://peachify.pro/embed/movie/${cleanId}?accent=FF9900&servers=hide${timeParam}`;
               iframeUrlVideasy = `https://player.videasy.net/movie/${cleanId}?color=FF9900&overlay=true${timeParam}`;
               iframeUrlCinemaos = `https://cinemaos.live/watch/movie/${cleanId}?dummy=1${timeParam}`;
             }
             
             const newServers = [
-              { name: "Server 1", url: iframeUrlVideasy, stars: 3 },
-              { name: "Server 2", url: iframeUrlCinemaos, stars: 2 },
-              { name: "Server 3", url: iframeUrlPeach, stars: 2 },
-              { name: "Server 4", url: iframeUrl111, stars: 1 }
+              { name: "Server 1", url: iframeUrlCinemaos, stars: 3 },
+              { name: "Server 2", url: iframeUrlPeach, stars: 2 },
+              { name: "Server 3", url: iframeUrlVideasy, stars: 2 },
+              { name: "Server 4", url: iframeUrlVidrock, stars: 1 }
             ];
 
             const fallbackData = {
@@ -1685,7 +1685,7 @@ export default function CinemaPlayerView({
       video.load();
 
       // play() immédiat seulement si l'utilisateur a débloqué
-      if (adClicks >= 2) {
+      if (adClicks >= 3) {
         video.play().catch((err) => {
         });
       }
@@ -1815,7 +1815,7 @@ export default function CinemaPlayerView({
     const video = videoRef.current;
     if (!video) return;
 
-    if (adClicks < 2) {
+    if (adClicks < 3) {
       video.pause();
       if (playing) setPlaying(false);
       return;
@@ -2076,6 +2076,50 @@ export default function CinemaPlayerView({
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col justify-center items-center select-none overflow-hidden cursor-default">
+      {/* AdGate Overlay */}
+      {adClicks < 3 && (
+        <div className="absolute inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center pointer-events-auto overflow-y-auto">
+          <div className="max-w-md w-full bg-zinc-900/90 border border-zinc-700/50 rounded-2xl p-8 shadow-2xl flex flex-col items-center">
+            <h2 className="text-2xl font-bold text-amber-500 mb-4 font-forum tracking-wide">Support Classico</h2>
+            <p className="text-zinc-300 text-sm mb-6 leading-relaxed">
+              Classico is free and will stay that way, but our servers cost a lot to maintain. The only way we can compensate is by including three ads per movie.
+              <br /><br />
+              <strong className="text-white">Please disable your ad-blocker to support us.</strong> Thank you immensely!
+            </p>
+            <div className="bg-rose-500/10 border border-rose-500/20 rounded-lg p-3 w-full mb-6">
+              <p className="text-rose-400 text-xs font-mono uppercase tracking-wider">
+                Don't click anything on the ads, just click on the X.
+              </p>
+            </div>
+            
+            <button
+              onClick={() => {
+                setAdClicks(prev => prev + 1);
+                window.open('https://omg10.com/4/11192957', '_blank');
+              }}
+              className="w-full py-4 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(245,158,11,0.3)] mb-4 cursor-pointer"
+            >
+              <span>Watch Ad to Continue</span>
+            </button>
+
+            <div className="flex items-center gap-2">
+              <span className="text-zinc-500 text-xs font-mono uppercase tracking-widest">Progress</span>
+              <span className="text-amber-500 font-bold font-mono bg-amber-500/10 px-2 py-0.5 rounded">{adClicks}/3</span>
+            </div>
+          </div>
+          
+          <button
+            onClick={() => {
+              if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+              onClose();
+            }}
+            className="absolute top-6 left-6 p-3 rounded-full bg-black/50 hover:bg-black/80 text-white/90 hover:text-white transition-all backdrop-blur-md cursor-pointer"
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+        </div>
+      )}
+
       {/* INTERCEPTOR OVERLAY TO WAKE UP CONTROLS (IFRAME ONLY) */}
       {!controlsVisible && playbackInfo?.isIframeEmbed && (
         <div 

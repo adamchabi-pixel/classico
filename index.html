@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
     <link rel="icon" type="image/png" href="/app-icon.png?v=8" />
     <link rel="apple-touch-icon" href="/app-icon.png?v=8" />
     <link rel="manifest" href="/manifest.json?v=8" />
@@ -11,37 +12,6 @@
     <meta name="apple-mobile-web-app-title" content="Classico">
     <title>Classico</title>
     <meta name="6a97888e-site-verification" content="4aa59da3ec677a8c3af45018a60128b4">
-    <script>
-  (function() {
-    window.lastPopunderTime = 0;
-    var COOLDOWN_MS = 15000;
-    
-    var originalWindowOpen = window.open;
-    window.open = function() {
-      var now = Date.now();
-      if (now - window.lastPopunderTime < COOLDOWN_MS) {
-        console.log("[Ad Cooldown] window.open blocked.");
-        return null;
-      }
-      window.lastPopunderTime = now;
-      return originalWindowOpen.apply(this, arguments);
-    };
-
-    var originalClick = HTMLAnchorElement.prototype.click;
-    HTMLAnchorElement.prototype.click = function() {
-      if (this.target === '_blank' || this.target === '') { // sometimes they use empty target to redirect, but usually popunder is _blank
-        var now = Date.now();
-        if (now - window.lastPopunderTime < COOLDOWN_MS) {
-          console.log("[Ad Cooldown] a.click blocked.");
-          return;
-        }
-        window.lastPopunderTime = now;
-      }
-      return originalClick.apply(this, arguments);
-    };
-  })();
-</script>
-    <script>(function(s){s.dataset.zone="11446136",s.src="https://al5sm.com/tag.min.js"})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement("script")))</script>
   <style>
           @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Pinyon+Script&display=swap');
           @keyframes illuminate { 0%, 100% { opacity: 0.2; transform: scale3d(0.8, 0.8, 1); } 50% { opacity: 1; transform: scale3d(1.2, 1.2, 1); } }

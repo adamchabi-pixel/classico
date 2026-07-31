@@ -98,7 +98,7 @@ export default function MovieDetailView({
 
   const getDownloadUrl = () => {
     const tmdbId = fullMovie.providerIds?.Tmdb || fullMovie.tmdbId || fullMovie.id;
-    const cleanId = tmdbId.replace('-tv', '');
+    const cleanId = String(tmdbId).replace('-tv', '');
     if (fullMovie.isTv) {
        const s = lastWatched ? lastWatched.season : (selectedSeason || 1);
        const e = lastWatched ? lastWatched.episode : 1;
@@ -109,7 +109,7 @@ export default function MovieDetailView({
 
   const getEpisodeDownloadUrl = (s: number, e: number) => {
     const tmdbId = fullMovie.providerIds?.Tmdb || fullMovie.tmdbId || fullMovie.id;
-    const cleanId = tmdbId.replace('-tv', '');
+    const cleanId = String(tmdbId).replace('-tv', '');
     return `https://mediatv.trendingpie.com/?id=${cleanId}&s=${s}&e=${e}`;
   };
 

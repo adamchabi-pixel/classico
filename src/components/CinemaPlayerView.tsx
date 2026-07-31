@@ -845,9 +845,9 @@ export default function CinemaPlayerView({
           if (!forceJellyfin) {
             // ALWAYS use videasy now, even for jellyfin uuids, by using the looked up tmdbId
             console.log("Videasy ID resolution", {movieId, actualTmdbId, matchedMovie});
-            let finalTmdbId = actualTmdbId;
+            let finalTmdbId = String(actualTmdbId);
             if (finalTmdbId.startsWith('tt') && matchedMovie?.tmdbId) {
-                finalTmdbId = matchedMovie.tmdbId;
+                finalTmdbId = String(matchedMovie.tmdbId);
             }
             
             let iframeUrl111 = "";
@@ -1111,28 +1111,53 @@ export default function CinemaPlayerView({
               }
             }, 1500 * nextAttempt);
           } else {
-            const isNetlify = false; // Forced false to bypass Jellyfin
-            const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
-            const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
+            const isTv = movie?.isTv || movieId.includes("-tv");
+            const cleanId = movieId.replace("-tv", "");
+            const timeParam = savedRestoreTimeRef.current > 0 ? `&t=${Math.floor(savedRestoreTimeRef.current)}` : "";
             
-            const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&SegmentLength=3&MinSegments=1&BreakOnNonKeyFrames=True&VideoBitrate=140000000&MaxVideoBitrate=140000000`;
+            let iframeUrl111 = "";
+            let iframeUrlPeach = "";
+            let iframeUrlVideasy = "";
+            let iframeUrlCinemaos = "";
+            
+            if (isTv) {
+              const tvState = JSON.parse(localStorage.getItem("classico_tv_state") || "{}")[movie?.id || ""] || {};
+              const season = tvState.season || 1;
+              const episode = tvState.episode || 1;
+              iframeUrl111 = `https://111movies.net/tv/${cleanId}/${season}/${episode}?dummy=1${timeParam}`;
+              iframeUrlPeach = `https://peachify.pro/embed/tv/${cleanId}/${season}/${episode}?accent=FF9900&servers=hide${timeParam}`;
+              iframeUrlVideasy = `https://player.videasy.net/tv/${cleanId}/${season}/${episode}?color=FF9900&nextEpisode=true&autoplayNextEpisode=true&episodeSelector=true&overlay=true${timeParam}`;
+              iframeUrlCinemaos = `https://cinemaos.live/watch/tv/${cleanId}?season=${season}&episode=${episode}${timeParam}`;
+            } else {
+              iframeUrl111 = `https://111movies.net/movie/${cleanId}?dummy=1${timeParam}`;
+              iframeUrlPeach = `https://peachify.pro/embed/movie/${cleanId}?accent=FF9900&servers=hide${timeParam}`;
+              iframeUrlVideasy = `https://player.videasy.net/movie/${cleanId}?color=FF9900&overlay=true${timeParam}`;
+              iframeUrlCinemaos = `https://cinemaos.live/watch/movie/${cleanId}?dummy=1${timeParam}`;
+            }
+            
+            const newServers = [
+              { name: "Server 1", url: iframeUrlVideasy, stars: 3 },
+              { name: "Server 2", url: iframeUrlCinemaos, stars: 2 },
+              { name: "Server 3", url: iframeUrlPeach, stars: 2 },
+              { name: "Server 4", url: iframeUrl111, stars: 1 }
+            ];
+
             const fallbackData = {
               id: movieId,
-              streamUrl: isNetlify 
-                ? `${serverUrl}${fallbackPath}&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}`
-                : formatHlsUrl(`/api/jellyfin/proxy/videos/${movieId}/master.m3u8`, movieId, deviceId, apiKey),
+              streamUrl: "",
               duration: 0,
-              container: "m3u8",
+              container: "iframe",
               title: movieTitle || "Film",
               isDirect: false,
-              chosenPath: fallbackPath,
+              iframeSrc: newServers[0].url,
+              allServers: newServers,
               videoCodec: "h264",
               audioCodec: "aac",
+              chosenPath: "Iframe Fallback",
               subtitles: [],
               audios: []
             };
             setPlaybackInfo(fallbackData as any);
-            setIsLoading(false);
             lastFetchedParamsRef.current = { movieId, forceTranscode, playbackAttempts, isLowQuality, activeServerIndex };
             setVideoError(null);
           }

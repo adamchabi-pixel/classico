@@ -1807,12 +1807,16 @@ export default function App() {
               return newCache;
             });
           } else {
-            setMovieLoadError(data.error || "Failed to load movie data.");
+            if (!activeMovie) {
+              setMovieLoadError(data.error || "Failed to load movie data.");
+            }
           }
         })
         .catch(err => {
           console.error("Error fetching missing movie data:", err);
-          setMovieLoadError(err.message);
+          if (!activeMovie) {
+            setMovieLoadError(err.message);
+          }
         });
     }
   }, [targetMovieId, activeMovie]);
@@ -1820,10 +1824,10 @@ export default function App() {
   // Fetch missing history movies on mount so Resume Watching is preserved
   useEffect(() => {
     if (history.length > 0 && allMovies.length > 0) {
-      const missingIds = history.filter(id => !allMovies.find(m => m.id === id || m.id === id + "-tv" || m.id === id.replace("-tv", "")));
+      const missingIds = history.filter(id => !allMovies.find(m => m.id === id || m.id === String(id) + "-tv" || m.id === String(id).replace("-tv", "")));
       if (missingIds.length > 0) {
         missingIds.forEach(id => {
-          const tmdbId = id.replace("-tv", "");
+          const tmdbId = String(id).replace("-tv", "");
           fetch(`/api/movie/${id}`)
             .then(res => res.json())
             .then(data => {
@@ -1885,7 +1889,7 @@ export default function App() {
   const getProgress = (id: string) => {
     let pct = progressData[id] || 0;
     if (pct === 0) {
-      const m = allMovies.find(m => m.id === id || m.id === id + "-tv" || m.id === id.replace("-tv", ""));
+      const m = allMovies.find(m => m.id === id || m.id === String(id) + "-tv" || m.id === String(id).replace("-tv", ""));
       if (m && m.tmdbId && progressData[m.tmdbId]) {
          pct = progressData[m.tmdbId];
       }
@@ -2371,7 +2375,7 @@ export default function App() {
               <div className="max-w-[2000px] mx-auto px-4 sm:px-8 space-y-12 pb-16">
                 
                 {/* Reprendre la lecture Section */}
-                {(history.filter(id => getProgress(id) > 0 && getProgress(id) < 0.95).map(id => allMovies.find(m => m.id === id || m.id === id + "-tv" || m.id === id.replace("-tv", ""))).filter(m => !!m).length > 0) && (
+                {(history.filter(id => getProgress(id) > 0 && getProgress(id) < 0.95).map(id => allMovies.find(m => m.id === id || m.id === String(id) + "-tv" || m.id === String(id).replace("-tv", ""))).filter(m => !!m).length > 0) && (
                   <div className="space-y-4 text-left pt-6 sm:pt-8">
                     <div className="flex flex-row items-center sm:items-end justify-between gap-2 sm:gap-3 border-b border-zinc-900 pb-2 sm:pb-3">
                       <div className="space-y-0.5 max-w-[80%]">
@@ -2415,7 +2419,7 @@ export default function App() {
                         className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar pt-4 px-1 pb-6 sm:pb-10"
                       >
                         {Array.from(new Set([...history, ...Object.keys(progressData).map(k => k.replace("-tv", ""))]))
-                          .map(id => allMovies.find(m => m.id === id || m.id === id + "-tv" || m.id === id.replace("-tv", "")))
+                          .map(id => allMovies.find(m => m.id === id || m.id === String(id) + "-tv" || m.id === String(id).replace("-tv", "")))
                           .filter((m, idx, self) => !!m && self.findIndex(t => t?.id === m?.id) === idx)
                           .filter(m => {
                               const p = getProgress(m.id);
@@ -2766,7 +2770,7 @@ export default function App() {
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-8 justify-items-center">
                         {history
                           .filter(id => typeof id === 'string')
-                          .map(id => allMovies.find(m => m.id === id || m.id === id + "-tv" || m.id === id.replace("-tv", "")))
+                          .map(id => allMovies.find(m => m.id === id || m.id === String(id) + "-tv" || m.id === String(id).replace("-tv", "")))
                           .filter((m): m is Movie => !!m)
                           .map((movie, idx) => (
                             <LazyVirtualCard key={`${movie.id}-history-${idx}`} priority={idx < 8}>

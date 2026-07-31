@@ -250,6 +250,53 @@ if (typeof window !== "undefined") {
           }
         })();
       }
+    } else if (isNetlify && url.startsWith("/api/discover")) {
+      return (async () => {
+        try {
+          const u = new URL(url, window.location.origin);
+          const type = u.searchParams.get("type") || "movie";
+          const page = u.searchParams.get("page") || "1";
+          const activePlatform = u.searchParams.get("activePlatform");
+          const activeGenre = u.searchParams.get("activeGenre");
+          const activeLanguage = u.searchParams.get("activeLanguage");
+          const activeYear = u.searchParams.get("activeYear");
+
+          let tmdbUrl = `https://api.tmdb.org/3/trending/${type}/day?language=en-US&page=${page}`;
+          if (type === "tv") tmdbUrl += "&without_genres=16";
+          
+          if (activePlatform || activeGenre || activeLanguage || activeYear) {
+             tmdbUrl = `https://api.tmdb.org/3/discover/${type}?language=en-US&page=${page}&watch_region=US`;
+             if (activeGenre === 'top_rated') {
+                 tmdbUrl += `&sort_by=vote_average.desc&vote_count.gte=300`;
+             } else {
+                 tmdbUrl += `&sort_by=popularity.desc`;
+             }
+             if (activePlatform) tmdbUrl += `&with_watch_providers=${activePlatform}`;
+             if (activeGenre && activeGenre !== 'top_rated') tmdbUrl += `&with_genres=${activeGenre}`;
+             if (activeLanguage) tmdbUrl += `&with_original_language=${activeLanguage}`;
+             if (type === "tv") tmdbUrl += `&without_genres=16`;
+             if (activeYear) {
+                 const dateField = type === "tv" ? "first_air_date" : "primary_release_date";
+                 if (activeYear === '2010') {
+                     tmdbUrl += `&${dateField}.gte=2010-01-01&${dateField}.lte=2019-12-31`;
+                 } else if (activeYear === '2000') {
+                     tmdbUrl += `&${dateField}.gte=2000-01-01&${dateField}.lte=2009-12-31`;
+                 } else {
+                     tmdbUrl += `&${dateField}.gte=${activeYear}-01-01&${dateField}.lte=${activeYear}-12-31`;
+                 }
+             }
+          }
+
+          const res = await fetch(tmdbUrl, {
+            headers: { "Authorization": `Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhNDZhYjQxYTI5MmZhY2FkZmQ3ZTg1ZjBmZjIxMzEwOSIsIm5iZiI6MTc4NDQxNDMwOS4zNTIsInN1YiI6IjZhNWMwMDY1MjNhOTJiOWM2MTc3OTc2NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5km-ffvJ5u3te9Wz4cv9rIl6QSthypDbCJsBVs9GxVs`, "Accept": "application/json" }
+          });
+          if (!res.ok) throw new Error("TMDB failed");
+          const data = await res.json();
+          return new Response(JSON.stringify({ success: true, data: data }), { status: 200 });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500 });
+        }
+      })();
     } else if (isNetlify && url.startsWith("/api/trending")) {
       return (async () => {
         try {

@@ -227,6 +227,7 @@ export default function CinemaPlayerView({
   const [isLoading, setIsLoading] = useState(true);
   const [isStreamLoading, setIsStreamLoading] = useState(true);
   const [isIframeLoading, setIsIframeLoading] = useState(true);
+  const [iframeKey, setIframeKey] = useState(0);
   const [isActuallyPlaying, setIsActuallyPlaying] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
@@ -316,6 +317,7 @@ export default function CinemaPlayerView({
     return () => {
       if (sessionStorage.getItem('returning_from_ad') !== 'true') {
         sessionStorage.removeItem('classico_ad_clicks_' + movieId);
+    sessionStorage.removeItem('returning_from_ad');
       }
     };
   }, [movieId]);
@@ -550,6 +552,7 @@ export default function CinemaPlayerView({
 
   const handleClosePlayer = () => {
     sessionStorage.removeItem('classico_ad_clicks_' + movieId);
+    sessionStorage.removeItem('returning_from_ad');
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     onClose();
   };
@@ -2063,6 +2066,7 @@ export default function CinemaPlayerView({
                   setServerSelected(true);
                   localStorage.setItem("classico_global_server_index", String(idx));
                   setIsIframeLoading(true);
+                  setIframeKey(prev => prev + 1);
                 }}
                 className={`w-full p-4 rounded-xl flex items-center justify-between transition-all group border ${idx === 0 ? 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30' : 'bg-white/5 hover:bg-white/10 border-white/5'}`}
               >
@@ -2205,6 +2209,7 @@ export default function CinemaPlayerView({
                           localStorage.setItem("classico_global_server_index", String(idx));
                           setServerSelected(true);
                           setIsIframeLoading(true);
+                          setIframeKey(prev => prev + 1);
                           setShowServerMenu(false);
                         }}
                         className={`px-4 py-3 text-sm flex items-center gap-3 transition-colors ${activeServerIndex === idx ? 'bg-amber-500/10 text-amber-500' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}
@@ -2240,7 +2245,6 @@ export default function CinemaPlayerView({
             setIsIframeLoading(false);
             setServerSelected(false);
             setShowServerMenu(true);
-            setPlaybackInfo(null as any);
           }}
           className="absolute top-6 left-6 p-3 rounded-full bg-neutral-900/80 hover:bg-neutral-800 text-white transition-all cursor-pointer z-[70] border border-white/10"
         >
@@ -2256,7 +2260,7 @@ export default function CinemaPlayerView({
       {playbackInfo?.iframeSrc ? (
         <div className={`absolute inset-0 w-full h-full bg-black z-40 flex items-center justify-center pt-[max(env(safe-area-inset-top),44px)] md:pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] ${adClicks >= 3 ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}>
           <iframe
-            key={playbackInfo.iframeSrc}
+            key={`${playbackInfo.iframeSrc}-${iframeKey}`}
             src={playbackInfo.iframeSrc}
             sandbox={playbackInfo.iframeSrc?.includes('cinemaos.live') ? "allow-scripts allow-same-origin allow-forms" : undefined}
             referrerPolicy="no-referrer"

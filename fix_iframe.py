@@ -1,31 +1,40 @@
-import sys
+import os
 
-with open("src/components/CinemaPlayerView.tsx", "r") as f:
+with open('src/components/CinemaPlayerView.tsx', 'r') as f:
     content = f.read()
 
-target = """          <iframe
-            src={playbackInfo.iframeSrc}
-            allowFullScreen
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-            className="absolute inset-0 w-full h-full border-0"
-            // @ts-ignore
-            webkitallowfullscreen="true"
-            // @ts-ignore
-            mozallowfullscreen="true"
-          ></iframe>"""
+# Add state
+content = content.replace(
+    'const [isIframeLoading, setIsIframeLoading] = useState(true);',
+    'const [isIframeLoading, setIsIframeLoading] = useState(true);\n  const [iframeKey, setIframeKey] = useState(0);'
+)
 
-replacement = """          <iframe
-            src={playbackInfo.iframeSrc}
-            allowFullScreen={true}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-            className="absolute inset-0 w-full h-full border-0"
-            // @ts-ignore
-            webkitAllowFullScreen={true}
-            // @ts-ignore
-            mozAllowFullScreen={true}
-          ></iframe>"""
+# Replace iframe key
+content = content.replace(
+    'key={playbackInfo.iframeSrc}',
+    'key={`${playbackInfo.iframeSrc}-${iframeKey}`}'
+)
 
-content = content.replace(target, replacement)
+# Update server select clicks (both places)
+# 1. Main list
+content = content.replace(
+    'setIsIframeLoading(true);\n                }}',
+    'setIsIframeLoading(true);\n                  setIframeKey(prev => prev + 1);\n                }}'
+)
 
-with open("src/components/CinemaPlayerView.tsx", "w") as f:
+# 2. Dropdown menu list
+content = content.replace(
+    'setIsIframeLoading(true);\n                          setShowServerMenu(false);\n                        }}',
+    'setIsIframeLoading(true);\n                          setIframeKey(prev => prev + 1);\n                          setShowServerMenu(false);\n                        }}'
+)
+
+# Also fix the setPlaybackInfo(null as any) issue when clicking back on loader
+content = content.replace(
+    'setShowServerMenu(true);\n            setPlaybackInfo(null as any);\n          }}',
+    'setShowServerMenu(true);\n          }}'
+)
+
+with open('src/components/CinemaPlayerView.tsx', 'w') as f:
     f.write(content)
+
+print("Done!")

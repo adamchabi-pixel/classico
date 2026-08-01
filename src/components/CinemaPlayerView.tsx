@@ -231,6 +231,7 @@ export default function CinemaPlayerView({
   const [isActuallyPlaying, setIsActuallyPlaying] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
+  const [showServerNotice, setShowServerNotice] = useState(true);
   
   
   const [isCurtainOpen, setIsCurtainOpen] = useState(false);
@@ -2256,6 +2257,28 @@ export default function CinemaPlayerView({
         </div>
       </div>
       
+            {/* Server Notice */}
+      {showServerNotice && adClicks >= 3 && playbackInfo && !isLoading && !isStreamLoading && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[55] w-11/12 max-w-md pointer-events-auto">
+          <div className="bg-black/80 backdrop-blur-md border border-amber-500/30 rounded-xl p-4 flex items-start gap-3 shadow-2xl">
+            <div className="p-2 bg-amber-500/20 rounded-full text-amber-500 shrink-0 mt-0.5">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <p className="text-white/90 text-sm leading-snug font-medium">
+                If the screen is black, buffering, or missing subtitles, try changing the server.
+              </p>
+            </div>
+            <button 
+              onClick={() => setShowServerNotice(false)}
+              className="p-1.5 -mr-1.5 -mt-1 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Actual player/iframe */}
       {playbackInfo?.iframeSrc ? (
         <div className={`absolute inset-0 w-full h-full bg-black z-40 flex items-center justify-center pt-[max(env(safe-area-inset-top),44px)] md:pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] ${adClicks >= 3 ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}>

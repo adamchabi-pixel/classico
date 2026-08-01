@@ -1,6 +1,45 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import Hls from "hls.js";
 import { motion, AnimatePresence } from "motion/react";
+
+const safeStorage = {
+  getItem: (key: string) => {
+    try {
+      return safeStorage.getItem(key);
+    } catch(e) {
+      return null;
+    }
+  },
+  setItem: (key: string, value: string) => {
+    try {
+      safeStorage.setItem(key, value);
+    } catch(e) {}
+  },
+  removeItem: (key: string) => {
+    try {
+      safeStorage.removeItem(key);
+    } catch(e) {}
+  }
+};
+const safeSession = {
+  getItem: (key: string) => {
+    try {
+      return safeSession.getItem(key);
+    } catch(e) {
+      return null;
+    }
+  },
+  setItem: (key: string, value: string) => {
+    try {
+      safeSession.setItem(key, value);
+    } catch(e) {}
+  },
+  removeItem: (key: string) => {
+    try {
+      safeSession.removeItem(key);
+    } catch(e) {}
+  }
+};
 import { 
   Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Languages, 
   Maximize2, ArrowLeft, Loader2, Sparkles, AlertCircle, Captions, Lock, Menu, Cast, Settings, ChevronRight, ChevronLeft, X, ChevronDown
@@ -31,7 +70,7 @@ export function formatHlsUrl(url: string, id: string, deviceId?: string, apiKey?
   if (url.includes("Static=true") || url.includes("static=true")) {
     try {
       const finalDeviceId = deviceId || "CinemaAppClient";
-      const finalApiKey = apiKey || localStorage.getItem("classico_jellyfin_apikey") || "";
+      const finalApiKey = apiKey || safeStorage.getItem("classico_jellyfin_apikey") || "";
       const urlParts = url.split("?");
       const params = new URLSearchParams(urlParts[1] || "");
       if (!params.has("api_key") && finalApiKey) {
@@ -48,7 +87,7 @@ export function formatHlsUrl(url: string, id: string, deviceId?: string, apiKey?
   
   // 3. Vérifie la présence des tokens : Assure-toi que les variables deviceId et apiKey transmises à la fonction ne sont pas undefined.
   const finalDeviceId = deviceId || "CinemaAppClient";
-  const finalApiKey = apiKey || localStorage.getItem("classico_jellyfin_apikey") || "";
+  const finalApiKey = apiKey || safeStorage.getItem("classico_jellyfin_apikey") || "";
 
   let formatted = url;
   // 1. Remplacement de l'endpoint : Remplace définitivement /api/jellyfin/proxy/main.m3u8 par l'URL officielle : /api/jellyfin/proxy/videos/${id}/master.m3u8
@@ -182,7 +221,7 @@ export default function CinemaPlayerView({
   onClose
 }: CinemaPlayerViewProps) {
   const deviceId = "CinemaAppClient";
-  const apiKey = localStorage.getItem("classico_jellyfin_apikey") || "";
+  const apiKey = safeStorage.getItem("classico_jellyfin_apikey") || "";
 
   const [playbackInfo, setPlaybackInfo] = useState<{
     id: string;
@@ -227,7 +266,7 @@ export default function CinemaPlayerView({
   const [isLoading, setIsLoading] = useState(true);
   const [isStreamLoading, setIsStreamLoading] = useState(true);
   const [isIframeLoading, setIsIframeLoading] = useState(true);
-  const [iframeKey, setIframeKey] = useState(0);
+  const [iframeKey, setIframeKey] = useState(() => Date.now());
   const [isActuallyPlaying, setIsActuallyPlaying] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
@@ -239,7 +278,7 @@ export default function CinemaPlayerView({
     const [activeServerIndex, setActiveServerIndex] = useState(() => {
     try {
       // Check for per-movie/show server preference
-      const savedStr = localStorage.getItem("classico_progress");
+      const savedStr = safeStorage.getItem("classico_progress");
       if (savedStr) {
         const saved = JSON.parse(savedStr) || {};
         let baseId = movieId;
@@ -254,7 +293,7 @@ export default function CinemaPlayerView({
         }
       }
       
-      const globalServer = localStorage.getItem("classico_global_server_index");
+      const globalServer = safeStorage.getItem("classico_global_server_index");
       if (globalServer !== null) {
           const parsed = parseInt(globalServer, 10);
           return isNaN(parsed) ? 0 : parsed;
@@ -262,9 +301,7 @@ export default function CinemaPlayerView({
     } catch(e) {}
     return 0;
   });
-  const [serverSelected, setServerSelected] = useState(() => {
-    return sessionStorage.getItem('server_selected_' + movieId) === 'true';
-  });
+  const [serverSelected, setServerSelected] = useState(false);
   const [availableServers, setAvailableServers] = useState<{name: string, url: string, stars?: number}[]>([]);
   const [playing, setPlaying] = useState(true);
   const [isMetadataLoaded, setIsMetadataLoaded] = useState(false);
@@ -306,22 +343,7 @@ export default function CinemaPlayerView({
   // Mobile player initialization && on-screen logs states
   const [isInitialized, setIsInitialized] = useState(true);
   const [playerLogs, setPlayerLogs] = useState<string[]>([]);
-  const [adClicks, setAdClicks] = useState(() => {
-    const saved = sessionStorage.getItem('classico_ad_clicks_' + movieId);
-    return saved ? parseInt(saved, 10) : 0;
-  });
-
-  useEffect(() => {
-    const saved = sessionStorage.getItem('classico_ad_clicks_' + movieId);
-    setAdClicks(saved ? parseInt(saved, 10) : 0);
-
-    return () => {
-      if (sessionStorage.getItem('returning_from_ad') !== 'true') {
-        sessionStorage.removeItem('classico_ad_clicks_' + movieId);
-    sessionStorage.removeItem('returning_from_ad');
-      }
-    };
-  }, [movieId]);
+  const [adClicks, setAdClicks] = useState(0);
 
   const addLog = (msg: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -426,10 +448,7 @@ export default function CinemaPlayerView({
   // --- GLOBAL POPUNDER & AD FIX ---
   // Objectif: Désactiver les popunders uniquement pendant la lecture vidéo
   useEffect(() => {
-    const originalWindowOpen = window.open;
-    window.open = function() {
-      return null;
-    } as any;
+    // window.open override removed because iframe sandbox handles it
 
     const rootElement = document.getElementById('root');
     const stopPopunderBubble = (e: MouseEvent) => {
@@ -443,7 +462,7 @@ export default function CinemaPlayerView({
       const target = e.target as HTMLElement;
       if (target && target.closest) {
         const link = target.closest('a');
-        if (link && link.target === '_blank') {
+        if (link && link.target === '_blank' && !link.classList.contains('allow-popunder')) {
           e.preventDefault();
           e.stopImmediatePropagation();
         }
@@ -452,7 +471,6 @@ export default function CinemaPlayerView({
     document.addEventListener('click', blockPopunderLinks, true);
 
     return () => {
-      window.open = originalWindowOpen;
       if (rootElement) {
         rootElement.removeEventListener('click', stopPopunderBubble);
       }
@@ -466,7 +484,7 @@ export default function CinemaPlayerView({
   useEffect(() => {
     if (movieId) {
       try {
-        const saved = (JSON.parse(localStorage.getItem("classico_progress") || "{}") || {});
+        const saved = (JSON.parse(safeStorage.getItem("classico_progress") || "{}") || {});
         let restoredTime = 0;
         if (isTv && season && episode) {
           const baseId = movieId.replace(/-tv$/, "").replace(/-S\d+E\d+$/, "");
@@ -552,8 +570,6 @@ export default function CinemaPlayerView({
   };
 
   const handleClosePlayer = () => {
-    sessionStorage.removeItem('classico_ad_clicks_' + movieId);
-    sessionStorage.removeItem('returning_from_ad');
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     onClose();
   };
@@ -900,8 +916,7 @@ export default function CinemaPlayerView({
             setIsLoading(false);
             setIsStreamLoading(false);
             setIsIframeLoading(false);
-            // Fallback timeout in case onLoad doesn't fire
-            
+            lastFetchedParamsRef.current = { movieId, forceTranscode, playbackAttempts, isLowQuality, activeServerIndex };
             return;
           }
           
@@ -912,8 +927,8 @@ export default function CinemaPlayerView({
           const isNetlify = false; // Forced false to bypass Jellyfin
           
           if (isNetlify) {
-            const serverUrl = localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud";
-            const currentApiKey = localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb";
+            const serverUrl = safeStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud";
+            const currentApiKey = safeStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb";
             
             // Bypass google proxy entirely
             const streamUrl = `${serverUrl}/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&SegmentLength=3&MinSegments=1&BreakOnNonKeyFrames=True&VideoBitrate=140000000&MaxVideoBitrate=140000000&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}`;
@@ -1127,7 +1142,7 @@ export default function CinemaPlayerView({
             let iframeUrlCinemaos = "";
             
             if (isTv) {
-              const tvState = JSON.parse(localStorage.getItem("classico_tv_state") || "{}")[movieId] || {};
+              const tvState = JSON.parse(safeStorage.getItem("classico_tv_state") || "{}")[movieId] || {};
               const season = tvState.season || 1;
               const episode = tvState.episode || 1;
               iframeUrlVidrock = `https://vidlink.pro/tv/${cleanId}/${season}/${episode}?dummy=1${timeParam}`;
@@ -1248,8 +1263,8 @@ export default function CinemaPlayerView({
       // Only convert to transcoding if we ACTUALLY need a non-default audio or burned in subtitles
       if (playbackInfo.isDirect && (isChangingAudio || needsBurnIn)) {
         const isNetlify = false; // Forced false to bypass Jellyfin
-        const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : "";
-        const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
+        const currentApiKey = isNetlify ? (safeStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : "";
+        const serverUrl = isNetlify ? (safeStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
         const hlsParams = `Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&SegmentLength=3&MinSegments=1&BreakOnNonKeyFrames=True&VideoBitrate=140000000&MaxVideoBitrate=140000000`;
         
         let transcodeUrl = "";
@@ -1391,6 +1406,28 @@ export default function CinemaPlayerView({
     };
   }, [playing]);
 
+  // Fix BFCache and infinite loader issues when returning from ads
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted || safeSession.getItem('returning_from_ad') === 'true') {
+        setIsIframeLoading(false);
+        setIsStreamLoading(false);
+        setIsLoading(false);
+        setIframeKey(Date.now());
+        
+
+      }
+    };
+    window.addEventListener('pageshow', handlePageShow);
+    
+    // Also run it on mount just in case we missed the event
+    if (safeSession.getItem('returning_from_ad') === 'true') {
+        setIsIframeLoading(false);
+    }
+    
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, [movieId]);
+
   // 4. INTERACTION RECOVERY CONTROLLER
   const handleUserPlayInteraction = () => {
     handlePlayPauseClick();
@@ -1477,8 +1514,8 @@ export default function CinemaPlayerView({
               }
               if (data.fatal) {
                 const isNetlify = false; // Forced false to bypass Jellyfin
-                const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
-                const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
+                const currentApiKey = isNetlify ? (safeStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
+                const serverUrl = isNetlify ? (safeStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
                 const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&SegmentLength=3&MinSegments=1&BreakOnNonKeyFrames=True&VideoBitrate=140000000&MaxVideoBitrate=140000000`;
                 const fallbackUrl = isNetlify ? `${serverUrl}${fallbackPath}&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}` : formatHlsUrl(`/api/jellyfin/proxy${fallbackPath}&DeviceId=${deviceId}&MediaSourceId=${movieId}`, movieId, deviceId, apiKey);
                 setPlaybackInfo({
@@ -1630,7 +1667,7 @@ export default function CinemaPlayerView({
       if (now - lastSaveTime > 1000) {
         lastSaveTime = now;
         try {
-          const saved = (JSON.parse(localStorage.getItem("classico_progress") || "{}") || {});
+          const saved = (JSON.parse(safeStorage.getItem("classico_progress") || "{}") || {});
           if (isTv && season && episode) {
               const baseId = movieId ? movieId.replace(/-tv$/, "").replace(/-S\d+E\d+$/, "") : null;
               if (baseId) {
@@ -1661,15 +1698,15 @@ export default function CinemaPlayerView({
                 server_index: activeServerIndex
               };
           }
-          localStorage.setItem("classico_progress", JSON.stringify(saved));
+          safeStorage.setItem("classico_progress", JSON.stringify(saved));
           
           if (isTv && season && episode) {
              const baseId = movieId ? movieId.replace(/-tv$/, "").replace(/-S\d+E\d+$/, "") : null;
              if (baseId) {
                  try {
-                     const tvState = (JSON.parse(localStorage.getItem("classico_tv_state") || "{}") || {});
+                     const tvState = (JSON.parse(safeStorage.getItem("classico_tv_state") || "{}") || {});
                      tvState[baseId] = { season: season, episode: episode };
-                     localStorage.setItem("classico_tv_state", JSON.stringify(tvState));
+                     safeStorage.setItem("classico_tv_state", JSON.stringify(tvState));
                  } catch(e) {}
              }
           }
@@ -1769,8 +1806,8 @@ export default function CinemaPlayerView({
             }
             const fallbackPath = `/Videos/${movieId}/master.m3u8?Static=false&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SubtitleStreamIndex=-1&Preset=ultrafast&SegmentContainer=ts&SegmentLength=3&MinSegments=1&BreakOnNonKeyFrames=True&VideoBitrate=140000000&MaxVideoBitrate=140000000`;
             const isNetlify = false; // Forced false to bypass Jellyfin
-            const currentApiKey = isNetlify ? (localStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
-            const serverUrl = isNetlify ? (localStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
+            const currentApiKey = isNetlify ? (safeStorage.getItem("classico_jellyfin_apikey") || "a2aac09e434e4bcc897c1b181ca197eb") : apiKey;
+            const serverUrl = isNetlify ? (safeStorage.getItem("classico_jellyfin_url") || "https://jellyfin-jacklumber00.siren.mygiga.cloud") : "";
             const fallbackUrl = isNetlify ? `${serverUrl}${fallbackPath}&api_key=${currentApiKey}&DeviceId=${deviceId}&MediaSourceId=${movieId}` : formatHlsUrl(`/api/jellyfin/proxy${fallbackPath}&DeviceId=${deviceId}&MediaSourceId=${movieId}`, movieId, deviceId, apiKey);
             setPlaybackInfo({
               id: movieId,
@@ -1913,7 +1950,7 @@ export default function CinemaPlayerView({
         if (currentTime !== undefined) {
           try {
             savedRestoreTimeRef.current = currentTime;
-            const saved = (JSON.parse(localStorage.getItem("classico_progress") || "{}") || {});
+            const saved = (JSON.parse(safeStorage.getItem("classico_progress") || "{}") || {});
             if (pIsTv && pSeason && pEpisode && pTmdbId) {
                 if (!saved[pTmdbId] || saved[pTmdbId].type !== "tv") {
                    saved[pTmdbId] = {
@@ -1941,14 +1978,14 @@ export default function CinemaPlayerView({
                   server_index: activeServerIndex
                 };
             }
-            localStorage.setItem("classico_progress", JSON.stringify(saved));
+            safeStorage.setItem("classico_progress", JSON.stringify(saved));
             
             // Also maintain legacy classico_tv_state for App.tsx and MovieDetailView.tsx compatibility
             if (pIsTv && pSeason && pEpisode && pTmdbId) {
                 try {
-                    const tvState = (JSON.parse(localStorage.getItem("classico_tv_state") || "{}") || {});
+                    const tvState = (JSON.parse(safeStorage.getItem("classico_tv_state") || "{}") || {});
                     tvState[pTmdbId] = { season: pSeason, episode: pEpisode };
-                    localStorage.setItem("classico_tv_state", JSON.stringify(tvState));
+                    safeStorage.setItem("classico_tv_state", JSON.stringify(tvState));
                 } catch(e) {}
             }
           } catch(e) {}
@@ -2002,11 +2039,35 @@ export default function CinemaPlayerView({
     }
   };
 
+  if (videoError) {
+    return (
+      <div className="absolute inset-0 bg-black/90 z-[100] flex flex-col items-center justify-center p-6 text-center">
+        <AlertCircle className="w-12 h-12 text-rose-500 mb-4" />
+        <h3 className="text-xl font-bold text-white mb-2">Error</h3>
+        <p className="text-zinc-400 max-w-md">{videoError}</p>
+        <button
+          onClick={handleClosePlayer}
+          className="mt-6 px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+        >
+          Go Back
+        </button>
+      </div>
+    );
+  }
+
+
+
   if (!serverSelected && playbackInfo?.isIframeEmbed !== false) {
     if (availableServers.length === 0) {
       if (!isLoading && isMetadataLoaded) {
           // If we finished loading and still have no servers, just bypass to avoid hanging
-          return null;
+          // BUT do not return null, instead pretend server is selected so we show player & ads
+          setServerSelected(true);
+          return (
+            <div className="fixed inset-0 z-50 bg-black flex flex-col justify-center items-center">
+              <Loader2 className="w-10 h-10 animate-spin text-amber-500" />
+            </div>
+          );
       }
       return (
         <div className="fixed inset-0 z-50 bg-black flex flex-col justify-center items-center">
@@ -2063,9 +2124,8 @@ export default function CinemaPlayerView({
                       streamUrl: targetUrl
                     });
                   }
-                  sessionStorage.setItem('server_selected_' + movieId, 'true');
                   setServerSelected(true);
-                  localStorage.setItem("classico_global_server_index", String(idx));
+                  safeStorage.setItem("classico_global_server_index", String(idx));
                   setIsIframeLoading(true);
                   setIframeKey(prev => prev + 1);
                 }}
@@ -2095,9 +2155,9 @@ export default function CinemaPlayerView({
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col justify-center items-center select-none overflow-hidden cursor-default">
-      {/* AdGate Overlay */}
+      {/* AdGate Overlay (Shows after server is selected, hiding iframe until 3 clicks) */}
       {adClicks < 3 && (
-        <div className="absolute inset-0 z-[100] bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center pointer-events-auto overflow-y-auto">
+        <div className="absolute inset-0 z-[100] bg-black flex flex-col items-center justify-center p-6 text-center pointer-events-auto overflow-y-auto">
           <div className="max-w-md w-full bg-zinc-900/90 border border-zinc-700/50 rounded-2xl p-8 shadow-2xl flex flex-col items-center">
             <h2 className="text-2xl font-bold text-amber-500 mb-4 font-forum tracking-wide">Support Classico</h2>
             <p className="text-zinc-300 text-sm mb-6 leading-relaxed">
@@ -2111,18 +2171,20 @@ export default function CinemaPlayerView({
               </p>
             </div>
             
-            <a
-              href="https://omg10.com/4/11192957"
+            <button
               onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                try {
+                  window.open("https://omg10.com/4/11192957", "_blank");
+                } catch(err) {}
                 const newVal = adClicks + 1;
                 setAdClicks(newVal);
-                sessionStorage.setItem('classico_ad_clicks_' + movieId, String(newVal));
-                sessionStorage.setItem('returning_from_ad', 'true');
               }}
-              className="w-full py-4 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(245,158,11,0.3)] mb-4 cursor-pointer"
+              className="allow-popunder w-full py-4 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(245,158,11,0.3)] mb-4 cursor-pointer block text-center"
             >
               <span>Click Ad</span>
-            </a>
+            </button>
 
             <div className="flex items-center gap-2">
               <span className="text-zinc-500 text-xs font-mono uppercase tracking-widest">Progress</span>
@@ -2138,6 +2200,7 @@ export default function CinemaPlayerView({
           </button>
         </div>
       )}
+
 
       {/* INTERCEPTOR OVERLAY TO WAKE UP CONTROLS (IFRAME ONLY) */}
       {!controlsVisible && playbackInfo?.isIframeEmbed && (
@@ -2206,8 +2269,7 @@ export default function CinemaPlayerView({
                               streamUrl: targetUrl
                             });
                           }
-                          sessionStorage.setItem('server_selected_' + movieId, 'true');
-                          localStorage.setItem("classico_global_server_index", String(idx));
+                          safeStorage.setItem("classico_global_server_index", String(idx));
                           setServerSelected(true);
                           setIsIframeLoading(true);
                           setIframeKey(prev => prev + 1);
@@ -2290,14 +2352,7 @@ export default function CinemaPlayerView({
             allowFullScreen={true}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             onLoad={() => {
-              const isPeach = playbackInfo.iframeSrc?.includes('peachify.pro');
-              const isCinemaos = playbackInfo.iframeSrc?.includes('cinemaos.live');
-              if (!isPeach) {
-                setIsIframeLoading(false);
-              } else {
-                // Safety timeout in case 'play' event never fires from Peachify
-                
-              }
+              setIsIframeLoading(false);
             }}
             className="w-full h-full border-0"
             // @ts-ignore

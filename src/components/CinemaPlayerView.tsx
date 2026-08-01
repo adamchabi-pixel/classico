@@ -2167,7 +2167,7 @@ export default function CinemaPlayerView({
             </p>
             <div className="bg-rose-500/10 border border-rose-500/20 rounded-lg p-3 w-full mb-6">
               <p className="text-rose-400 text-xs font-mono uppercase tracking-wider">
-                Don't click anything on the ads, just click on the X.
+                Don't click anything on the ads, just click on the X or change the tab.
               </p>
             </div>
             

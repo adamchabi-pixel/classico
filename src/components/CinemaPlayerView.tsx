@@ -2113,6 +2113,8 @@ export default function CinemaPlayerView({
             
             <a
               href="https://omg10.com/4/11192957"
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={(e) => {
                 const newVal = adClicks + 1;
                 setAdClicks(newVal);

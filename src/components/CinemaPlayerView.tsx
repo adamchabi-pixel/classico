@@ -309,6 +309,17 @@ export default function CinemaPlayerView({
     return saved ? parseInt(saved, 10) : 0;
   });
 
+  useEffect(() => {
+    const saved = sessionStorage.getItem('classico_ad_clicks_' + movieId);
+    setAdClicks(saved ? parseInt(saved, 10) : 0);
+
+    return () => {
+      if (sessionStorage.getItem('returning_from_ad') !== 'true') {
+        sessionStorage.removeItem('classico_ad_clicks_' + movieId);
+      }
+    };
+  }, [movieId]);
+
   const addLog = (msg: string) => {
     const timestamp = new Date().toLocaleTimeString();
     setPlayerLogs(prev => [...prev, `[${timestamp}] ${msg}`].slice(-8));
@@ -883,7 +894,8 @@ export default function CinemaPlayerView({
             };
             setPlaybackInfo(iframeResult);
             setIsLoading(false);
-            setIsStreamLoading(false); // Make sure to disable stream loading
+            setIsStreamLoading(false);
+            setIsIframeLoading(false);
             // Fallback timeout in case onLoad doesn't fire
             
             return;
@@ -2257,7 +2269,7 @@ export default function CinemaPlayerView({
                 setIsIframeLoading(false);
               } else {
                 // Safety timeout in case 'play' event never fires from Peachify
-                setTimeout(() => setIsIframeLoading(false), 800);
+                
               }
             }}
             className="w-full h-full border-0"
